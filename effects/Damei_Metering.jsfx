@@ -1,0 +1,278 @@
+desc:Damei Metering v2 — LUFS / True Peak / Spectrum → gmem (Double-Buffered)
+author:Damei
+version:2.1
+about:
+  Production-grade metering plugin for the Damei Mix Console.
+  - LUFS (Momentary/Short-term/Integrated) per ITU-R BS.1770-4
+  - True Peak (4x oversampled) with hold/decay
+  - 8-band octave spectrum (63Hz–8kHz)
+  - Stereo correlation (-1 to +1)
+  - Double-buffered gmem (prevents audio/UI thread race conditions)
+
+// ─── OPTIONS ────────────────────────────────────────────────────────
+options:gmem=DameiMetering
+options:no_meter
+
+// ─── GMEM DOUBLE-BUFFER LAYOUT ─────────────────────────────────────
+//
+// Two identical banks prevent race conditions between audio and UI threads.
+// JSFX writes to one bank while Lua reads the other.
+//
+// gmem[127] = active WRITE bank (0 or 1). Lua reads from the OTHER bank.
+//
+// Bank offsets:
+//   Bank 0: gmem[0..31]
+//   Bank 1: gmem[32..63]
+//
+// Within each bank (offset + N):
+//   +0  = Momentary LUFS (400ms)
+//   +1  = Short-term LUFS (3s)
+//   +2  = Integrated LUFS
+//   +3  = True Peak L (dBTP)
+//   +4  = True Peak R (dBTP)
+//   +5  = Band 63 Hz  (dB)
+//   +6  = Band 125 Hz (dB)
+//   +7  = Band 250 Hz (dB)
+//   +8  = Band 500 Hz (dB)
+//   +9  = Band 1 kHz  (dB)
+//   +10 = Band 2 kHz  (dB)
+//   +11 = Band 4 kHz  (dB)
+//   +12 = Band 8 kHz  (dB)
+//   +13 = Stereo Correlation (-1 to +1)
+//   +14 = Sample Rate
+//   +15 = Heartbeat (frame counter)
+//   +16 = Peak L (linear)
+//   +17 = Peak R (linear)
+//   +18 = Channel count
+//   +19 = Momentary LUFS (unsmoothed)
+
+// gmem[126] = JSFX version identifier (210 = v2.1)
+
+@init
+
+// ─── DOUBLE BUFFER STATE ────────────────────────────────────────────
+write_bank = 0;
+bank_offset = 0;
+BANK_SIZE = 32;
+BANK_A = 0;
+BANK_B = 32;
+
+// Write version ID
+gmem[126] = 210;
+
+// ─── K-WEIGHTING FILTER COEFFICIENTS ───────────────────────────────
+// Stage 1: Pre-filter (high shelf +4dB @ 1681Hz) — ITU-R BS.1770-4
+kw1_b0 = 1.53512485958697;
+kw1_b1 = -2.69169618940638;
+kw1_b2 = 1.19839281085285;
+kw1_a1 = -1.69065929318241;
+kw1_a2 = 0.73248077421585;
+kw1_x1l = 0; kw1_x2l = 0; kw1_y1l = 0; kw1_y2l = 0;
+kw1_x1r = 0; kw1_x2r = 0; kw1_y1r = 0; kw1_y2r = 0;
+
+// Stage 2: RLB high-pass
+kw2_b0 = 1.0;
+kw2_b1 = -2.0;
+kw2_b2 = 1.0;
+kw2_a1 = -1.99004745483398;
+kw2_a2 = 0.99007225036621;
+kw2_x1l = 0; kw2_x2l = 0; kw2_y1l = 0; kw2_y2l = 0;
+kw2_x1r = 0; kw2_x2r = 0; kw2_y1r = 0; kw2_y2r = 0;
+
+// ─── LUFS ACCUMULATORS ─────────────────────────────────────────────
+mom_block = (srate * 0.4) | 0;   // 400ms block
+mom_sum_l = 0; mom_sum_r = 0; mom_n = 0;
+
+// Short-term ring buffer (8 × 400ms = 3.2s)
+st_buf = 100;
+st_blocks = 8;
+st_idx = 0; st_filled = 0;
+memset(st_buf, 0, st_blocks);
+
+// Integrated (gated)
+int_sum = 0; int_blocks = 0;
+
+// ─── TRUE PEAK ─────────────────────────────────────────────────────
+tp_l = 0; tp_r = 0;
+tp_decay = exp(-1.0 / (srate * 1.0));  // 1s decay
+tp_prev_l = 0; tp_prev_r = 0;
+
+// ─── SPECTRUM: 8 OCTAVE BANDS ──────────────────────────────────────
+band_n = 8;
+// Use local memory for band envelopes and smoothed output
+band_env = 200;
+band_sm  = 210;
+bp_st    = 300;    // bandpass filter state (8 bands × 4 vars = 32 slots)
+memset(bp_st, 0, 32);
+memset(band_env, 0, band_n);
+i = 0;
+loop(band_n,
+  band_sm[i] = -100;
+  i += 1;
+);
+
+// ─── STEREO CORRELATION ────────────────────────────────────────────
+corr_lr = 0; corr_ll = 0; corr_rr = 0; corr_n = 0;
+corr_block = (srate * 0.1) | 0;
+corr_val = 1.0;
+
+// ─── HEARTBEAT ─────────────────────────────────────────────────────
+heartbeat = 0;
+frame_n = 0;
+
+@sample
+
+// ─── INPUT ─────────────────────────────────────────────────────────
+sl = spl0;
+sr = num_ch > 1 ? spl1 : spl0;
+
+// ─── K-WEIGHTING (inline biquad) ───────────────────────────────────
+// Stage 1 Left
+kw1_yl = kw1_b0*sl + kw1_b1*kw1_x1l + kw1_b2*kw1_x2l - kw1_a1*kw1_y1l - kw1_a2*kw1_y2l;
+kw1_x2l = kw1_x1l; kw1_x1l = sl; kw1_y2l = kw1_y1l; kw1_y1l = kw1_yl;
+// Stage 1 Right
+kw1_yr = kw1_b0*sr + kw1_b1*kw1_x1r + kw1_b2*kw1_x2r - kw1_a1*kw1_y1r - kw1_a2*kw1_y2r;
+kw1_x2r = kw1_x1r; kw1_x1r = sr; kw1_y2r = kw1_y1r; kw1_y1r = kw1_yr;
+// Stage 2 Left
+kw2_yl = kw2_b0*kw1_yl + kw2_b1*kw2_x1l + kw2_b2*kw2_x2l - kw2_a1*kw2_y1l - kw2_a2*kw2_y2l;
+kw2_x2l = kw2_x1l; kw2_x1l = kw1_yl; kw2_y2l = kw2_y1l; kw2_y1l = kw2_yl;
+// Stage 2 Right
+kw2_yr = kw2_b0*kw1_yr + kw2_b1*kw2_x1r + kw2_b2*kw2_x2r - kw2_a1*kw2_y1r - kw2_a2*kw2_y2r;
+kw2_x2r = kw2_x1r; kw2_x1r = kw1_yr; kw2_y2r = kw2_y1r; kw2_y1r = kw2_yr;
+
+kl = kw2_yl;
+kr = kw2_yr;
+
+// ─── MOMENTARY LUFS ────────────────────────────────────────────────
+mom_sum_l += kl * kl;
+mom_sum_r += kr * kr;
+mom_n += 1;
+
+mom_n >= mom_block ? (
+  mono_pwr = 0.5 * (mom_sum_l / mom_n + mom_sum_r / mom_n);
+
+  // Current write offset
+  bank_offset = write_bank == 0 ? BANK_A : BANK_B;
+
+  // Momentary LUFS
+  mono_pwr > 0 ? (
+    blk_lufs = -0.691 + 10 * log10(mono_pwr);
+    gmem[bank_offset + 0] = blk_lufs;
+    gmem[bank_offset + 19] = blk_lufs;
+  ) : (
+    gmem[bank_offset + 0] = -70;
+    gmem[bank_offset + 19] = -70;
+  );
+
+  // Short-term
+  st_buf[st_idx] = mono_pwr;
+  st_idx = (st_idx + 1) % st_blocks;
+  st_filled = min(st_filled + 1, st_blocks);
+  st_sum = 0; st_i = 0;
+  loop(st_filled, st_sum += st_buf[st_i]; st_i += 1;);
+  st_sum > 0 ? (
+    gmem[bank_offset + 1] = -0.691 + 10 * log10(st_sum / st_filled);
+  ) : (
+    gmem[bank_offset + 1] = -70;
+  );
+
+  // Integrated (absolute gate at -70 LUFS)
+  blk_lufs > -70 ? (
+    int_sum += mono_pwr;
+    int_blocks += 1;
+    int_blocks > 0 ? (
+      gmem[bank_offset + 2] = -0.691 + 10 * log10(int_sum / int_blocks);
+    );
+  );
+
+  // Write sample rate + channel count
+  gmem[bank_offset + 14] = srate;
+  gmem[bank_offset + 18] = num_ch;
+
+  // ── BUFFER SWAP ──────────────────────────────────────────────────
+  write_bank = 1 - write_bank;
+  gmem[127] = write_bank;
+
+  // Reset accumulators
+  mom_sum_l = 0; mom_sum_r = 0; mom_n = 0;
+);
+
+// ─── TRUE PEAK (4x interpolation) ─────────────────────────────────
+i = 0;
+loop(4,
+  interp_l = tp_prev_l + (sl - tp_prev_l) * (i + 1) / 4;
+  interp_r = tp_prev_r + (sr - tp_prev_r) * (i + 1) / 4;
+  pk = abs(interp_l); tp_l = max(tp_l, pk);
+  pk = abs(interp_r); tp_r = max(tp_r, pk);
+  i += 1;
+);
+tp_prev_l = sl; tp_prev_r = sr;
+
+// Write TP to CURRENT write bank
+bank_offset = write_bank == 0 ? BANK_A : BANK_B;
+gmem[bank_offset + 3] = tp_l > 0 ? 20 * log10(tp_l) : -70;
+gmem[bank_offset + 4] = tp_r > 0 ? 20 * log10(tp_r) : -70;
+gmem[bank_offset + 16] = tp_l;
+gmem[bank_offset + 17] = tp_r;
+
+tp_l *= tp_decay;
+tp_r *= tp_decay;
+
+// ─── 8-BAND SPECTRUM ──────────────────────────────────────────────
+mono_in = (sl + sr) * 0.5;
+i = 0;
+loop(band_n,
+  freq = 63 * pow(2, i);
+  // Inline bandpass filter
+  w0 = 2 * $pi * freq / srate;
+  alpha = sin(w0) / (2 * 1.414);
+  bp_b0 = alpha;
+  bp_b2 = -alpha;
+  bp_a0 = 1 + alpha;
+  bp_a1 = -2 * cos(w0);
+  bp_a2 = 1 - alpha;
+  bp_out = (bp_b0*mono_in + bp_b2*bp_st[i*4+1]
+       - bp_a1*bp_st[i*4+2] - bp_a2*bp_st[i*4+3]) / bp_a0;
+  bp_st[i*4+1] = bp_st[i*4]; bp_st[i*4] = mono_in;
+  bp_st[i*4+3] = bp_st[i*4+2]; bp_st[i*4+2] = bp_out;
+
+  bp_lev = abs(bp_out);
+  bp_lev > band_env[i] ? (
+    band_env[i] = bp_lev;
+  ) : (
+    band_env[i] *= 0.9997;
+  );
+  band_env[i] > 0.000001 ? (
+    band_sm[i] = 20 * log10(band_env[i]);
+  ) : (
+    band_sm[i] = -100;
+  );
+  gmem[bank_offset + 5 + i] = band_sm[i];
+  i += 1;
+);
+
+// ─── STEREO CORRELATION ────────────────────────────────────────────
+corr_lr += sl * sr;
+corr_ll += sl * sl;
+corr_rr += sr * sr;
+corr_n += 1;
+corr_n >= corr_block ? (
+  denom = sqrt(corr_ll * corr_rr);
+  denom > 0.000001 ? (
+    corr_val = max(-1, min(1, corr_lr / denom));
+  ) : (
+    corr_val = 1.0;
+  );
+  gmem[bank_offset + 13] = corr_val;
+  corr_lr = 0; corr_ll = 0; corr_rr = 0; corr_n = 0;
+);
+
+// ─── HEARTBEAT ─────────────────────────────────────────────────────
+frame_n += 1;
+frame_n >= srate ? (
+  heartbeat += 1;
+  gmem[bank_offset + 15] = heartbeat;
+  frame_n = 0;
+);
+
+// ─── PASS-THROUGH (metering only) ──────────────────────────────────

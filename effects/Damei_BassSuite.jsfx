@@ -1,0 +1,2304 @@
+desc:Damei Bass Bus Engine (Powerhouse Motor & Sub-Kick Interlock)
+// =============================================================================
+// DAMEI BASS BUS ENGINE // POWERHOUSE MOTOR (v2.0)
+// Complete Bass Bus Processing Engine with Kick Sidechain & 3-Way Crossover
+// Fraternal Twin Design: Darkglass Emerald & Reinforced Hydraulic Chassis
+// Built by Damei Audio & Antigravity IDE
+// =============================================================================
+
+slider1:0<0,6,1{Bass Folder Overview,Trackspacer Dynamic Inverse EQ,Sub Anchor & Kick Pocket,3-Way Crossover Sculptor,Phase Alignment & Correlation,Smash & Grab + Decapitator Rack,Producer Matrix & Session Blueprints}>-Active Module
+slider2:-12.0<-24.0,-6.0,0.5>-Target Level (dBFS Peak)
+slider3:90<50,140,5>-Sub-Mono Elliptical Anchor (Hz) [Mono Below This]
+slider4:2.4<0.0,6.0,0.2>-Kick Ducking Depth (dB) [Dynamic Sub Pocket]
+slider5:25<10,80,5>-Kick Ducking Attack (ms)
+slider6:65<25,180,5>-Kick Ducking Recovery Release (ms)
+slider7:60<40,100,5>-Sub Low-Shelf Punch Center (Hz)
+slider8:0.0<-6.0,6.0,0.2>-Sub Low-Shelf Trim (dB)
+slider9:0<0,1,1{Physical Aux Sends (Ch 3/4 KICK),Inter-Suite Telemetry (gmem 825 Kick RMS)}>-Sidechain Source Select
+slider10:0.0<-6.0,6.0,0.2>-Mid Growl Overdrive Trim (dB) [150Hz - 1.2kHz]
+slider11:0.0<-6.0,6.0,0.2>-Pick Attack Clank & Snap Trim (dB) [1.8kHz - 3.5kHz]
+slider12:0.0<-6.0,0.0,0.2>-Mud Box Scoop 250Hz (dB)
+slider13:0.0<-6.0,0.0,0.2>-Ultra-High Clank Whistle Notch 4.5kHz (dB)
+slider14:0.0<0.0,5.0,0.1>-Kick vs Bass Phase Micro-Delay (ms)
+slider15:0<0,1,1{Normal (In-Phase 0 deg),Inverted (Flip Phase 180 deg)}>-Polarity Inversion Phase Flip
+slider16:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip,Commercial Hard Brickwall Clamp}>-Mix Bus Clipper Topology
+slider17:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
+slider18:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
+slider19:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
+slider20:15<0,16,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Simple Plan)}>-Producer Bass Signature Preset
+slider21:0<0,4,1{Eurobass II MIDI + Parallax X,Real Bass DI + Parallax X,Dingwall Modern Active 5-String,Drop Tuned P-Bass Dirt,Sub Sine Reinforced Clean}>-Bass Rig Source Profile
+slider22:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
+slider23:25<0,100,1>-Britson Neve Console Drive (%)
+slider24:20<0,100,1>-Smash & Grab Opto/VCA Bus Glue (%)
+slider25:15<0,100,1>-Darkglass / Tube Saturation Drive (%)
+slider26:0<0,1,1{In-Chain Finisher (Complements Britson/S&G/TB/Trackspacer on Trk 66),Standalone All-in-One (Emulates Full 4-Plugin Bus Chain)}>-Bass Bus Integration Mode
+slider27:1<0,1,1{Manual Parameter Mode,AI Assist Active Formula Calibration}>-AI Assist Intelligent Engine
+slider28:1<0,1,1{Free Dynamic (Manual Trim),Kick/Guitar Pocket Interlock (Auto-Guard -3.5dB rel to Kick)}>-Kick/Guitar Pocket Interlock
+slider29:0.0<-6.0,6.0,0.1>-Input Gain Calibration (dB)
+slider30:0.0<-6.0,6.0,0.2>-BASS Master Bus Trim (dB) [Trk 66]
+slider31:0.0<-6.0,6.0,0.2>-DI Tracking Trim (dB) [Trk 67]
+slider32:0.0<-6.0,6.0,0.2>-Synth / Eurobass / Parallax Trim (dB) [Trk 68]
+slider33:0.0<-6.0,6.0,0.2>-Mic / Aux Sub-Bus Trim (dB) [Trk 69]
+slider34:1<0,1,1{Bypassed,Active Sub-Mono & Dynamic Sidechain}>-Sub Engine Master Toggle
+
+slider35:1<0,1,1{Off,On}>-Matrix Trim (applies Assessment Matrix auto-correct lane)
+// Smash & Grab Compressor (JST Modeled)
+slider36:2<0,2,1{VCA Smash (Fast Clamp),Opto Grab (Warm Leveler),Hybrid Smash & Grab}>-Smash & Grab Comp Mode
+slider37:38<0,100,1>-Smash Amount (%) [Aggressive Attack Clamp]
+slider38:42<0,100,1>-Grab Amount (%) [Thick Opto Sustain]
+slider39:85<0,100,1>-Smash & Grab Parallel Mix (%)
+// Decapitator Saturation (Soundtoys Modeled)
+slider40:1<0,3,1{Style A (Ampex Tape),Style N (Neve Console),Style T (Triode Tube),Style P (Pentode Aggression)}>-Decapitator Style
+slider41:28<0,100,1>-Decapitator Drive (%)
+slider42:0<0,1,1{Normal,PUNISH (+20dB Overdrive)}> -Decapitator Punish Mode
+slider43:0.0<-10.0,10.0,0.5>-Decapitator Tone Tilt (Dark/Bright)
+slider44:8500<3000,18000,500>-Decapitator High Cut (Hz)
+// =============================================================================
+// TRACKSPACER (WAVESFACTORY MODELED DYNAMIC INVERSE EQUALIZER)
+// =============================================================================
+slider45:1<0,1,1{Bypassed,Active Dynamic Inverse EQ}>-Trackspacer Engine Master Toggle
+slider46:35<0,100,1>-Trackspacer Ducking Amount (%)
+slider47:35<20,800,5>-Trackspacer Low Cut Filter (Hz)
+slider48:650<100,16000,20>-Trackspacer High Cut Filter (Hz)
+slider49:15<1,100,1>-Trackspacer Attack Time (ms)
+slider50:65<10,400,5>-Trackspacer Release Time (ms)
+slider51:0<0,2,1{Mid Channel (Center),Stereo Linked (L/R),Side Channel (Stereo)}> -Trackspacer Processing Mode
+slider52:0<0,2,1{Normal Passthrough,Audition Kick Sidechain,Audition Carved Delta}>-Trackspacer Audition Mode
+options:gmem=DameiMixMetering
+options:no_meter
+options:maxmem=2097152
+in_pin:left input
+in_pin:right input
+in_pin:kick sidechain left (ch 3)
+in_pin:kick sidechain right (ch 4)
+out_pin:left output
+out_pin:right output
+
+@serialize
+file_var(0, slider1);
+file_var(0, slider2);
+file_var(0, slider3);
+file_var(0, slider4);
+file_var(0, slider5);
+file_var(0, slider6);
+file_var(0, slider7);
+file_var(0, slider8);
+file_var(0, slider9);
+file_var(0, slider10);
+file_var(0, slider11);
+file_var(0, slider12);
+file_var(0, slider13);
+file_var(0, slider14);
+file_var(0, slider15);
+file_var(0, slider16);
+file_var(0, slider17);
+file_var(0, slider18);
+file_var(0, slider19);
+file_var(0, slider20);
+file_var(0, slider21);
+file_var(0, slider22);
+file_var(0, slider23);
+file_var(0, slider24);
+file_var(0, slider25);
+file_var(0, slider26);
+file_var(0, slider27);
+file_var(0, slider28);
+file_var(0, slider29);
+file_var(0, slider30);
+file_var(0, slider31);
+file_var(0, slider32);
+file_var(0, slider33);
+file_var(0, slider34);
+file_var(0, slider36); file_var(0, slider37); file_var(0, slider38); file_var(0, slider39);
+file_var(0, slider40); file_var(0, slider41); file_var(0, slider42); file_var(0, slider43); file_var(0, slider44);
+file_var(0, slider45); file_var(0, slider46); file_var(0, slider47); file_var(0, slider48);
+file_var(0, slider49); file_var(0, slider50); file_var(0, slider51); file_var(0, slider52);
+
+@init
+ext_noinit = 1.0;
+
+// =============================================================================
+// TRACKSPACER DYNAMIC INVERSE EQ STATE & FILTER INITIALIZATION
+// =============================================================================
+ts_num_bands = 8;
+ts_freqs = 30000;
+ts_freqs[0] = 42;  ts_freqs[1] = 68;  ts_freqs[2] = 110; ts_freqs[3] = 180;
+ts_freqs[4] = 300; ts_freqs[5] = 600; ts_freqs[6] = 1400; ts_freqs[7] = 3200;
+
+ts_sc_env = 30020;    // live kick sidechain envelope per band (0..7)
+ts_gr_db  = 30040;    // live dynamic gain reduction per band (0..7)
+ts_smooth_gr = 30060; // smoothed GR per band
+ts_band_wt   = 30080; // window weight (low cut -> high cut)
+
+// Biquad state arrays for 8 bands:
+// Sidechain Bandpass: sc_bp_x1, sc_bp_x2, sc_bp_y1, sc_bp_y2
+ts_sc_x1 = 30100; ts_sc_x2 = 30120; ts_sc_y1 = 30140; ts_sc_y2 = 30160;
+// Dynamic Peaking EQ (Mid / Left): eq_x1_l, eq_x2_l, eq_y1_l, eq_y2_l
+ts_eq_x1_l = 30200; ts_eq_x2_l = 30220; ts_eq_y1_l = 30240; ts_eq_y2_l = 30260;
+// Dynamic Peaking EQ (Right channel for stereo mode): eq_x1_r, eq_x2_r, eq_y1_r, eq_y2_r
+ts_eq_x1_r = 30300; ts_eq_x2_r = 30320; ts_eq_y1_r = 30340; ts_eq_y2_r = 30360;
+
+ts_max_gr_live = 0.0;
+ts_avg_gr_live = 0.0;
+
+ti_init = 0;
+loop(ts_num_bands,
+  ts_sc_env[ti_init] = 0.0;
+  ts_gr_db[ti_init] = 0.0;
+  ts_smooth_gr[ti_init] = 0.0;
+  ts_band_wt[ti_init] = 1.0;
+  ts_sc_x1[ti_init] = 0; ts_sc_x2[ti_init] = 0; ts_sc_y1[ti_init] = 0; ts_sc_y2[ti_init] = 0;
+  ts_eq_x1_l[ti_init] = 0; ts_eq_x2_l[ti_init] = 0; ts_eq_y1_l[ti_init] = 0; ts_eq_y2_l[ti_init] = 0;
+  ts_eq_x1_r[ti_init] = 0; ts_eq_x2_r[ti_init] = 0; ts_eq_y1_r[ti_init] = 0; ts_eq_y2_r[ti_init] = 0;
+  ti_init += 1;
+);
+
+
+// Smash & Grab + Decapitator State & Ballistics
+sg_smash_gr = 0.0; sg_grab_gr = 0.0;
+sg_meter_smash = 0.0; sg_meter_grab = 0.0;
+dec_hc_lx1 = 0; dec_hc_ly1 = 0; dec_hc_rx1 = 0; dec_hc_ry1 = 0;
+dec_tone_lx1 = 0; dec_tone_ly1 = 0; dec_tone_rx1 = 0; dec_tone_ry1 = 0;
+
+cur_rms = -90.0;
+cur_true_peak = -90.0;
+cur_crest = 0.0;
+cur_out_true_peak = -90.0;
+cur_vu_rms = -90.0;
+
+duck_gr_db = 0.0;
+smooth_duck_gr = 0.0;
+kick_env = 0.0;
+sub_env = 0.0;
+sub_energy_db = -90.0;
+cur_kick_bass_corr = 1.0;
+
+// Buffers
+buf_in_idx = 0;
+buf_sz = 160;
+buf_in_arr = 10000;
+buf_kick_arr = 10200;
+buf_sub_arr = 10400;
+buf_mid_arr = 10600;
+buf_side_arr = 10800;
+
+// Delay line
+dly_buf_l = 20000;
+dly_buf_r = 22000;
+dly_w_idx = 0;
+dly_max = 2048;
+
+// Filters
+sm_hp_x1 = 0; sm_hp_x2 = 0; sm_hp_y1 = 0; sm_hp_y2 = 0;
+sub_lp_x1_l = 0; sub_lp_x2_l = 0; sub_lp_y1_l = 0; sub_lp_y2_l = 0;
+sub_lp_x1_r = 0; sub_lp_x2_r = 0; sub_lp_y1_r = 0; sub_lp_y2_r = 0;
+mud_x1_l = 0; mud_x2_l = 0; mud_y1_l = 0; mud_y2_l = 0;
+mud_x1_r = 0; mud_x2_r = 0; mud_y1_r = 0; mud_y2_r = 0;
+clk_x1_l = 0; clk_x2_l = 0; clk_y1_l = 0; clk_y2_l = 0;
+clk_x1_r = 0; clk_x2_r = 0; clk_y1_r = 0; clk_y2_r = 0;
+whs_x1_l = 0; whs_x2_l = 0; whs_y1_l = 0; whs_y2_l = 0;
+whs_x1_r = 0; whs_x2_r = 0; whs_y1_r = 0; whs_y2_r = 0;
+
+function update_trackspacer_filters() local(bi, f, w_lo, w_hi) (
+  ts_att_c = exp(-1.0 / (max(0.001, slider49 * 0.001) * srate));
+  ts_rel_c = exp(-1.0 / (max(0.010, slider50 * 0.001) * srate));
+
+  bi = 0;
+  loop(ts_num_bands,
+    f = ts_freqs[bi];
+    w_lo = 1.0 / (1.0 + sqr(max(20.0, slider47) / f) * sqr(max(20.0, slider47) / f));
+    w_hi = 1.0 / (1.0 + sqr(f / max(100.0, slider48)) * sqr(f / max(100.0, slider48)));
+    ts_band_wt[bi] = w_lo * w_hi;
+    bi += 1;
+  );
+);
+
+function update_bass_filters() (
+
+  // Decapitator High Cut (slider44: 3-18kHz 1st order LP)
+  dec_w0 = 2.0 * $pi * max(2000.0, min(18000.0, slider44)) / srate;
+  dec_hc_alpha = sin(dec_w0) / (cos(dec_w0) + 1.0);
+  dec_hc_b0 = dec_hc_alpha; dec_hc_b1 = dec_hc_alpha;
+  dec_hc_a1 = -(1.0 - dec_hc_alpha);
+  dec_hc_a0 = 1.0 + dec_hc_alpha;
+  dec_hc_b0 /= dec_hc_a0; dec_hc_b1 /= dec_hc_a0; dec_hc_a1 /= dec_hc_a0;
+
+  // 1. Sub-Mono Side Highpass (Butterworth 2nd order at slider3 Hz)
+  sm_w0 = 2.0 * $pi * slider3 / srate;
+  sm_cos = cos(sm_w0); sm_sin = sin(sm_w0);
+  sm_alpha = sm_sin / (2.0 * 0.7071);
+  sm_b0 = (1.0 + sm_cos) * 0.5; sm_b1 = -(1.0 + sm_cos); sm_b2 = (1.0 + sm_cos) * 0.5;
+  sm_a0 = 1.0 + sm_alpha; sm_a1 = -2.0 * sm_cos; sm_a2 = 1.0 - sm_alpha;
+  sm_b0 /= sm_a0; sm_b1 /= sm_a0; sm_b2 /= sm_a0; sm_a1 /= sm_a0; sm_a2 /= sm_a0;
+
+  // 2. Sub Crossover Lowpass (< slider3 Hz)
+  sub_w0 = 2.0 * $pi * slider3 / srate;
+  sub_cos = cos(sub_w0); sub_sin = sin(sub_w0);
+  sub_alpha = sub_sin / (2.0 * 0.7071);
+  sub_b0 = (1.0 - sub_cos) * 0.5; sub_b1 = 1.0 - sub_cos; sub_b2 = (1.0 - sub_cos) * 0.5;
+  sub_a0 = 1.0 + sub_alpha; sub_a1 = -2.0 * sub_cos; sub_a2 = 1.0 - sub_alpha;
+  sub_b0 /= sub_a0; sub_b1 /= sub_a0; sub_b2 /= sub_a0; sub_a1 /= sub_a0; sub_a2 /= sub_a0;
+
+  // 3. 250Hz Boxy Mud Scoop (Peaking EQ)
+  m_w0 = 2.0 * $pi * 250.0 / srate;
+  m_A = exp(slider12 * (log(10.0) / 40.0));
+  m_alpha = sin(m_w0) / (2.0 * 1.5);
+  m_b0 = 1.0 + m_alpha * m_A; m_b1 = -2.0 * cos(m_w0); m_b2 = 1.0 - m_alpha * m_A;
+  m_a0 = 1.0 + m_alpha / m_A; m_a1 = -2.0 * cos(m_w0); m_a2 = 1.0 - m_alpha / m_A;
+  m_b0 /= m_a0; m_b1 /= m_a0; m_b2 /= m_a0; m_a1 /= m_a0; m_a2 /= m_a0;
+
+  // 4. 2.8kHz Pick Clank & Attack Snap
+  c_w0 = 2.0 * $pi * 2800.0 / srate;
+  c_A = exp(slider11 * (log(10.0) / 40.0));
+  c_alpha = sin(c_w0) / (2.0 * 1.6);
+  c_b0 = 1.0 + c_alpha * c_A; c_b1 = -2.0 * cos(c_w0); c_b2 = 1.0 - c_alpha * c_A;
+  c_a0 = 1.0 + c_alpha / c_A; c_a1 = -2.0 * cos(c_w0); c_a2 = 1.0 - c_alpha / c_A;
+  c_b0 /= c_a0; c_b1 /= c_a0; c_b2 /= c_a0; c_a1 /= c_a0; c_a2 /= c_a0;
+
+  // 5. 4.5kHz Whistle Notch Tamer
+  w_w0 = 2.0 * $pi * 4500.0 / srate;
+  w_A = exp(slider13 * (log(10.0) / 40.0));
+  w_alpha = sin(w_w0) / (2.0 * 3.5);
+  w_b0 = 1.0 + w_alpha * w_A; w_b1 = -2.0 * cos(w_w0); w_b2 = 1.0 - w_alpha * w_A;
+  w_a0 = 1.0 + w_alpha / w_A; w_a1 = -2.0 * cos(w_w0); w_a2 = 1.0 - w_alpha / w_A;
+  w_b0 /= w_a0; w_b1 /= w_a0; w_b2 /= w_a0; w_a1 /= w_a0; w_a2 /= w_a0;
+
+  // Ballistics
+  duck_att_c = exp(-1.0 / (max(0.005, slider5 * 0.001) * srate));
+  duck_rel_c = exp(-1.0 / (max(0.020, slider6 * 0.001) * srate));
+);
+
+update_bass_filters();
+update_trackspacer_filters();
+
+function apply_bass_preset(p_idx) (
+  p_idx == 0 ? (
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 2; slider37 = 35; slider38 = 40; slider39 = 85;
+    slider40 = 1; slider41 = 25; slider42 = 0; slider43 = 0.0; slider44 = 9000;
+    slider3 = 90; slider4 = 2.0; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.0;
+    slider10 = 0.0; slider11 = 0.0; slider12 = 0.0; slider13 = 0.0;
+    slider23 = 20; slider24 = 15; slider25 = 10;
+  ) : p_idx == 1 ? (
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 0; slider37 = 60; slider38 = 35; slider39 = 85;
+    slider40 = 3; slider41 = 45; slider42 = 1; slider43 = 1.5; slider44 = 8000;
+    slider3 = 95; slider4 = 2.8; slider5 = 20; slider6 = 55; slider7 = 65; slider8 = 1.2;
+    slider10 = 1.5; slider11 = 2.6; slider12 = -2.5; slider13 = -1.5;
+    slider23 = 35; slider24 = 30; slider25 = 25;
+  ) : p_idx == 4 ? (
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 2; slider37 = 70; slider38 = 50; slider39 = 80;
+    slider40 = 3; slider41 = 55; slider42 = 1; slider43 = 2.5; slider44 = 7000;
+    slider3 = 85; slider4 = 3.2; slider5 = 18; slider6 = 50; slider7 = 55; slider8 = 2.2;
+    slider10 = 2.2; slider11 = 1.8; slider12 = -3.2; slider13 = -2.0;
+    slider23 = 40; slider24 = 35; slider25 = 35;
+  ) : p_idx == 9 ? (
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 2; slider37 = 42; slider38 = 45; slider39 = 90;
+    slider40 = 0; slider41 = 26; slider42 = 0; slider43 = 0.5; slider44 = 9500;
+    slider3 = 90; slider4 = 2.4; slider5 = 25; slider6 = 60; slider7 = 60; slider8 = 0.8;
+    slider10 = 1.0; slider11 = 3.2; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 25; slider24 = 25; slider25 = 20;
+  ) : p_idx == 10 ? (
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 0; slider37 = 62; slider38 = 38; slider39 = 85;
+    slider40 = 3; slider41 = 48; slider42 = 1; slider43 = 1.0; slider44 = 8000;
+    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 65; slider7 = 60; slider8 = 1.5;
+    slider10 = 2.0; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
+    slider23 = 35; slider24 = 30; slider25 = 25;
+  ) : p_idx == 15 ? (
+    // Trackspacer Dan Braunstein Signature Pocket Calibration
+    slider45 = 1;  // Trackspacer Active
+    slider46 = 35; // 35% Dynamic Carve
+    slider47 = 35; // 35 Hz Low Cut
+    slider48 = 650;// 650 Hz High Cut (leaves bass upper bite intact)
+    slider49 = 15; // 15ms Fast Clamp Attack
+    slider50 = 65; // 65ms Musical Decay
+    slider51 = 0;  // Mid-Only (protects stereo width)
+    slider52 = 0;  // Normal
+
+    // Smash & Grab + Decapitator Producer Calibrations
+    slider26 = 1; // Standalone All-In-One Mode
+    slider36 = 2; slider37 = 46; slider38 = 48; slider39 = 85;
+    slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.5; slider44 = 8500;
+    slider3 = 92; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
+    slider10 = 0.8; slider11 = 2.8; slider12 = -2.4; slider13 = -1.5;
+    slider23 = 28; slider24 = 22; slider25 = 18;
+  ) : (
+    slider3 = 90; slider4 = 2.2; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.5;
+    slider10 = 0.5; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
+    slider23 = 25; slider24 = 20; slider25 = 15;
+  );
+  update_bass_filters();
+);
+
+function trigger_bass_ai_assist() (
+  mst_active = (gmem[800] > -80.0);
+  mst_rms = mst_active ? gmem[800] : -18.0;
+
+  drm_active = (gmem[820] == 1 && gmem[823] > -80.0);
+  drm_rms = drm_active ? gmem[823] : (mst_rms - 1.0);
+
+  gtr_active = (gmem[840] == 1 && gmem[843] > -80.0);
+  gtr_rms = gtr_active ? gmem[843] : (drm_rms - 2.5);
+
+  bass_rel_drm_db = cur_vu_rms - drm_rms;
+  bass_rel_gtr_db = cur_vu_rms - gtr_rms;
+
+  drm_active ? (
+    slider4 = max(1.8, min(3.2, 2.2 + max(0.0, (cur_vu_rms - drm_rms + 3.0) * 0.3)));
+    slider3 = 90;
+  ) : (
+    slider4 = 2.2; slider3 = 90;
+  );
+
+  slider12 = -2.2;
+  slider11 = max(1.0, min(3.0, slider11));
+
+  drm_active ? (
+    bass_rel_drm_db > -1.0 ? (
+      slider19 = max(-3.5, min(2.0, slider19 - 0.5));
+    ) : bass_rel_drm_db < -6.0 ? (
+      slider19 = max(-3.5, min(2.0, slider19 + 0.5));
+    );
+  );
+
+  gmem[860] = 1; gmem[861] = slider20; gmem[862] = cur_out_true_peak;
+  gmem[863] = cur_vu_rms; gmem[864] = cur_crest; gmem[865] = sub_energy_db;
+  gmem[866] = cur_kick_bass_corr; gmem[867] = duck_gr_db;
+  gmem[868] = bass_rel_drm_db; gmem[869] = bass_rel_gtr_db;
+
+  update_bass_filters();
+  slider_automate();
+);
+
+
+// ===== MATRIX TRIM BEGIN (auto-correction lane published by Damei_AssessmentMatrix) =====
+// Final-stage 7-band + side-shelf trim. Targets arrive on gmem[1300 + lane*16 ...]; ramped (~1 s), capped by the Matrix.
+mtrim_lane = 1300 + 2*16;
+mtrim_mem  = 2096000;
+mtrim_on = 0; mtrim_cnt = 0;
+// ENERGY LANE state: smoothed density request (0..1) + shaper coefficient
+mtrim_ed = 0; mtrim_ek = 0;
+mtrim_cur = mtrim_mem + 200;   // 8 current gains (7 bands + side shelf)
+i = 0; loop(8, mtrim_cur[i] = 0; i += 1; );
+i = 0; loop(100, mtrim_mem[i] = 0; i += 1; );
+
+function mtrim_bq(c, s, x) local(y) (
+  y = c[0]*x + s[0];
+  s[0] = c[1]*x - c[3]*y + s[1];
+  s[1] = c[2]*x - c[4]*y;
+  y;
+);
+
+// kind: 0 peaking, 1 low shelf, 2 high shelf
+function mtrim_design(c, kind, fc, q, gdb) local(A, w0, cs, sn, al, sa, a0, b0, b1, b2, a1, a2) (
+  A = pow(10, gdb/40); w0 = 2*$pi*fc/srate; cs = cos(w0); sn = sin(w0);
+  kind == 0 ? (
+    al = sn/(2*q);
+    b0 = 1 + al*A; b1 = -2*cs; b2 = 1 - al*A; a0 = 1 + al/A; a1 = -2*cs; a2 = 1 - al/A;
+  ) : (
+    sa = 2*sqrt(A)*(sn*0.70710678);
+    kind == 1 ? (
+      b0 = A*((A+1) - (A-1)*cs + sa); b1 = 2*A*((A-1) - (A+1)*cs); b2 = A*((A+1) - (A-1)*cs - sa);
+      a0 = (A+1) + (A-1)*cs + sa;     a1 = -2*((A-1) + (A+1)*cs);  a2 = (A+1) + (A-1)*cs - sa;
+    ) : (
+      b0 = A*((A+1) + (A-1)*cs + sa); b1 = -2*A*((A-1) + (A+1)*cs); b2 = A*((A+1) + (A-1)*cs - sa);
+      a0 = (A+1) - (A-1)*cs + sa;     a1 = 2*((A-1) - (A+1)*cs);    a2 = (A+1) - (A-1)*cs - sa;
+    );
+  );
+  c[0] = b0/a0; c[1] = b1/a0; c[2] = b2/a0; c[3] = a1/a0; c[4] = a2/a0;
+);
+
+function mtrim_block() local(ok, b, tg, any, g) (
+  ok = (slider35 == 1) && (gmem[mtrim_lane] == 1) && ((time_precise() - gmem[mtrim_lane + 15]) < 5);
+  any = 0; b = 0;
+  loop(8,
+    tg = ok ? gmem[mtrim_lane + 1 + b] : 0;
+    mtrim_cur[b] += (tg - mtrim_cur[b]) * 0.012;
+    abs(mtrim_cur[b]) > 0.02 ? ( any = 1; );
+    b += 1;
+  );
+  mtrim_on = any;
+  mtrim_ed += ((ok ? gmem[mtrim_lane + 9] : 0) - mtrim_ed) * 0.02;   // ~1 s ramp
+  mtrim_ek = max(0, min(1, mtrim_ed)) * 0.05;
+  any ? (
+    mtrim_design(mtrim_mem + 0,  1, 70,    0.7, mtrim_cur[0]);
+    mtrim_design(mtrim_mem + 5,  0, 130,   0.8, mtrim_cur[1]);
+    mtrim_design(mtrim_mem + 10, 0, 450,   0.8, mtrim_cur[2]);
+    mtrim_design(mtrim_mem + 15, 0, 1400,  0.8, mtrim_cur[3]);
+    mtrim_design(mtrim_mem + 20, 0, 3800,  0.8, mtrim_cur[4]);
+    mtrim_design(mtrim_mem + 25, 0, 7800,  0.8, mtrim_cur[5]);
+    mtrim_design(mtrim_mem + 30, 2, 11000, 0.7, mtrim_cur[6]);
+    mtrim_design(mtrim_mem + 35, 2, 3000,  0.7, mtrim_cur[7]);
+  );
+);
+
+function mtrim_process() local(k, yl, yr, mm, ss) (
+  mtrim_on ? (
+    yl = spl0; yr = spl1; k = 0;
+    loop(7,
+      yl = mtrim_bq(mtrim_mem + k*5, mtrim_mem + 50 + k*2, yl);
+      yr = mtrim_bq(mtrim_mem + k*5, mtrim_mem + 70 + k*2, yr);
+      k += 1;
+    );
+    mm = (yl + yr)*0.5; ss = (yl - yr)*0.5;
+    ss = mtrim_bq(mtrim_mem + 35, mtrim_mem + 90, ss);
+    spl0 = mm + ss; spl1 = mm - ss;
+  );
+  mtrim_ek > 0.002 ? (
+    spl0 = spl0 / (1 + mtrim_ek * abs(spl0));
+    spl1 = spl1 / (1 + mtrim_ek * abs(spl1));
+  );
+);
+// ===== MATRIX TRIM END =====
+
+@slider
+update_bass_filters();
+
+@block
+inp_gain_mult = exp(slider29 * (log(10.0) / 20.0));
+out_trim_mult = exp(slider19 * (log(10.0) / 20.0));
+ceil_amp = exp(slider17 * (log(10.0) / 20.0));
+phase_mult = slider15 ? -1.0 : 1.0;
+
+delay_samples = floor(slider14 * 0.001 * srate);
+delay_samples = max(0, min(dly_max - 1, delay_samples));
+
+drm_active = (gmem[820] == 1 && gmem[823] > -80.0);
+drm_rms_live = drm_active ? gmem[823] : -18.0;
+gtr_active = (gmem[840] == 1 && gmem[843] > -80.0);
+gtr_rms_live = gtr_active ? gmem[843] : -19.5;
+
+bass_to_drm_db = cur_vu_rms - drm_rms_live;
+bass_to_gtr_db = cur_vu_rms - gtr_rms_live;
+
+gmem[860] = 1;
+gmem[861] = slider20;
+gmem[862] = cur_out_true_peak;
+gmem[863] = cur_vu_rms;
+gmem[864] = cur_crest;
+gmem[865] = sub_energy_db;
+gmem[866] = cur_kick_bass_corr;
+gmem[867] = duck_gr_db;
+gmem[868] = bass_to_drm_db;
+gmem[869] = bass_to_gtr_db;
+
+  mtrim_block();
+
+@sample
+s_l = spl0 * inp_gain_mult;
+s_r = spl1 * inp_gain_mult;
+
+dly_buf_l[dly_w_idx] = s_l;
+dly_buf_r[dly_w_idx] = s_r;
+r_idx = (dly_w_idx - delay_samples + dly_max) % dly_max;
+s_l = dly_buf_l[r_idx] * phase_mult;
+s_r = dly_buf_r[r_idx] * phase_mult;
+dly_w_idx = (dly_w_idx + 1) % dly_max;
+
+slider9 == 0 ? (
+  kick_det = max(abs(spl2), abs(spl3));
+) : (
+  g_kick_env = gmem[825];
+  kick_det = exp(g_kick_env * (log(10.0) / 20.0));
+);
+
+kick_env = kick_det > kick_env ? (kick_env * duck_att_c + kick_det * (1.0 - duck_att_c)) : (kick_env * duck_rel_c);
+kick_db = kick_env > 0.00001 ? 20.0 * log10(kick_env) : -90.0;
+
+kick_over = max(0.0, kick_db - (-24.0));
+knee_k = kick_over / (kick_over + 4.0);
+target_duck_gr = -min(slider4, (kick_over * knee_k) * 0.45);
+smooth_duck_gr = smooth_duck_gr * 0.92 + target_duck_gr * 0.08;
+duck_gr_db = smooth_duck_gr;
+duck_mult = exp(duck_gr_db * (log(10.0) / 20.0));
+
+mid = (s_l + s_r) * 0.5;
+side = (s_l - s_r) * 0.5;
+
+hp_side = sm_b0 * side + sm_b1 * sm_hp_x1 + sm_b2 * sm_hp_x2 - sm_a1 * sm_hp_y1 - sm_a2 * sm_hp_y2;
+sm_hp_x2 = sm_hp_x1; sm_hp_x1 = side; sm_hp_y2 = sm_hp_y1; sm_hp_y1 = hp_side;
+
+slider34 ? (
+  s_l = mid + hp_side;
+  s_r = mid - hp_side;
+);
+
+// =============================================================================
+// TRACKSPACER DYNAMIC INVERSE EQUALIZER DSP ENGINE
+// =============================================================================
+slider45 ? (
+  // 1. Obtain Sidechain Kick Signal
+  slider9 == 0 ? (
+    ts_kick_sig = (spl2 + spl3) * 0.5;
+  ) : (
+    ts_kick_sig = exp(gmem[825] * 0.11512925);
+  );
+
+  ts_max_gr_live = 0.0;
+  ts_tot_gr = 0.0;
+  ts_delta_m = 0.0;
+
+  // Mid/Side split of incoming signal
+  ts_mid = (s_l + s_r) * 0.5;
+  ts_side = (s_l - s_r) * 0.5;
+  ts_orig_mid = ts_mid;
+  ts_orig_l = s_l;
+  ts_orig_r = s_r;
+
+  ts_b = 0;
+  loop(ts_num_bands,
+    ts_fc = ts_freqs[ts_b];
+
+    // 2. Sidechain 2nd-Order Bandpass Detector
+    ts_w0 = 2.0 * $pi * ts_fc / srate;
+    ts_sin = sin(ts_w0); ts_cos = cos(ts_w0);
+    ts_alpha = ts_sin / (2.0 * 1.5); // Q = 1.5
+    ts_b0_bp = ts_alpha;
+    ts_b1_bp = 0.0;
+    ts_b2_bp = -ts_alpha;
+    ts_a0_bp = 1.0 + ts_alpha;
+    ts_a1_bp = -2.0 * ts_cos;
+    ts_a2_bp = 1.0 - ts_alpha;
+
+    ts_sc_out = (ts_b0_bp * ts_kick_sig + ts_b1_bp * ts_sc_x1[ts_b] + ts_b2_bp * ts_sc_x2[ts_b] - ts_a1_bp * ts_sc_y1[ts_b] - ts_a2_bp * ts_sc_y2[ts_b]) / ts_a0_bp;
+    ts_sc_x2[ts_b] = ts_sc_x1[ts_b]; ts_sc_x1[ts_b] = ts_kick_sig;
+    ts_sc_y2[ts_b] = ts_sc_y1[ts_b]; ts_sc_y1[ts_b] = ts_sc_out;
+
+    // 3. Dynamic Ballistics & Envelope
+    ts_sc_mag = abs(ts_sc_out);
+    ts_sc_env[ts_b] = (ts_sc_mag > ts_sc_env[ts_b]) ? (ts_sc_env[ts_b] * ts_att_c + ts_sc_mag * (1.0 - ts_att_c)) : (ts_sc_env[ts_b] * ts_rel_c);
+
+    // 4. Calculate Dynamic Inverse Notch Gain (dB)
+    ts_sc_db = ts_sc_env[ts_b] > 0.00001 ? 20.0 * log10(ts_sc_env[ts_b]) : -90.0;
+    ts_kick_over = max(0.0, ts_sc_db - (-28.0));
+    ts_target_gr = -min(12.0, ts_kick_over * (slider46 * 0.01) * 0.65) * ts_band_wt[ts_b];
+    ts_smooth_gr[ts_b] = ts_smooth_gr[ts_b] * 0.88 + ts_target_gr * 0.12;
+    ts_gr_db[ts_b] = ts_smooth_gr[ts_b];
+
+    ts_max_gr_live = min(ts_max_gr_live, ts_gr_db[ts_b]);
+    ts_tot_gr += ts_gr_db[ts_b];
+
+    // 5. Apply Dynamic Inverse Notch Filter to Bass
+    abs(ts_gr_db[ts_b]) > 0.05 ? (
+      ts_A = exp(ts_gr_db[ts_b] * 0.05756462); // 10^(dB/40)
+      ts_a0_eq = 1.0 + ts_alpha / ts_A;
+      ts_b0_eq = (1.0 + ts_alpha * ts_A) / ts_a0_eq;
+      ts_b1_eq = (-2.0 * ts_cos) / ts_a0_eq;
+      ts_b2_eq = (1.0 - ts_alpha * ts_A) / ts_a0_eq;
+      ts_a1_eq = (-2.0 * ts_cos) / ts_a0_eq;
+      ts_a2_eq = (1.0 - ts_alpha / ts_A) / ts_a0_eq;
+
+      // Channel mode: 0=Mid Only, 1=Stereo, 2=Side Only
+      slider51 == 0 ? (
+        ts_m_out = ts_b0_eq * ts_mid + ts_b1_eq * ts_eq_x1_l[ts_b] + ts_b2_eq * ts_eq_x2_l[ts_b] - ts_a1_eq * ts_eq_y1_l[ts_b] - ts_a2_eq * ts_eq_y2_l[ts_b];
+        ts_eq_x2_l[ts_b] = ts_eq_x1_l[ts_b]; ts_eq_x1_l[ts_b] = ts_mid;
+        ts_eq_y2_l[ts_b] = ts_eq_y1_l[ts_b]; ts_eq_y1_l[ts_b] = ts_m_out;
+        ts_mid = ts_m_out;
+      ) : slider51 == 1 ? (
+        ts_l_out = ts_b0_eq * s_l + ts_b1_eq * ts_eq_x1_l[ts_b] + ts_b2_eq * ts_eq_x2_l[ts_b] - ts_a1_eq * ts_eq_y1_l[ts_b] - ts_a2_eq * ts_eq_y2_l[ts_b];
+        ts_eq_x2_l[ts_b] = ts_eq_x1_l[ts_b]; ts_eq_x1_l[ts_b] = s_l;
+        ts_eq_y2_l[ts_b] = ts_eq_y1_l[ts_b]; ts_eq_y1_l[ts_b] = ts_l_out;
+        s_l = ts_l_out;
+
+        ts_r_out = ts_b0_eq * s_r + ts_b1_eq * ts_eq_x1_r[ts_b] + ts_b2_eq * ts_eq_x2_r[ts_b] - ts_a1_eq * ts_eq_y1_r[ts_b] - ts_a2_eq * ts_eq_y2_r[ts_b];
+        ts_eq_x2_r[ts_b] = ts_eq_x1_r[ts_b]; ts_eq_x1_r[ts_b] = s_r;
+        ts_eq_y2_r[ts_b] = ts_eq_y1_r[ts_b]; ts_eq_y1_r[ts_b] = ts_r_out;
+        s_r = ts_r_out;
+      ) : (
+        ts_s_out = ts_b0_eq * ts_side + ts_b1_eq * ts_eq_x1_l[ts_b] + ts_b2_eq * ts_eq_x2_l[ts_b] - ts_a1_eq * ts_eq_y1_l[ts_b] - ts_a2_eq * ts_eq_y2_l[ts_b];
+        ts_eq_x2_l[ts_b] = ts_eq_x1_l[ts_b]; ts_eq_x1_l[ts_b] = ts_side;
+        ts_eq_y2_l[ts_b] = ts_eq_y1_l[ts_b]; ts_eq_y1_l[ts_b] = ts_s_out;
+        ts_side = ts_s_out;
+      );
+    );
+
+    ts_b += 1;
+  );
+
+  slider51 == 0 ? (
+    ts_delta_m = ts_orig_mid - ts_mid;
+    s_l = ts_mid + ts_side;
+    s_r = ts_mid - ts_side;
+  ) : slider51 == 2 ? (
+    ts_delta_m = ts_orig_mid - (ts_mid);
+    s_l = ts_mid + ts_side;
+    s_r = ts_mid - ts_side;
+  ) : (
+    ts_delta_m = ((ts_orig_l + ts_orig_r) - (s_l + s_r)) * 0.5;
+  );
+
+  // Audition Modes:
+  // 1 = Audition Kick Sidechain Detector
+  // 2 = Audition Dynamic Carve Delta (what is being removed from bass)
+  slider52 == 1 ? (
+    s_l = ts_kick_sig;
+    s_r = ts_kick_sig;
+  ) : slider52 == 2 ? (
+    s_l = ts_delta_m;
+    s_r = ts_delta_m;
+  );
+);
+
+
+sub_l = sub_b0 * s_l + sub_b1 * sub_lp_x1_l + sub_b2 * sub_lp_x2_l - sub_a1 * sub_lp_y1_l - sub_a2 * sub_lp_y2_l;
+sub_lp_x2_l = sub_lp_x1_l; sub_lp_x1_l = s_l; sub_lp_y2_l = sub_lp_y1_l; sub_lp_y1_l = sub_l;
+sub_r = sub_b0 * s_r + sub_b1 * sub_lp_x1_r + sub_b2 * sub_lp_x2_r - sub_a1 * sub_lp_y1_r - sub_a2 * sub_lp_y2_r;
+sub_lp_x2_r = sub_lp_x1_r; sub_lp_x1_r = s_r; sub_lp_y2_r = sub_lp_y1_r; sub_lp_y1_r = sub_r;
+
+top_l = s_l - sub_l;
+top_r = s_r - sub_r;
+
+slider34 ? (
+  sub_l *= duck_mult;
+  sub_r *= duck_mult;
+);
+
+m_l = m_b0 * top_l + m_b1 * mud_x1_l + m_b2 * mud_x2_l - m_a1 * mud_y1_l - m_a2 * mud_y2_l;
+mud_x2_l = mud_x1_l; mud_x1_l = top_l; mud_y2_l = mud_y1_l; mud_y1_l = m_l;
+m_r = m_b0 * top_r + m_b1 * mud_x1_r + m_b2 * mud_x2_r - m_a1 * mud_y1_r - m_a2 * mud_y2_r;
+mud_x2_r = mud_x1_r; mud_x1_r = top_r; mud_y2_r = mud_y1_r; mud_y1_r = m_r;
+
+c_l = c_b0 * m_l + c_b1 * clk_x1_l + c_b2 * clk_x2_l - c_a1 * clk_y1_l - c_a2 * clk_y2_l;
+clk_x2_l = clk_x1_l; clk_x1_l = m_l; clk_y2_l = clk_y1_l; clk_y1_l = c_l;
+c_r = c_b0 * m_r + c_b1 * clk_x1_r + c_b2 * clk_x2_r - c_a1 * clk_y1_r - c_a2 * clk_y2_r;
+clk_x2_r = clk_x1_r; clk_x1_r = m_r; clk_y2_r = clk_y1_r; clk_y1_r = c_r;
+
+w_l = w_b0 * c_l + w_b1 * whs_x1_l + w_b2 * whs_x2_l - w_a1 * whs_y1_l - w_a2 * whs_y2_l;
+whs_x2_l = whs_x1_l; whs_x1_l = c_l; whs_y2_l = whs_y1_l; whs_y1_l = w_l;
+w_r = w_b0 * c_r + w_b1 * whs_x1_r + w_b2 * whs_x2_r - w_a1 * whs_y1_r - w_a2 * whs_y2_r;
+whs_x2_r = whs_x1_r; whs_x1_r = c_r; whs_y2_r = whs_y1_r; whs_y1_r = w_r;
+
+out_l = sub_l + w_l;
+out_r = sub_r + w_r;
+
+drv_amt = slider23 * 0.003;
+tube_amt = slider25 * 0.004;
+out_l = out_l + (out_l - 0.33 * out_l * out_l * out_l) * drv_amt + sin(out_l * 1.5) * tube_amt;
+out_r = out_r + (out_r - 0.33 * out_r * out_r * out_r) * drv_amt + sin(out_r * 1.5) * tube_amt;
+
+
+// ---- Smash & Grab Dual-Stage Compressor (VCA Slam + Opto Leveling) ----
+(slider26 == 1 || slider37 > 0 || slider38 > 0) ? (
+  sg_dry_l = out_l; sg_dry_r = out_r;
+
+  sg_det = max(abs(out_l), abs(out_r));
+  sg_db = sg_det > 0.000001 ? 20.0 * log10(sg_det) : -120.0;
+
+  // 1. Smash Stage (Fast VCA clamp, 2ms attack, 65ms release, 8:1 ratio)
+  smash_thr = -14.0 - (slider37 * 0.22);
+  smash_over = max(0.0, sg_db - smash_thr);
+  smash_tgt = smash_over * (1.0 - 1.0 / 8.0) * (slider37 * 0.01);
+  sg_smash_gr = smash_tgt > sg_smash_gr ? (smash_tgt + (sg_smash_gr - smash_tgt) * 0.94) : (smash_tgt + (sg_smash_gr - smash_tgt) * 0.985);
+  sg_meter_smash = sg_meter_smash * 0.90 + sg_smash_gr * 0.10;
+
+  // 2. Grab Stage (Smooth Opto sustain, 15ms attack, 180ms dual release, 3.5:1 ratio)
+  grab_thr = -18.0 - (slider38 * 0.18);
+  grab_over = max(0.0, sg_db - grab_thr);
+  grab_tgt = grab_over * (1.0 - 1.0 / 3.5) * (slider38 * 0.01);
+  sg_grab_gr = grab_tgt > sg_grab_gr ? (grab_tgt + (sg_grab_gr - grab_tgt) * 0.96) : (grab_tgt + (sg_grab_gr - grab_tgt) * 0.992);
+  sg_meter_grab = sg_meter_grab * 0.90 + sg_grab_gr * 0.10;
+
+  // 3. Combined Reduction based on Mode (0: Smash, 1: Grab, 2: Hybrid)
+  tot_gr = slider36 == 0 ? sg_smash_gr : (slider36 == 1 ? sg_grab_gr : (sg_smash_gr * 0.65 + sg_grab_gr * 0.55));
+  sg_gain = exp(-tot_gr * 0.11512925);
+  sg_wet_l = out_l * sg_gain;
+  sg_wet_r = out_r * sg_gain;
+
+  sg_mix = slider39 * 0.01;
+  out_l = sg_dry_l * (1.0 - sg_mix) + sg_wet_l * sg_mix;
+  out_r = sg_dry_r * (1.0 - sg_mix) + sg_wet_r * sg_mix;
+);
+
+// ---- Decapitator Saturation Engine (Soundtoys Modeled A/N/T/P Styles) ----
+(slider26 == 1 || slider41 > 0 || slider42 == 1) ? (
+  dec_drv = (slider41 * 0.01) * (slider42 == 1 ? 4.8 : 1.35) + 1.0;
+  dec_in_l = out_l * dec_drv;
+  dec_in_r = out_r * dec_drv;
+
+  // Style Selection:
+  slider40 == 0 ? ( // Style A (Ampex Tape: warm symmetrical soft saturation)
+    dec_sat_l = (dec_in_l * 0.85) / (1.0 + abs(dec_in_l * 0.85) * 0.5) * 1.15;
+    dec_sat_r = (dec_in_r * 0.85) / (1.0 + abs(dec_in_r * 0.85) * 0.5) * 1.15;
+  ) : slider40 == 1 ? ( // Style N (Neve Console: 2nd harmonic transformer crunch)
+    dec_sat_l = (dec_in_l - 0.20 * dec_in_l * dec_in_l) / (1.0 + abs(dec_in_l) * 0.40);
+    dec_sat_r = (dec_in_r - 0.20 * dec_in_r * dec_in_r) / (1.0 + abs(dec_in_r) * 0.40);
+  ) : slider40 == 2 ? ( // Style T (Triode Tube: rich warm tube glow)
+    dec_sat_l = sin(max(-1.57, min(1.57, dec_in_l * 0.70))) * 1.35;
+    dec_sat_r = sin(max(-1.57, min(1.57, dec_in_r * 0.70))) * 1.35;
+  ) : ( // Style P (Pentode: aggressive modern dirt & growl)
+    dec_sat_l = max(-0.95, min(0.95, dec_in_l - 0.33 * dec_in_l * dec_in_l * dec_in_l));
+    dec_sat_r = max(-0.95, min(0.95, dec_in_r - 0.33 * dec_in_r * dec_in_r * dec_in_r));
+  );
+
+  // Tone Tilt (-10 to +10)
+  slider43 != 0.0 ? (
+    tilt_gain = exp((slider43 * 0.3) * 0.11512925);
+    dec_sat_l *= tilt_gain;
+    dec_sat_r *= tilt_gain;
+  );
+
+  // High Cut Filter
+  slider44 < 17500 ? (
+    dec_hc_out_l = dec_hc_b0 * dec_sat_l + dec_hc_b1 * dec_hc_lx1 - dec_hc_a1 * dec_hc_ly1;
+    dec_hc_lx1 = dec_sat_l; dec_hc_ly1 = dec_hc_out_l;
+    dec_sat_l = dec_hc_out_l;
+
+    dec_hc_out_r = dec_hc_b0 * dec_sat_r + dec_hc_b1 * dec_hc_rx1 - dec_hc_a1 * dec_hc_ry1;
+    dec_hc_rx1 = dec_sat_r; dec_hc_ry1 = dec_hc_out_r;
+    dec_sat_r = dec_hc_out_r;
+  );
+
+  // Blend into output
+  dec_mix = min(1.0, (slider41 * 0.01) * 0.75 + (slider42 == 1 ? 0.35 : 0.0));
+  out_l = out_l * (1.0 - dec_mix) + dec_sat_l * dec_mix;
+  out_r = out_r * (1.0 - dec_mix) + dec_sat_r * dec_mix;
+);
+
+out_l *= out_trim_mult;
+out_r *= out_trim_mult;
+
+slider16 == 1 ? (
+  out_l = max(-ceil_amp, min(ceil_amp, out_l - 0.15 * out_l * out_l * out_l));
+  out_r = max(-ceil_amp, min(ceil_amp, out_r - 0.15 * out_r * out_r * out_r));
+) : slider16 == 2 ? (
+  out_l = max(-ceil_amp, min(ceil_amp, out_l));
+  out_r = max(-ceil_amp, min(ceil_amp, out_r));
+);
+
+spl0 = out_l;
+spl1 = out_r;
+
+in_abs = max(abs(out_l), abs(out_r));
+cur_true_peak = in_abs > 0.00001 ? 20.0 * log10(in_abs) : -90.0;
+cur_out_true_peak = cur_true_peak;
+cur_rms = cur_rms * 0.9995 + (out_l * out_l + out_r * out_r) * 0.0005;
+cur_vu_rms = cur_rms > 0.00000001 ? 10.0 * log10(cur_rms * 0.5) : -90.0;
+cur_crest = max(0.0, cur_out_true_peak - cur_vu_rms);
+
+sub_abs = max(abs(sub_l), abs(sub_r));
+sub_env = sub_abs > sub_env ? (sub_env * 0.95 + sub_abs * 0.05) : (sub_env * 0.999);
+sub_energy_db = sub_env > 0.00001 ? 20.0 * log10(sub_env) : -90.0;
+
+sub_mono_sum = (sub_l + sub_r) * 0.5;
+kick_mono_sum = (spl2 + spl3) * 0.5;
+kick_sub_prod = sub_mono_sum * kick_mono_sum;
+kick_sub_sq = max(0.00001, abs(sub_mono_sum) * abs(kick_mono_sum));
+raw_corr = kick_sub_sq > 0.00005 ? (kick_sub_prod / kick_sub_sq) : 1.0;
+cur_kick_bass_corr = cur_kick_bass_corr * 0.995 + raw_corr * 0.005;
+cur_kick_bass_corr = max(-1.0, min(1.0, cur_kick_bass_corr));
+
+(sample_cnt += 1) >= 28 ? (
+  sample_cnt = 0;
+  buf_in_arr[buf_in_idx] = in_abs;
+  buf_kick_arr[buf_in_idx] = kick_env;
+  buf_sub_arr[buf_in_idx] = sub_env;
+  buf_mid_arr[buf_in_idx] = mid;
+  buf_side_arr[buf_in_idx] = hp_side;
+  buf_in_idx = (buf_in_idx + 1) % buf_sz;
+);
+
+  mtrim_process();
+
+@gfx 1080 700
+// =============================================================================
+// DAMEI BASS BUS ENGINE // FRATERNAL TWIN: DARKGLASS EMERALD & REINFORCED CHASSIS
+// =============================================================================
+scale = min(gfx_w / 1080, gfx_h / 700);
+scale = max(0.65, min(1.5, scale));
+
+mouse_clicked = (mouse_cap & 1) && !(prev_mouse_cap & 1);
+mouse_down = (mouse_cap & 1);
+prev_mouse_cap = mouse_cap;
+
+// Deep Industrial Sub-Gunmetal Background
+gfx_r = 0.018; gfx_g = 0.024; gfx_b = 0.030; gfx_a = 1.0;
+gfx_rect(0, 0, gfx_w, gfx_h);
+
+// REINFORCED INDUSTRIAL CHASSIS (FRATERNAL TWIN CORNER CHAMFERS & RIVETS)
+// Outer Darkglass Emerald Structural Frame
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; // Acid Jade / Darkglass Emerald
+gfx_rect(8, 8, gfx_w - 16, gfx_h - 16, 0);
+
+// Inner Gunmetal Protective Inset
+gfx_r = 0.14; gfx_g = 0.22; gfx_b = 0.28;
+gfx_rect(10, 10, gfx_w - 20, gfx_h - 20, 0);
+
+// 4 Industrial Corner Reinforcement Gussets (Diagonal Braces)
+gus_sz = 14;
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_line(8, 8 + gus_sz, 8 + gus_sz, 8);
+gfx_line(gfx_w - 8 - gus_sz, 8, gfx_w - 8, 8 + gus_sz);
+gfx_line(8, gfx_h - 8 - gus_sz, 8 + gus_sz, gfx_h - 8);
+gfx_line(gfx_w - 8 - gus_sz, gfx_h - 8, gfx_w - 8, gfx_h - 8 - gus_sz);
+
+// 4 Hex-Rivet Seismic Containment Anchors
+gfx_r = 0.18; gfx_g = 0.28; gfx_b = 0.36;
+gfx_circle(20, 20, 4, 1); gfx_circle(gfx_w - 20, 20, 4, 1);
+gfx_circle(20, gfx_h - 20, 4, 1); gfx_circle(gfx_w - 20, gfx_h - 20, 4, 1);
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_circle(20, 20, 4, 0); gfx_circle(gfx_w - 20, 20, 4, 0);
+gfx_circle(20, gfx_h - 20, 4, 0); gfx_circle(gfx_w - 20, gfx_h - 20, 4, 0);
+
+// TOP HEADER BAR (42px)
+hdr_y = 16; hdr_h = 42;
+gfx_r = 0.028; gfx_g = 0.038; gfx_b = 0.048;
+gfx_rect(14, hdr_y, gfx_w - 28, hdr_h);
+gfx_r = 0.14; gfx_g = 0.32; gfx_b = 0.30;
+gfx_rect(14, hdr_y, gfx_w - 28, hdr_h, 0);
+
+// Subterranean Radar Logo & Branding (Pulsing Emerald Rings)
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_circle(36, hdr_y + 21, 11, 0);
+gfx_circle(36, hdr_y + 21, 6, 0);
+gfx_circle(36, hdr_y + 21, 2, 1);
+
+gfx_setfont(1, "Orbitron", 17, 'b');
+gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+gfx_x = 56; gfx_y = hdr_y + 11;
+gfx_drawstr("DAMEI // BASS BUS ENGINE");
+
+// Preset Navigator Selector Box
+p_box_x = 360; p_box_w = 260; p_box_y = hdr_y + 7; p_box_h = 28;
+gfx_r = 0.03; gfx_g = 0.06; gfx_b = 0.08; gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h);
+gfx_r = 0.06; gfx_g = 0.65; gfx_b = 0.45; gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h, 0);
+
+// Left / Right Steppers
+p_btn_w = 24;
+left_hov = (mouse_x >= p_box_x && mouse_x <= p_box_x + p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h);
+right_hov = (mouse_x >= p_box_x + p_box_w - p_btn_w && mouse_x <= p_box_x + p_box_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h);
+gfx_r = left_hov ? 0.10 : 0.05; gfx_g = left_hov ? 0.30 : 0.14; gfx_b = left_hov ? 0.22 : 0.10;
+gfx_rect(p_box_x, p_box_y, p_btn_w, p_box_h);
+gfx_r = right_hov ? 0.10 : 0.05; gfx_g = right_hov ? 0.30 : 0.14; gfx_b = right_hov ? 0.22 : 0.10;
+gfx_rect(p_box_x + p_box_w - p_btn_w, p_box_y, p_btn_w, p_box_h);
+
+gfx_setfont(1, "Consolas", 14, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = p_box_x + 8; gfx_y = p_box_y + 6; gfx_drawstr("<");
+gfx_x = p_box_x + p_box_w - 16; gfx_y = p_box_y + 6; gfx_drawstr(">");
+
+mouse_clicked && left_hov ? (
+  slider20 = max(0, slider20 - 1); apply_bass_preset(slider20); slider_automate();
+);
+mouse_clicked && right_hov ? (
+  slider20 = min(16, slider20 + 1); apply_bass_preset(slider20); slider_automate();
+);
+
+// Preset Name Center
+gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.40; gfx_g = 1.00; gfx_b = 0.70;
+p_name = (
+  slider20 == 0  ? "0: Default Neutral Wire" :
+  slider20 == 1  ? "1: Lance Prenc (Alpha Wolf)" :
+  slider20 == 2  ? "2: Scott Seigel (DIESECT)" :
+  slider20 == 3  ? "3: Jonathan Dolese (Cane Hill)" :
+  slider20 == 4  ? "4: Buster Odeholm (thrown)" :
+  slider20 == 5  ? "5: Kel Pinchin (Currents)" :
+  slider20 == 6  ? "6: Sam Guaiana (Silverstein)" :
+  slider20 == 7  ? "7: Forrester Savell (Karnivool)" :
+  slider20 == 8  ? "8: Jens Bogren (Fascination)" :
+  slider20 == 9  ? "9: Adam Nolly (Periphery)" :
+  slider20 == 10 ? "10: Will Putney (FFAA)" :
+  slider20 == 11 ? "11: George Lever (Sleep Token)" :
+  slider20 == 12 ? "12: Sam Bassal (Thornhill)" :
+  slider20 == 13 ? "13: Henrik Udd (Architects)" :
+  slider20 == 14 ? "14: Joey Sturgis (Asking Alex)" :
+  slider20 == 15 ? "15: Dan Braunstein (Spiritbox)" :
+  "16: Zakk Cervini (Blink-182)"
+);
+gfx_measurestr(p_name, pnw, pnh);
+gfx_x = p_box_x + (p_box_w - pnw) * 0.5; gfx_y = p_box_y + 7; gfx_drawstr(p_name);
+
+// Region Sync & Chain Badges
+g_bridge_active = (gmem[100] == 1);
+g_sec_live = g_bridge_active ? gmem[101] : 0;
+g_cur_rgn_live = g_bridge_active ? gmem[104] : 0;
+
+sync_w = 145; sync_x = p_box_x + p_box_w + 12; sync_y = hdr_y + 7;
+(g_sec_live == 4 || g_sec_live == 3) ? (
+  gfx_r = 0.04; gfx_g = 0.22; gfx_b = 0.12; gfx_rect(sync_x, sync_y, sync_w, 28);
+  gfx_r = 0.06; gfx_g = 0.95; gfx_b = 0.55; gfx_rect(sync_x, sync_y, sync_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.15; gfx_g = 0.98; gfx_b = 0.60;
+  r_str = sprintf(#, "⚡ RGN #%d: CHORUS", g_cur_rgn_live > 0 ? g_cur_rgn_live : 4);
+) : (g_sec_live == 8) ? (
+  gfx_r = 0.26; gfx_g = 0.10; gfx_b = 0.14; gfx_rect(sync_x, sync_y, sync_w, 28);
+  gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.20; gfx_rect(sync_x, sync_y, sync_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 1.00; gfx_g = 0.40; gfx_b = 0.25;
+  r_str = sprintf(#, "▼ BREAKDOWN: DROP", g_cur_rgn_live);
+) : (g_bridge_active && gmem[103] > 0) ? (
+  gfx_r = 0.03; gfx_g = 0.14; gfx_b = 0.09; gfx_rect(sync_x, sync_y, sync_w, 28);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(sync_x, sync_y, sync_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.50;
+  r_str = sprintf(#, "● SYNC: %d REGIONS", gmem[103]);
+) : (
+  gfx_r = 0.03; gfx_g = 0.14; gfx_b = 0.09; gfx_rect(sync_x, sync_y, sync_w, 28);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(sync_x, sync_y, sync_w, 28, 0);
+  gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.50;
+  r_str = "● KICK LINK: CH 3/4";
+);
+gfx_measurestr(r_str, rsw, rsh);
+gfx_x = sync_x + (sync_w - rsw) * 0.5; gfx_y = sync_y + 7; gfx_drawstr(r_str);
+
+chn_w = 120; chn_x = sync_x + sync_w + 10; chn_y = hdr_y + 7;
+gfx_r = 0.03; gfx_g = 0.10; gfx_b = 0.14; gfx_rect(chn_x, chn_y, chn_w, 28);
+gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85; gfx_rect(chn_x, chn_y, chn_w, 28, 0);
+gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = chn_x + 10; gfx_y = chn_y + 7; gfx_drawstr("CHAIN: FINISHER");
+
+ceil_w = 95; ceil_x = chn_x + chn_w + 10; ceil_y = hdr_y + 7;
+gfx_r = 0.05; gfx_g = 0.07; gfx_b = 0.09; gfx_rect(ceil_x, ceil_y, ceil_w, 28);
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(ceil_x, ceil_y, ceil_w, 28, 0);
+gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_x = ceil_x + 12; gfx_y = ceil_y + 7; gfx_drawstr("CEIL: FREE");
+
+// =============================================================================
+// TOP TELEMETRY CARDS (4 CARDS ACROSS SCREEN)
+// =============================================================================
+card_y = hdr_y + hdr_h + 10; card_h = 76;
+card_gap = 10;
+card_w = floor((gfx_w - 28 - card_gap * 3) / 4);
+crt_x = 14;
+
+// Card 1: True Peak & Headroom Guardian
+c1_x = crt_x;
+gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(c1_x, card_y, card_w, card_h);
+gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(c1_x, card_y, card_w, card_h, 0);
+
+gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = c1_x + 10; gfx_y = card_y + 6; gfx_drawstr("TRUE PEAK (CEIL -6.0)");
+
+gfx_r = (cur_out_true_peak > slider17) ? 0.98 : (cur_out_true_peak > -1.0 ? 1.00 : 0.06);
+gfx_g = (cur_out_true_peak > slider17) ? 0.22 : (cur_out_true_peak > -1.0 ? 0.75 : 0.88);
+gfx_b = (cur_out_true_peak > slider17) ? 0.22 : (cur_out_true_peak > -1.0 ? 0.20 : 0.50);
+gfx_setfont(1, "Orbitron", 22, 'b');
+tp_txt = sprintf(#, "%+.1f dBTP", cur_out_true_peak);
+gfx_x = c1_x + 10; gfx_y = card_y + 26; gfx_drawstr(tp_txt);
+
+gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = c1_x + 10; gfx_y = card_y + 54;
+gfx_printf("IN: %.1f | CLIP: %s", cur_true_peak, slider16==0?"PASS":(slider16==1?"HERMITE":"HARD"));
+
+// Card 2: AI Bass Assistant & Mix Lock Deck
+c2_x = crt_x + card_w + card_gap;
+gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(c2_x, card_y, card_w, card_h);
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(c2_x, card_y, card_w, card_h, 0);
+
+gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_x = c2_x + 8; gfx_y = card_y + 6; gfx_drawstr("● AI BASS ASSISTANT");
+
+gfx_setfont(1, "Consolas", 10.5, 'b');
+gmem[1090] == 3 ? (
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  mir_b_tag = "MIR DNA: LINKED";
+  gfx_measurestr(mir_b_tag, lnk_w, lnk_h);
+  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr(mir_b_tag);
+) : gmem[820] == 1 ? (
+  gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_measurestr("KICK: LINKED", lnk_w, lnk_h);
+  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr("KICK: LINKED");
+) : (
+  gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.80;
+  gfx_measurestr("STANDALONE", lnk_w, lnk_h);
+  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr("STANDALONE");
+);
+
+// Center Action Button: [ ★ AI AUTO-CALIBRATE ]
+ai_btn_w = card_w - 16; ai_btn_h = 26;
+ai_btn_x = c2_x + 8; ai_btn_y = card_y + 23;
+ai_btn_hov = (mouse_x >= ai_btn_x && mouse_x <= ai_btn_x + ai_btn_w && mouse_y >= ai_btn_y && mouse_y <= ai_btn_y + ai_btn_h);
+gfx_r = ai_btn_hov ? 0.12 : 0.04; gfx_g = ai_btn_hov ? 0.36 : 0.18; gfx_b = ai_btn_hov ? 0.22 : 0.12;
+gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h);
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h, 0);
+
+gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+ai_btn_txt = sprintf(#, "★ AI AUTO-CALIBRATE (REL: %+.1fdB)", bass_to_drm_db);
+gfx_measurestr(ai_btn_txt, abw, abh);
+gfx_x = ai_btn_x + (ai_btn_w - abw) * 0.5; gfx_y = ai_btn_y + 6; gfx_drawstr(ai_btn_txt);
+
+mouse_clicked && ai_btn_hov ? (
+  trigger_bass_ai_assist();
+);
+
+// Musical Bass-to-Drums & Guitar Balance Status
+gfx_setfont(1, "Consolas", 11.5, 'b');
+is_quiet_b = (cur_vu_rms < -55.0 || drm_rms_live < -55.0);
+is_in_pocket_b = (!is_quiet_b && bass_to_drm_db >= -5.0 && bass_to_drm_db <= -1.0);
+is_high_drive_b = (!is_quiet_b && bass_to_drm_db > -1.0 && bass_to_drm_db <= 1.5);
+
+gfx_x = c2_x + 8; gfx_y = card_y + 54;
+is_quiet_b ? (
+  gfx_r = 0.60; gfx_g = 0.65; gfx_b = 0.70;
+  gfx_drawstr("STATUS: TRANSPORT STANDBY // AWAITING AUDIO");
+) : is_in_pocket_b ? (
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_drawstr("STATUS: LOCKED TO KICK & GUITAR WALL");
+) : is_high_drive_b ? (
+  gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_drawstr("STATUS: HIGH-ENERGY MOTOR // MASSIVE LOW");
+) : bass_to_drm_db > 1.5 ? (
+  gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;
+  gfx_drawstr("STATUS: SUB HOT // MASKING KICK DRUM");
+) : (
+  gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20;
+  gfx_drawstr("STATUS: SUB TUCKED // CONSIDER +1dB SUB");
+);
+
+// Card 3: Kick Ducking Depth & Sub-Mono Readout
+c3_x = crt_x + (card_w + card_gap) * 2;
+gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(c3_x, card_y, card_w, card_h);
+gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_setfont(1, "Consolas", 14, 'b');
+gfx_x = c3_x + 10; gfx_y = card_y + 6; gfx_drawstr("SUB ANCHOR & KICK POCKET");
+
+gfx_r = (duck_gr_db < -0.3) ? 0.98 : 0.06;
+gfx_g = (duck_gr_db < -0.3) ? 0.35 : 0.88;
+gfx_b = (duck_gr_db < -0.3) ? 0.15 : 0.50;
+gfx_setfont(1, "Orbitron", 22, 'b');
+dk_txt = sprintf(#, "DUCK: %+.1f dB", duck_gr_db);
+gfx_x = c3_x + 10; gfx_y = card_y + 26; gfx_drawstr(dk_txt);
+
+gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.40; gfx_g = 1.00; gfx_b = 0.70;
+gfx_x = c3_x + 10; gfx_y = card_y + 54;
+gfx_printf("SUB-MONO: %dHz // %s", slider3, slider34 ? "ACTIVE" : "BYPASS");
+
+// Card 4: Kick/Bass Phase & Correlation
+c4_x = crt_x + (card_w + card_gap) * 3;
+gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(c4_x, card_y, card_w, card_h);
+gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(c4_x, card_y, card_w, card_h, 0);
+
+gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = c4_x + 10; gfx_y = card_y + 6; gfx_drawstr("KICK/BASS PHASE & CORR");
+
+gfx_r = cur_kick_bass_corr > 0.6 ? 0.06 : (cur_kick_bass_corr > 0.0 ? 1.00 : 0.98);
+gfx_g = cur_kick_bass_corr > 0.6 ? 0.88 : (cur_kick_bass_corr > 0.0 ? 0.75 : 0.22);
+gfx_b = cur_kick_bass_corr > 0.6 ? 0.50 : (cur_kick_bass_corr > 0.0 ? 0.20 : 0.22);
+gfx_setfont(1, "Orbitron", 22, 'b');
+cr_txt = sprintf(#, "%+.2f CORR", cur_kick_bass_corr);
+gfx_x = c4_x + 10; gfx_y = card_y + 26; gfx_drawstr(cr_txt);
+
+gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+gfx_x = c4_x + 10; gfx_y = card_y + 54;
+gfx_printf("PHASE: %s | DELAY: %+.1fms", slider15 ? "INV 180°" : "NORMAL 0°", slider14);
+
+// =============================================================================
+// MAIN NAVIGATION TABS (6 MODULE TABS)
+// =============================================================================
+tab_y = card_y + card_h + 10; tab_h = 34;
+tab_w = floor((gfx_w - 28) / 7);
+ti = 0;
+loop(7,
+  tx = 14 + ti * tab_w;
+  is_sel = (slider1 == ti);
+  is_hov = (mouse_x >= tx && mouse_x <= tx + tab_w && mouse_y >= tab_y && mouse_y <= tab_y + tab_h);
+
+  gfx_r = is_sel ? 0.06 : (is_hov ? 0.04 : 0.022);
+  gfx_g = is_sel ? 0.16 : (is_hov ? 0.09 : 0.032);
+  gfx_b = is_sel ? 0.14 : (is_hov ? 0.08 : 0.040);
+  gfx_rect(tx, tab_y, tab_w, tab_h);
+
+  is_sel ? (
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+    gfx_line(tx, tab_y + tab_h - 2, tx + tab_w, tab_y + tab_h - 2);
+    gfx_line(tx, tab_y + tab_h - 1, tx + tab_w, tab_y + tab_h - 1);
+  );
+
+  gfx_setfont(1, "Orbitron", 11.5, 'b');
+  gfx_r = is_sel ? 0.15 : (is_hov ? 0.50 : 0.40);
+  gfx_g = is_sel ? 0.96 : (is_hov ? 0.80 : 0.60);
+  gfx_b = is_sel ? 0.60 : (is_hov ? 0.70 : 0.55);
+
+  t_name = (
+    ti == 0 ? "Overview" :
+    ti == 1 ? "Trackspacer EQ" :
+    ti == 2 ? "Sub Anchor" :
+    ti == 3 ? "3-Way Split" :
+    ti == 4 ? "Phase Radar" :
+    ti == 5 ? "Analog Glue" :
+    "Producer Matrix"
+  );
+  gfx_measurestr(t_name, tnw, tnh);
+  gfx_x = tx + (tab_w - tnw) * 0.5; gfx_y = tab_y + 9; gfx_drawstr(t_name);
+
+  mouse_clicked && is_hov ? (
+    slider1 = ti; slider_automate();
+  );
+  ti += 1;
+);
+
+disp_x = 14; disp_y = tab_y + tab_h + 10;
+disp_w = gfx_w - 28; disp_h = gfx_h - disp_y - 14;
+
+// Helper function for Darkglass Emerald Param Sliders
+function draw_bass_param_slider(py, title, val, min_v, max_v, fmt, s_idx) (
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  gfx_x = c_x + 16; gfx_y = py; gfx_drawstr(title);
+
+  v_str = sprintf(#, fmt, val);
+  gfx_measurestr(v_str, vsw, vsh);
+  gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_x = c_x + col_w - vsw - 16; gfx_y = py; gfx_drawstr(v_str);
+
+  b_x = c_x + 16; b_y = py + 22; b_w = col_w - 32; b_h = 20;
+  gfx_r = 0.025; gfx_g = 0.035; gfx_b = 0.045; gfx_rect(b_x, b_y, b_w, b_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(b_x, b_y, b_w, b_h, 0);
+
+  frac = max(0.0, min(1.0, (val - min_v) / (max_v - min_v)));
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_rect(b_x + 1, b_y + 1, floor(frac * b_w), b_h - 2);
+
+  mouse_down && (mouse_x >= b_x && mouse_x <= b_x + b_w && mouse_y >= b_y && mouse_y <= b_y + b_h) ? (
+    set_v = min_v + ((mouse_x - b_x) / b_w) * (max_v - min_v);
+    s_idx == 3 ? (slider3 = set_v;) :
+    s_idx == 4 ? (slider4 = set_v;) :
+    s_idx == 5 ? (slider5 = set_v;) :
+    s_idx == 6 ? (slider6 = set_v;) :
+    s_idx == 7 ? (slider7 = set_v;) :
+    s_idx == 8 ? (slider8 = set_v;) :
+    s_idx == 10 ? (slider10 = set_v;) :
+    s_idx == 11 ? (slider11 = set_v;) :
+    s_idx == 14 ? (slider14 = set_v;);
+    update_bass_filters();
+    slider_automate();
+  );
+);
+
+// =============================================================================
+// TAB 0: BASS FOLDER OVERVIEW & SUB-BUS HARDWARE CONSOLE
+// =============================================================================
+slider1 == 0 ? (
+  ov_y = disp_y; ov_h = disp_h; ov_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, ov_y, ov_w, ov_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, ov_y, ov_w, ov_h, 0);
+
+  strip_gap = 14;
+  strip_w = floor((ov_w - 28 - strip_gap * 3) / 4);
+  strip_h = ov_h - 28;
+
+  bi = 0;
+  loop(4,
+    bx = disp_x + 14 + bi * (strip_w + strip_gap);
+    by = ov_y + 14;
+
+    gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(bx, by, strip_w, strip_h);
+    gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(bx, by, strip_w, strip_h, 0);
+
+    bi == 0 ? (
+      acc_r = 0.06; acc_g = 0.88; acc_b = 0.50;
+      ch_title = "1. BASS BUS"; ch_trk = "TRK 66"; ch_role = "Master Sum / Finisher";
+      t_val = slider30; b_act = min(1.0, max(0.0, (cur_out_true_peak + 40.0) / 40.0));
+    ) : bi == 1 ? (
+      acc_r = 0.00; acc_g = 0.92; acc_b = 0.85;
+      ch_title = "2. DI TRACK"; ch_trk = "TRK 67"; ch_role = "Clean Foundation DI";
+      t_val = slider31; b_act = min(1.0, max(0.0, (sub_energy_db + 40.0) / 40.0));
+    ) : bi == 2 ? (
+      acc_r = 0.40; acc_g = 1.00; acc_b = 0.70;
+      ch_title = "3. EUROBASS / MIDI"; ch_trk = "TRK 68"; ch_role = "Kontakt 8 + Parallax X";
+      t_val = slider32; b_act = min(1.0, max(0.0, (cur_out_true_peak + 42.0) / 40.0));
+    ) : (
+      acc_r = 0.98; acc_g = 0.35; acc_b = 0.15;
+      ch_title = "4. MIC / AUX"; ch_trk = "TRK 69"; ch_role = "Parallel Dirt / Room";
+      t_val = slider33; b_act = 0.0;
+    );
+
+    // Accent header ribbon
+    gfx_r = acc_r; gfx_g = acc_g; gfx_b = acc_b;
+    gfx_rect(bx, by, strip_w, 4);
+
+    gfx_setfont(1, "Orbitron", 14, 'b');
+    gfx_x = bx + 10; gfx_y = by + 10; gfx_drawstr(ch_title);
+
+    gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.70; gfx_g = 0.82; gfx_b = 0.88;
+    gfx_x = bx + 10; gfx_y = by + 30; gfx_drawstr(ch_trk);
+    gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+    gfx_x = bx + 10; gfx_y = by + 46; gfx_drawstr(ch_role);
+
+    // Segmented Stereo Peak Meter
+    mtr_x = bx + 12; mtr_y = by + 70; mtr_w = 16; mtr_h = strip_h - 130;
+    gfx_r = 0.02; gfx_g = 0.03; gfx_b = 0.05; gfx_rect(mtr_x, mtr_y, mtr_w, mtr_h);
+    gfx_r = 0.12; gfx_g = 0.22; gfx_b = 0.28; gfx_rect(mtr_x, mtr_y, mtr_w, mtr_h, 0);
+
+    segs = 14; seg_i = 0;
+    seg_step = (mtr_h - 4) / segs;
+    loop(segs,
+      seg_y = mtr_y + mtr_h - 4 - (seg_i + 1) * seg_step;
+      seg_act = (b_act >= (seg_i / segs));
+      seg_i > 11 ? (
+        gfx_r = seg_act ? 0.98 : 0.25; gfx_g = seg_act ? 0.22 : 0.06; gfx_b = seg_act ? 0.22 : 0.06;
+      ) : seg_i > 8 ? (
+        gfx_r = seg_act ? 0.00 : 0.05; gfx_g = seg_act ? 0.92 : 0.24; gfx_b = seg_act ? 0.85 : 0.22;
+      ) : (
+        gfx_r = seg_act ? 0.06 : 0.03; gfx_g = seg_act ? 0.88 : 0.22; gfx_b = seg_act ? 0.50 : 0.12;
+      );
+      gfx_rect(mtr_x + 2, seg_y, mtr_w - 4, seg_step - 2);
+      seg_i += 1;
+    );
+
+    // Calibrated Vertical Studio Fader
+    fd_x = bx + 40; fd_y = by + 70; fd_w = strip_w - 52; fd_h = strip_h - 130;
+    gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(fd_x, fd_y, fd_w, fd_h);
+    gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(fd_x, fd_y, fd_w, fd_h, 0);
+
+    rail_x = fd_x + floor(fd_w * 0.5);
+    gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.22;
+    gfx_line(rail_x, fd_y + 4, rail_x, fd_y + fd_h - 4);
+    gfx_line(rail_x + 1, fd_y + 4, rail_x + 1, fd_y + fd_h - 4);
+
+    gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.40; gfx_g = 0.56; gfx_b = 0.64;
+    gfx_line(fd_x + 2, fd_y + floor(fd_h * 0.5), fd_x + 8, fd_y + floor(fd_h * 0.5));
+    gfx_x = fd_x + 10; gfx_y = fd_y + floor(fd_h * 0.5) - 5; gfx_drawstr("0");
+
+    t_frac = max(0.0, min(1.0, (t_val - (-6.0)) / 12.0));
+    knob_y = fd_y + fd_h - 10 - floor(t_frac * (fd_h - 20));
+
+    gfx_r = 0.18; gfx_g = 0.26; gfx_b = 0.32;
+    gfx_rect(fd_x + 4, knob_y - 8, fd_w - 8, 16);
+    gfx_r = acc_r; gfx_g = acc_g; gfx_b = acc_b;
+    gfx_rect(fd_x + 4, knob_y - 8, fd_w - 8, 16, 0);
+    gfx_line(fd_x + 6, knob_y, fd_x + fd_w - 6, knob_y);
+
+    gfx_setfont(1, "Consolas", 14, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+    tr_txt = sprintf(#, "%+.1fdB", t_val);
+    gfx_measurestr(tr_txt, trw, trh);
+    gfx_x = bx + floor((strip_w - trw) * 0.5); gfx_y = by + strip_h - 48;
+    gfx_drawstr(tr_txt);
+
+    mouse_down && (mouse_x >= fd_x && mouse_x <= fd_x + fd_w && mouse_y >= fd_y - 6 && mouse_y <= fd_y + fd_h + 6) ? (
+      new_trim = -6.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 12.0;
+      new_trim = max(-6.0, min(6.0, new_trim));
+      bi == 0 ? (slider30 = new_trim;) :
+      bi == 1 ? (slider31 = new_trim;) :
+      bi == 2 ? (slider32 = new_trim;) :
+      (slider33 = new_trim;);
+      slider_automate();
+    );
+
+    bi += 1;
+  );
+);
+
+// =============================================================================
+// TAB 1: WAVESFACTORY TRACKSPACER DYNAMIC INVERSE EQUALIZER RACK
+// =============================================================================
+slider1 == 1 ? (
+  ts_y = disp_y; ts_h = disp_h; ts_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, ts_y, ts_w, ts_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, ts_y, ts_w, ts_h, 0);
+
+  // Top Section: Title & Master Toggle Pill
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = disp_x + 16; gfx_y = ts_y + 12;
+  gfx_drawstr("WAVESFACTORY TRACKSPACER // DYNAMIC INVERSE EQUALIZER");
+
+  gfx_setfont(1, "Consolas", 12.5, 'b'); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 0.88;
+  gfx_x = disp_x + 16; gfx_y = ts_y + 34;
+  gfx_drawstr("Real-time 32-point spectral carve-out: Dynamically notches bass ONLY when and where kick strikes.");
+
+  // Master Engine Toggle Pill (Top Right)
+  tog_w = 140; tog_h = 28; tog_x = disp_x + ts_w - tog_w - 16; tog_y = ts_y + 12;
+  tog_hov = (mouse_x >= tog_x && mouse_x <= tog_x + tog_w && mouse_y >= tog_y && mouse_y <= tog_y + tog_h);
+  gfx_r = slider45 ? 0.06 : 0.22; gfx_g = slider45 ? 0.24 : 0.08; gfx_b = slider45 ? 0.16 : 0.08;
+  gfx_rect(tog_x, tog_y, tog_w, tog_h);
+  gfx_r = slider45 ? 0.06 : 0.98; gfx_g = slider45 ? 0.88 : 0.22; gfx_b = slider45 ? 0.50 : 0.22;
+  gfx_rect(tog_x, tog_y, tog_w, tog_h, 0);
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  tog_txt = slider45 ? "● TRACKSPACER: ON" : "○ BYPASSED";
+  gfx_measurestr(tog_txt, tgw, tgh);
+  gfx_x = tog_x + (tog_w - tgw) * 0.5; gfx_y = tog_y + 7; gfx_drawstr(tog_txt);
+  mouse_clicked && tog_hov ? (slider45 = !slider45; slider_automate(););
+
+  // Layout: Left/Center Main Spectrum Visualizer (64% width), Right Dial Rack (36% width)
+  spec_w = floor((ts_w - 44) * 0.65);
+  spec_h = ts_h - 170;
+  spec_x = disp_x + 16;
+  spec_y = ts_y + 54;
+
+  rack_x = spec_x + spec_w + 12;
+  rack_w = ts_w - spec_w - 44;
+  rack_h = spec_h;
+  rack_y = spec_y;
+
+  // ---------------------------------------------------------------------------
+  // 1. DYNAMIC INVERSE SPECTRUM SCOPE (WAVESFACTORY STYLE)
+  // ---------------------------------------------------------------------------
+  gfx_r = 0.012; gfx_g = 0.018; gfx_b = 0.024; gfx_rect(spec_x, spec_y, spec_w, spec_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(spec_x, spec_y, spec_w, spec_h, 0);
+
+  // Frequency grid lines (20Hz, 50Hz, 100Hz, 250Hz, 500Hz, 1kHz, 3kHz, 10kHz)
+  grid_f = 0;
+  loop(8,
+    g_hz = (grid_f == 0 ? 20 : grid_f == 1 ? 50 : grid_f == 2 ? 100 : grid_f == 3 ? 250 : grid_f == 4 ? 500 : grid_f == 5 ? 1000 : grid_f == 6 ? 3000 : 10000);
+    g_frac = (log(g_hz) - log(20.0)) / (log(20000.0) - log(20.0));
+    gx = spec_x + floor(g_frac * spec_w);
+    gfx_r = 0.04; gfx_g = 0.08; gfx_b = 0.12; gfx_line(gx, spec_y + 24, gx, spec_y + spec_h - 18);
+    gfx_setfont(1, "Consolas", 10, 'b'); gfx_r = 0.25; gfx_g = 0.40; gfx_b = 0.45;
+    g_lbl = (g_hz >= 1000 ? sprintf(#, "%dk", g_hz / 1000) : sprintf(#, "%d", g_hz));
+    gfx_x = gx - 8; gfx_y = spec_y + spec_h - 15; gfx_drawstr(g_lbl);
+    grid_f += 1;
+  );
+
+  // dB Grid (0dB baseline at 50px down, -6dB, -12dB)
+  zero_db_y = spec_y + 50;
+  gfx_r = 0.08; gfx_g = 0.18; gfx_b = 0.22;
+  gfx_line(spec_x, zero_db_y, spec_x + spec_w, zero_db_y);
+  gfx_setfont(1, "Consolas", 10, 'b'); gfx_r = 0.35; gfx_g = 0.60; gfx_b = 0.65;
+  gfx_x = spec_x + 6; gfx_y = zero_db_y - 12; gfx_drawstr("0 dB");
+
+  d6_y = zero_db_y + floor((spec_h - 78) * 0.45);
+  gfx_r = 0.03; gfx_g = 0.07; gfx_b = 0.10; gfx_line(spec_x, d6_y, spec_x + spec_w, d6_y);
+  gfx_x = spec_x + 6; gfx_y = d6_y - 6; gfx_drawstr("-6 dB");
+
+  d12_y = zero_db_y + floor((spec_h - 78) * 0.90);
+  gfx_r = 0.03; gfx_g = 0.07; gfx_b = 0.10; gfx_line(spec_x, d12_y, spec_x + spec_w, d12_y);
+  gfx_x = spec_x + 6; gfx_y = d12_y - 6; gfx_drawstr("-12 dB");
+
+  // Shaded Low Cut Curtain (0 to Low Cut)
+  lc_frac = max(0.0, min(1.0, (log(max(20.0, slider47)) - log(20.0)) / (log(20000.0) - log(20.0))));
+  lc_x = spec_x + floor(lc_frac * spec_w);
+  gfx_r = 0.01; gfx_g = 0.01; gfx_b = 0.02; gfx_a = 0.70;
+  gfx_rect(spec_x + 1, spec_y + 24, lc_x - spec_x, spec_h - 42);
+  gfx_a = 1.0;
+  // Low Cut Vertical Boundary Line
+  gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.20;
+  gfx_line(lc_x, spec_y + 24, lc_x, spec_y + spec_h - 18);
+  gfx_line(lc_x + 1, spec_y + 24, lc_x + 1, spec_y + spec_h - 18);
+
+  // Shaded High Cut Curtain (High Cut to 20kHz)
+  hc_frac = max(0.0, min(1.0, (log(min(20000.0, slider48)) - log(20.0)) / (log(20000.0) - log(20.0))));
+  hc_x = spec_x + floor(hc_frac * spec_w);
+  gfx_r = 0.01; gfx_g = 0.01; gfx_b = 0.02; gfx_a = 0.70;
+  gfx_rect(hc_x, spec_y + 24, spec_x + spec_w - hc_x, spec_h - 42);
+  gfx_a = 1.0;
+  // High Cut Vertical Boundary Line
+  gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_line(hc_x, spec_y + 24, hc_x, spec_y + spec_h - 18);
+  gfx_line(hc_x + 1, spec_y + 24, hc_x + 1, spec_y + spec_h - 18);
+
+  // TOP SPECTRUM HEADER RIBBON (Clean, non-colliding layout)
+  gfx_r = 0.018; gfx_g = 0.026; gfx_b = 0.034;
+  gfx_rect(spec_x + 1, spec_y + 1, spec_w - 2, 22);
+  gfx_r = 0.08; gfx_g = 0.16; gfx_b = 0.20;
+  gfx_line(spec_x + 1, spec_y + 23, spec_x + spec_w - 1, spec_y + 23);
+
+  // Low Cut Badge (Left)
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.98; gfx_g = 0.55; gfx_b = 0.30;
+  lc_str = sprintf(#, "LOW CUT: %d Hz", slider47);
+  gfx_x = spec_x + 10; gfx_y = spec_y + 4; gfx_drawstr(lc_str);
+
+  // Active Carve Zone Indicator (Center)
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.40; gfx_g = 1.00; gfx_b = 0.70;
+  cz_txt = "● DYNAMIC INVERSE CARVE ZONE";
+  gfx_measurestr(cz_txt, czw, czh);
+  gfx_x = spec_x + floor((spec_w - czw) * 0.5); gfx_y = spec_y + 4;
+  gfx_drawstr(cz_txt);
+
+  // High Cut Badge (Right)
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  hc_str = sprintf(#, "HIGH CUT: %d Hz", slider48);
+  gfx_measurestr(hc_str, hcw, hch);
+  gfx_x = spec_x + spec_w - hcw - 10; gfx_y = spec_y + 4; gfx_drawstr(hc_str);
+
+  // Real-Time Curves:
+  prev_sc_x = spec_x; prev_sc_y = zero_db_y;
+  prev_gr_x = spec_x; prev_gr_y = zero_db_y;
+
+  bi = 0;
+  loop(ts_num_bands,
+    bf = ts_freqs[bi];
+    b_frac = (log(bf) - log(20.0)) / (log(20000.0) - log(20.0));
+    bx = spec_x + floor(b_frac * spec_w);
+
+    // Sidechain Kick Energy Bar & Point
+    k_env = ts_sc_env[bi];
+    k_db = k_env > 0.0001 ? 20.0 * log10(k_env) : -90.0;
+    k_norm = max(0.0, min(1.0, (k_db - (-40.0)) / 40.0));
+    ky = zero_db_y - floor(k_norm * 32);
+
+    // Carve-out Gain Reduction Point
+    g_db = ts_gr_db[bi]; // negative value (e.g. -4.5dB)
+    g_y = zero_db_y - floor((g_db / 12.0) * ((spec_h - 78) * 0.90));
+    g_y = max(zero_db_y, min(spec_y + spec_h - 22, g_y));
+
+    // Draw dynamic carve-out gradient fill to baseline
+    (g_db < -0.1) ? (
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_a = 0.25;
+      gfx_rect(bx - 14, zero_db_y + 1, 28, g_y - zero_db_y);
+      gfx_a = 1.0;
+    );
+
+    bi > 0 ? (
+      // Sidechain contour
+      gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85; gfx_a = 0.70;
+      gfx_line(prev_sc_x, prev_sc_y, bx, ky);
+      gfx_a = 1.0;
+
+      // Inverted EQ Carve line
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+      gfx_line(prev_gr_x, prev_gr_y, bx, g_y);
+      gfx_line(prev_gr_x, prev_gr_y + 1, bx, g_y + 1);
+    );
+
+    // Node circles
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+    gfx_circle(bx, g_y, 4, 1);
+    (g_db < -0.3) ? (
+      gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.15;
+      gfx_circle(bx, g_y, 2, 1);
+    );
+
+    prev_sc_x = bx; prev_sc_y = ky;
+    prev_gr_x = bx; prev_gr_y = g_y;
+    bi += 1;
+  );
+
+  // Mouse drag on Low Cut & High Cut handles in the spectrum
+  mouse_down && (mouse_x >= spec_x && mouse_x <= spec_x + spec_w && mouse_y >= spec_y + 24 && mouse_y <= spec_y + spec_h) ? (
+    m_frac = (mouse_x - spec_x) / spec_w;
+    m_hz = exp(log(20.0) + m_frac * (log(20000.0) - log(20.0)));
+    abs(mouse_x - lc_x) < abs(mouse_x - hc_x) ? (
+      slider47 = max(20, min(slider48 - 50, floor(m_hz)));
+    ) : (
+      slider48 = max(slider47 + 50, min(16000, floor(m_hz)));
+    );
+    update_trackspacer_filters(); slider_automate();
+  );
+
+  // ---------------------------------------------------------------------------
+  // 2. ICONIC WAVESFACTORY TRACKSPACER AMOUNT DIAL (RIGHT RACK)
+  // ---------------------------------------------------------------------------
+  gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(rack_x, rack_y, rack_w, rack_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(rack_x, rack_y, rack_w, rack_h, 0);
+
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = rack_x + 14; gfx_y = rack_y + 12;
+  gfx_drawstr("DUCKING DEPTH AMOUNT");
+
+  // Giant Circular Amount Knob (Radius 52px)
+  dial_cx = rack_x + floor(rack_w * 0.5);
+  dial_cy = rack_y + 88;
+  dial_rad = 52;
+
+  // Background Dial Well
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.032; gfx_circle(dial_cx, dial_cy, dial_rad + 6, 1);
+  gfx_r = 0.10; gfx_g = 0.18; gfx_b = 0.22; gfx_circle(dial_cx, dial_cy, dial_rad + 6, 0);
+
+  // Outer Arc Progress Ring
+  amt_frac = slider46 / 100.0;
+  start_ang = -2.356; end_ang = start_ang + amt_frac * 4.712; // 270 degree arc
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  arc_step = 0.08; cur_ang = start_ang;
+  loop(floor((end_ang - start_ang) / arc_step),
+    ax1 = dial_cx + cos(cur_ang) * dial_rad;
+    ay1 = dial_cy + sin(cur_ang) * dial_rad;
+    ax2 = dial_cx + cos(cur_ang + arc_step) * dial_rad;
+    ay2 = dial_cy + sin(cur_ang + arc_step) * dial_rad;
+    gfx_line(ax1, ay1, ax2, ay2);
+    gfx_line(ax1 * 0.98 + dial_cx * 0.02, ay1 * 0.98 + dial_cy * 0.02, ax2 * 0.98 + dial_cx * 0.02, ay2 * 0.98 + dial_cy * 0.02);
+    cur_ang += arc_step;
+  );
+
+  // Center Metallic Cap
+  gfx_r = 0.04; gfx_g = 0.06; gfx_b = 0.08; gfx_circle(dial_cx, dial_cy, dial_rad - 8, 1);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_circle(dial_cx, dial_cy, dial_rad - 8, 0);
+
+  // Numeric Percentage Readout
+  gfx_setfont(1, "Orbitron", 22, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  pct_txt = sprintf(#, "%d%%", slider46);
+  gfx_measurestr(pct_txt, pcw, pch);
+  gfx_x = dial_cx - floor(pcw * 0.5); gfx_y = dial_cy - 16; gfx_drawstr(pct_txt);
+
+  // Dynamic Live Reduction Readout inside Knob
+  gfx_setfont(1, "Orbitron", 11, 'b');
+  (ts_max_gr_live < -0.2) ? (
+    gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.15;
+    gr_txt = sprintf(#, "%+.1f dB", ts_max_gr_live);
+  ) : (
+    gfx_r = 0.40; gfx_g = 0.65; gfx_b = 0.70;
+    gr_txt = "READY";
+  );
+  gfx_measurestr(gr_txt, grw, grh);
+  gfx_x = dial_cx - floor(grw * 0.5); gfx_y = dial_cy + 10; gfx_drawstr(gr_txt);
+
+  // Amount Knob Interaction
+  knob_hov = (mouse_x >= dial_cx - dial_rad && mouse_x <= dial_cx + dial_rad && mouse_y >= dial_cy - dial_rad && mouse_y <= dial_cy + dial_rad);
+  mouse_down && (knob_hov || (mouse_y >= dial_cy + dial_rad && mouse_y <= dial_cy + dial_rad + 28 && mouse_x >= rack_x + 14 && mouse_x <= rack_x + rack_w - 14)) ? (
+    new_amt = max(0, min(100, floor((mouse_x - (dial_cx - dial_rad)) / (dial_rad * 2.0) * 100.0)));
+    slider46 = new_amt; slider_automate();
+  );
+
+  // Horizontal Quick Slider below Knob
+  as_x = rack_x + 20; as_y = dial_cy + dial_rad + 14; as_w = rack_w - 40; as_h = 14;
+  gfx_r = 0.018; gfx_g = 0.026; gfx_b = 0.034; gfx_rect(as_x, as_y, as_w, as_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(as_x, as_y, as_w, as_h, 0);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_rect(as_x + 1, as_y + 1, floor((slider46 / 100.0) * (as_w - 2)), as_h - 2);
+
+  // ---------------------------------------------------------------------------
+  // 3. BOTTOM RACK: BALLISTICS, MODES & BLUEPRINTS (PROPERLY PADDED & SPACED)
+  // ---------------------------------------------------------------------------
+  btm_y = spec_y + spec_h + 10;
+  btm_h = ts_h - (btm_y - ts_y) - 10;
+  btm_w = ts_w - 32;
+  btm_x = disp_x + 16;
+
+  gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(btm_x, btm_y, btm_w, btm_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(btm_x, btm_y, btm_w, btm_h, 0);
+
+  col3_w = floor((btm_w - 32) / 3);
+
+  // Col 1: Ballistics (Attack / Release)
+  c1_x = btm_x + 12;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = c1_x; gfx_y = btm_y + 8; gfx_drawstr("BALLISTICS TIMING");
+
+  gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  gfx_x = c1_x; gfx_y = btm_y + 26;
+  att_txt = sprintf(#, "ATTACK: %d ms", slider49); gfx_drawstr(att_txt);
+
+  // Attack Slider Bar
+  at_bx = c1_x; at_by = btm_y + 40; at_bw = col3_w - 20; at_bh = 12;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.032; gfx_rect(at_bx, at_by, at_bw, at_bh);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_rect(at_bx + 1, at_by + 1, floor(((slider49 - 1) / 99.0) * at_bw), at_bh - 2);
+  mouse_down && (mouse_x >= at_bx && mouse_x <= at_bx + at_bw && mouse_y >= at_by - 2 && mouse_y <= at_by + at_bh + 2) ? (
+    slider49 = max(1, min(100, floor(1 + ((mouse_x - at_bx) / at_bw) * 99.0)));
+    update_trackspacer_filters(); slider_automate();
+  );
+
+  gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  gfx_x = c1_x; gfx_y = btm_y + 58;
+  rel_txt = sprintf(#, "RELEASE: %d ms", slider50); gfx_drawstr(rel_txt);
+
+  // Release Slider Bar
+  rl_bx = c1_x; rl_by = btm_y + 72; rl_bw = col3_w - 20; rl_bh = 12;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.032; gfx_rect(rl_bx, rl_by, rl_bw, rl_bh);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_rect(rl_bx + 1, rl_by + 1, floor(((slider50 - 10) / 390.0) * rl_bw), rl_bh - 2);
+  mouse_down && (mouse_x >= rl_bx && mouse_x <= rl_bx + rl_bw && mouse_y >= rl_by - 2 && mouse_y <= rl_by + rl_bh + 2) ? (
+    slider50 = max(10, min(400, floor(10 + ((mouse_x - rl_bx) / rl_bw) * 390.0)));
+    update_trackspacer_filters(); slider_automate();
+  );
+
+  // Col 2: Channel Mode & Audition
+  c2_x = c1_x + col3_w + 8;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = c2_x; gfx_y = btm_y + 8; gfx_drawstr("CHANNEL MODE");
+
+  // 3 Mode Pills: Mid (Center), Stereo, Side
+  cm_w = floor((col3_w - 24) / 3);
+  cmi = 0;
+  loop(3,
+    cm_px = c2_x + cmi * (cm_w + 6); cm_py = btm_y + 26;
+    is_cm = (slider51 == cmi);
+    cm_hov = (mouse_x >= cm_px && mouse_x <= cm_px + cm_w && mouse_y >= cm_py && mouse_y <= cm_py + 22);
+    gfx_r = is_cm ? 0.06 : (cm_hov ? 0.04 : 0.02);
+    gfx_g = is_cm ? 0.26 : (cm_hov ? 0.12 : 0.04);
+    gfx_b = is_cm ? 0.20 : (cm_hov ? 0.10 : 0.05);
+    gfx_rect(cm_px, cm_py, cm_w, 22);
+    gfx_r = is_cm ? 0.06 : 0.14; gfx_g = is_cm ? 0.88 : 0.28; gfx_b = is_cm ? 0.50 : 0.32;
+    gfx_rect(cm_px, cm_py, cm_w, 22, 0);
+    gfx_setfont(1, "Orbitron", 10, 'b'); gfx_r = is_cm ? 1.0 : 0.70; gfx_g = is_cm ? 1.0 : 0.75; gfx_b = is_cm ? 1.0 : 0.80;
+    cm_lbl = (cmi == 0 ? "MID" : cmi == 1 ? "STEREO" : "SIDE");
+    gfx_measurestr(cm_lbl, cmw, cmh);
+    gfx_x = cm_px + floor((cm_w - cmw) * 0.5); gfx_y = cm_py + 4; gfx_drawstr(cm_lbl);
+    mouse_clicked && cm_hov ? (slider51 = cmi; slider_automate(););
+    cmi += 1;
+  );
+
+  // Audition Pills (Normal / Listen Kick / Delta Carve)
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = c2_x; gfx_y = btm_y + 54; gfx_drawstr("AUDITION LISTENING");
+
+  aud_w = floor((col3_w - 24) / 3);
+  audi = 0;
+  loop(3,
+    aud_px = c2_x + audi * (aud_w + 6); aud_py = btm_y + 70;
+    is_aud = (slider52 == audi);
+    aud_hov = (mouse_x >= aud_px && mouse_x <= aud_px + aud_w && mouse_y >= aud_py && mouse_y <= aud_py + 22);
+    gfx_r = is_aud ? (audi == 0 ? 0.06 : 0.28) : (aud_hov ? 0.04 : 0.02);
+    gfx_g = is_aud ? (audi == 0 ? 0.26 : 0.12) : (aud_hov ? 0.12 : 0.04);
+    gfx_b = is_aud ? (audi == 0 ? 0.20 : 0.10) : (aud_hov ? 0.10 : 0.05);
+    gfx_rect(aud_px, aud_py, aud_w, 22);
+    gfx_r = is_aud ? (audi == 0 ? 0.06 : 0.98) : 0.14; gfx_g = is_aud ? (audi == 0 ? 0.88 : 0.35) : 0.28; gfx_b = is_aud ? (audi == 0 ? 0.50 : 0.15) : 0.32;
+    gfx_rect(aud_px, aud_py, aud_w, 22, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b'); gfx_r = is_aud ? 1.0 : 0.70; gfx_g = is_aud ? 1.0 : 0.75; gfx_b = is_aud ? 1.0 : 0.80;
+    aud_lbl = (audi == 0 ? "NORMAL" : audi == 1 ? "KICK SC" : "DELTA");
+    gfx_measurestr(aud_lbl, adw, adh);
+    gfx_x = aud_px + floor((aud_w - adw) * 0.5); gfx_y = aud_py + 4; gfx_drawstr(aud_lbl);
+    mouse_clicked && aud_hov ? (slider52 = audi; slider_automate(););
+    audi += 1;
+  );
+
+  // Col 3: Quick Producer Profiles
+  c3_x = c2_x + col3_w + 8;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = c3_x; gfx_y = btm_y + 8; gfx_drawstr("QUICK SIGNATURE PRESETS");
+
+  qpi = 0;
+  loop(3,
+    qp_y = btm_y + 26 + qpi * 23; qp_w = col3_w - 20;
+    qp_hov = (mouse_x >= c3_x && mouse_x <= c3_x + qp_w && mouse_y >= qp_y && mouse_y <= qp_y + 20);
+    gfx_r = qp_hov ? 0.06 : 0.025; gfx_g = qp_hov ? 0.18 : 0.035; gfx_b = qp_hov ? 0.14 : 0.045;
+    gfx_rect(c3_x, qp_y, qp_w, 20);
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(c3_x, qp_y, qp_w, 20, 0);
+    gfx_setfont(1, "Orbitron", 10, 'b'); gfx_r = qp_hov ? 1.0 : 0.85; gfx_g = qp_hov ? 1.0 : 0.94; gfx_b = qp_hov ? 1.0 : 0.92;
+    qp_lbl = (qpi == 0 ? "1. DAN BRAUNSTEIN (35% | 35-650Hz | Mid)" : qpi == 1 ? "2. MODERN THALL (45% | 40-350Hz | Mid)" : "3. CLEAN GLUE (25% | 30-1.2kHz | Stereo)");
+    gfx_x = c3_x + 8; gfx_y = qp_y + 3; gfx_drawstr(qp_lbl);
+    mouse_clicked && qp_hov ? (
+      qpi == 0 ? (slider46 = 35; slider47 = 35; slider48 = 650; slider49 = 15; slider50 = 65; slider51 = 0;) :
+      qpi == 1 ? (slider46 = 45; slider47 = 40; slider48 = 350; slider49 = 10; slider50 = 45; slider51 = 0;) :
+      (slider46 = 25; slider47 = 30; slider48 = 1200; slider49 = 20; slider50 = 85; slider51 = 1;);
+      update_trackspacer_filters(); slider_automate();
+    );
+    qpi += 1;
+  );
+);
+
+// =============================================================================
+// TAB 1: SUB ANCHOR & KICK POCKET ENGINE (OSCILLOSCOPE COLLISION DISPLAY)
+// =============================================================================
+slider1 == 2 ? (
+  c_y = disp_y; c_h = disp_h;
+  c_x = disp_x; col_w = floor((disp_w - 16) * 0.5);
+
+  // Left Column: Controls
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(c_x, c_y, col_w, c_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(c_x, c_y, col_w, c_h, 0);
+
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = c_x + 16; gfx_y = c_y + 14;
+  gfx_drawstr("SUB-MONO ANCHOR & DYNAMIC KICK POCKET");
+
+  gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 0.88;
+  gfx_x = c_x + 16; gfx_y = c_y + 38;
+  gfx_drawstr("Locks sub in 100% mono and dynamically ducks sub for kick punch.");
+
+  draw_bass_param_slider(c_y + 68,  "1. SUB-MONO ELLIPTICAL ANCHOR", slider3, 50, 140, "%d Hz", 3);
+  draw_bass_param_slider(c_y + 124, "2. KICK DUCKING DEPTH", slider4, 0.0, 6.0, "%.1f dB", 4);
+  draw_bass_param_slider(c_y + 180, "3. DUCKING ATTACK RESPONSE", slider5, 10, 80, "%d ms", 5);
+  draw_bass_param_slider(c_y + 236, "4. DUCKING RECOVERY RELEASE", slider6, 25, 180, "%d ms", 6);
+  draw_bass_param_slider(c_y + 292, "5. SUB LOW-SHELF PUNCH", slider7, 40, 100, "%d Hz", 7);
+
+  // Preset Selector Pills (3 Pills)
+  p_by = c_y + 360; p_btn_w = floor((col_w - 48) / 3);
+  p_idx3 = 0;
+  loop(3,
+    p_x = c_x + 16 + p_idx3 * (p_btn_w + 8);
+    is_p = (p_idx3==0 ? (slider4==2.0 && slider3==90) : (p_idx3==1 ? (slider4==3.0 && slider3==95) : (slider4==1.5 && slider3==85)));
+    p_hov = (mouse_x >= p_x && mouse_x <= p_x + p_btn_w && mouse_y >= p_by && mouse_y <= p_by + 32);
+
+    gfx_r = is_p ? 0.08 : (p_hov ? 0.05 : 0.03);
+    gfx_g = is_p ? 0.28 : (p_hov ? 0.16 : 0.06);
+    gfx_b = is_p ? 0.20 : (p_hov ? 0.12 : 0.07);
+    gfx_rect(p_x, p_by, p_btn_w, 32);
+
+    gfx_r = is_p ? 0.06 : 0.14;
+    gfx_g = is_p ? 0.88 : 0.28;
+    gfx_b = is_p ? 0.50 : 0.32;
+    gfx_rect(p_x, p_by, p_btn_w, 32, 0);
+
+    gfx_setfont(1, "Orbitron", 12, 'b');
+    gfx_r = is_p ? 1.0 : (p_hov ? 0.95 : 0.70);
+    gfx_g = is_p ? 1.0 : (p_hov ? 0.90 : 0.75);
+    gfx_b = is_p ? 1.0 : (p_hov ? 0.80 : 0.80);
+    p_txt = p_idx3==0?"TIGHT LOCK":(p_idx3==1?"HEAVY THALL":"SUB BLOOM");
+    gfx_measurestr(p_txt, ptw, pth);
+    gfx_x = p_x + floor((p_btn_w - ptw) * 0.5); gfx_y = p_by + 9;
+    gfx_drawstr(p_txt);
+
+    mouse_clicked && p_hov ? (
+      p_idx3 == 0 ? (slider4 = 2.0; slider3 = 90; slider5 = 25; slider6 = 65;) :
+      p_idx3 == 1 ? (slider4 = 3.0; slider3 = 95; slider5 = 18; slider6 = 50;) :
+      (slider4 = 1.5; slider3 = 85; slider5 = 30; slider6 = 80;);
+      update_bass_filters(); slider_automate();
+    );
+    p_idx3 += 1;
+  );
+
+  // Right Column: Real-Time Kick vs Bass Sub Collision Scope
+  r_x = c_x + col_w + 16;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(r_x, c_y, col_w, c_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(r_x, c_y, col_w, c_h, 0);
+
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_x = r_x + 16; gfx_y = c_y + 14;
+  gfx_drawstr("KICK VS BASS SUB COLLISION SCOPE");
+
+  // Dynamic Meter Bar
+  mtr_w = col_w - 32; mtr_h = 32;
+  mtr_x = r_x + 16; mtr_y = c_y + 48;
+  gfx_r = 0.025; gfx_g = 0.035; gfx_b = 0.045; gfx_rect(mtr_x, mtr_y, mtr_w, mtr_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(mtr_x, mtr_y, mtr_w, mtr_h, 0);
+
+  dk_norm = min(1.0, max(0.0, -duck_gr_db / max(0.1, slider4)));
+  dk_fill = floor(dk_norm * mtr_w);
+  gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.15;
+  gfx_rect(mtr_x + 1, mtr_y + 1, dk_fill, mtr_h - 2);
+
+  gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  gr_txt = sprintf(#, "KICK DUCKING ATTENUATION: %+.2f dB", duck_gr_db);
+  gfx_measurestr(gr_txt, gtw, gth);
+  gfx_x = mtr_x + (mtr_w - gtw) * 0.5; gfx_y = mtr_y + 8; gfx_drawstr(gr_txt);
+
+  // Active Indicator at Top Right
+  duck_gr_db < -0.3 ? (
+    gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;
+    gfx_setfont(1, "Orbitron", 12, 'b');
+    gfx_measurestr("● KICK DUCK ACTIVE", acw, ach);
+    gfx_x = r_x + col_w - acw - 20; gfx_y = c_y + 16;
+    gfx_drawstr("● KICK DUCK ACTIVE");
+  );
+
+  // Oscilloscope Display: Kick Transient Envelope vs Bass Sub Envelope
+  box_x = r_x + 16; box_y = c_y + 92; box_w = col_w - 32; box_h = c_h - 150;
+  gfx_r = 0.014; gfx_g = 0.020; gfx_b = 0.026; gfx_rect(box_x, box_y, box_w, box_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(box_x, box_y, box_w, box_h, 0);
+
+  // Grid lines
+  gfx_r = 0.08; gfx_g = 0.16; gfx_b = 0.20;
+  gfx_line(box_x, box_y + floor(box_h * 0.25), box_x + box_w, box_y + floor(box_h * 0.25));
+  gfx_line(box_x, box_y + floor(box_h * 0.50), box_x + box_w, box_y + floor(box_h * 0.50));
+  gfx_line(box_x, box_y + floor(box_h * 0.75), box_x + box_w, box_y + floor(box_h * 0.75));
+
+  // Legend at top-left inside box
+  gfx_setfont(1, "Consolas", 11.5, 'b');
+  gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.15;
+  gfx_x = box_x + 12; gfx_y = box_y + 8; gfx_drawstr("— KICK TRANSIENT (CH 3/4)");
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_x = box_x + 190; gfx_y = box_y + 8; gfx_drawstr("— BASS SUB ENVELOPE");
+
+  prev_gx = -1; prev_gy_k = -1; prev_gy_b = -1;
+  gi = 0; g_step = box_w / buf_sz;
+  loop(buf_sz,
+    read_idx = (buf_in_idx + gi) % buf_sz;
+    gx = box_x + gi * g_step;
+    val_k = buf_kick_arr[read_idx];
+    val_b = buf_sub_arr[read_idx];
+
+    gy_k = box_y + box_h - 6 - (val_k * (box_h - 24));
+    gy_k = max(box_y + 26, min(box_y + box_h - 6, gy_k));
+
+    gy_b = box_y + box_h - 6 - (val_b * (box_h - 24));
+    gy_b = max(box_y + 26, min(box_y + box_h - 6, gy_b));
+
+    gi > 0 ? (
+      gfx_r = 0.15; gfx_g = 0.08; gfx_b = 0.06; gfx_a = 0.40;
+      gfx_line(gx, gy_k, gx, gy_b);
+      gfx_a = 1.00;
+
+      gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.15;
+      gfx_line(prev_gx, prev_gy_k, gx, gy_k);
+      gfx_line(prev_gx, prev_gy_k + 1, gx, gy_k + 1);
+
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+      gfx_line(prev_gx, prev_gy_b, gx, gy_b);
+      gfx_line(prev_gx, prev_gy_b + 1, gx, gy_b + 1);
+    );
+    prev_gx = gx; prev_gy_k = gy_k; prev_gy_b = gy_b;
+    gi += 1;
+  );
+
+  // Ballistics Readout Bar at Bottom
+  b_bx = box_x; b_by = box_y + box_h + 10; b_bw = box_w; b_bh = 32;
+  gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(b_bx, b_by, b_bw, b_bh);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(b_bx, b_by, b_bw, b_bh, 0);
+
+  gfx_setfont(1, "Consolas", 12.5, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  b_txt = sprintf(#, "BALLISTICS: ATTACK %dms | RELEASE %dms | SUB MONO: %dHz | SUB ENERGY: %.1fdB", slider5, slider6, slider3, sub_energy_db);
+  gfx_x = b_bx + 12; gfx_y = b_by + 9; gfx_drawstr(b_txt);
+);
+
+// =============================================================================
+// TAB 2: 3-WAY CROSSOVER SCULPTOR (NOLLY & HAMIDOVIC ENGINE)
+// =============================================================================
+slider1 == 3 ? (
+  f_y = disp_y; f_h = disp_h; f_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, f_y, f_w, f_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, f_y, f_w, f_h, 0);
+
+  // Top Section: 3-Way Frequency Curve
+  sp_x = disp_x + 16; sp_y = f_y + 12; sp_w = f_w - 32; sp_h = 145;
+  gfx_r = 0.014; gfx_g = 0.020; gfx_b = 0.026; gfx_rect(sp_x, sp_y, sp_w, sp_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(sp_x, sp_y, sp_w, sp_h, 0);
+
+  gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = sp_x + 14; gfx_y = sp_y + 10;
+  gfx_drawstr("3-WAY CROSSOVER SPECTRUM (SUB DI // TUBE GROWL // PICK CLANK)");
+
+  // Toggle Pill
+  byp_w = 130; byp_x = sp_x + sp_w - byp_w - 12; byp_y = sp_y + 8;
+  byp_hov = (mouse_x >= byp_x && mouse_x <= byp_x + byp_w && mouse_y >= byp_y && mouse_y <= byp_y + 28);
+  gfx_r = slider34 ? 0.06 : 0.22; gfx_g = slider34 ? 0.24 : 0.08; gfx_b = slider34 ? 0.16 : 0.08;
+  gfx_rect(byp_x, byp_y, byp_w, 28);
+  gfx_r = slider34 ? 0.06 : 0.98; gfx_g = slider34 ? 0.88 : 0.22; gfx_b = slider34 ? 0.50 : 0.22;
+  gfx_rect(byp_x, byp_y, byp_w, 28, 0);
+  gfx_setfont(1, "Consolas", 12.5, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  b_txt = slider34 ? "● CROSSOVER: ON" : "○ BYPASSED";
+  gfx_measurestr(b_txt, btw, bth);
+  gfx_x = byp_x + (byp_w - btw) * 0.5; gfx_y = byp_y + 7; gfx_drawstr(b_txt);
+  mouse_clicked && byp_hov ? (slider34 = !slider34; update_bass_filters(); slider_automate(););
+
+  // Frequency Axis Labels
+  gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.35; gfx_g = 0.50; gfx_b = 0.56;
+  gfx_x = sp_x + floor(sp_w * 0.12); gfx_y = sp_y + sp_h - 18; gfx_drawstr("60Hz");
+  gfx_x = sp_x + floor(sp_w * 0.28); gfx_y = sp_y + sp_h - 18; gfx_drawstr("250Hz");
+  gfx_x = sp_x + floor(sp_w * 0.55); gfx_y = sp_y + sp_h - 18; gfx_drawstr("1.2kHz");
+  gfx_x = sp_x + floor(sp_w * 0.75); gfx_y = sp_y + sp_h - 18; gfx_drawstr("2.8kHz");
+  gfx_x = sp_x + floor(sp_w * 0.90); gfx_y = sp_y + sp_h - 18; gfx_drawstr("4.5kHz");
+
+  // Composite Filter Curve Drawing
+  base_fy = sp_y + 60;
+  prev_fx = sp_x + 8; prev_fy = base_fy;
+  f_steps = 80; fi = 0;
+  loop(f_steps + 1,
+    f_frac = fi / f_steps;
+    fx = sp_x + 8 + f_frac * (sp_w - 16);
+
+    d_sub = (f_frac < 0.15) ? (slider8 * 3.0) : 0.0;
+    d_mud = exp(-sqr(f_frac - 0.28) * 180.0) * (slider12 * 4.0);
+    d_clk = exp(-sqr(f_frac - 0.75) * 160.0) * (slider11 * 3.5);
+    d_whs = exp(-sqr(f_frac - 0.90) * 220.0) * (slider13 * 3.5);
+
+    fy = base_fy - (d_sub + d_mud + d_clk + d_whs);
+    fy = max(sp_y + 14, min(sp_y + sp_h - 18, fy));
+
+    fi > 0 ? (
+      gfx_r = 0.04; gfx_g = 0.24; gfx_b = 0.16; gfx_a = 0.30;
+      gfx_line(fx, base_fy, fx, fy);
+      gfx_a = 1.00;
+
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+      gfx_line(prev_fx, prev_fy, fx, fy);
+      gfx_line(prev_fx, prev_fy + 1, fx, fy + 1);
+    );
+    prev_fx = fx; prev_fy = fy;
+    fi += 1;
+  );
+
+  // Bottom 3 Brushed Gunmetal Hardware Racks
+  nc_y = sp_y + sp_h + 12; nc_h = f_h - sp_h - 36; nc_w = floor((f_w - 56) / 3);
+  ni = 0;
+  loop(3,
+    nx = disp_x + 16 + ni * (nc_w + 12);
+    gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(nx, nc_y, nc_w, nc_h);
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(nx, nc_y, nc_w, nc_h, 0);
+
+    ni == 0 ? (
+      gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = nx + 12; gfx_y = nc_y + 12; gfx_drawstr("BAND 1: SUB DI ANCHOR");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = nx + 12; gfx_y = nc_y + 34; gfx_drawstr("<90Hz Pure Mono Foundation");
+      n_val = slider8;
+    ) : ni == 1 ? (
+      gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = nx + 12; gfx_y = nc_y + 12; gfx_drawstr("BAND 2: TUBE MID GROWL");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = nx + 12; gfx_y = nc_y + 34; gfx_drawstr("150Hz - 1.2kHz Overdrive Glue");
+      n_val = slider10;
+    ) : (
+      gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = nx + 12; gfx_y = nc_y + 12; gfx_drawstr("BAND 3: PICK ATTACK & CLANK");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = nx + 12; gfx_y = nc_y + 34; gfx_drawstr(">1.5kHz String Transient Bite");
+      n_val = slider11;
+    );
+
+    n_bar_w = nc_w - 24; n_bar_h = nc_h - 110;
+    n_bar_x = nx + 12; n_bar_y = nc_y + 56;
+    gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.032; gfx_rect(n_bar_x, n_bar_y, n_bar_w, n_bar_h);
+    gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(n_bar_x, n_bar_y, n_bar_w, n_bar_h, 0);
+
+    rail_nx = n_bar_x + floor(n_bar_w * 0.5);
+    gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.22;
+    gfx_line(rail_nx, n_bar_y + 4, rail_nx, n_bar_y + n_bar_h - 4);
+    gfx_line(rail_nx + 1, n_bar_y + 4, rail_nx + 1, n_bar_y + n_bar_h - 4);
+
+    n_frac = max(0.0, min(1.0, (n_val - (-6.0)) / 12.0));
+    cap_y = n_bar_y + n_bar_h - 10 - floor(n_frac * (n_bar_h - 20));
+
+    // Glowing Jade Hydraulic Level Ribbon
+    cut_len = floor(n_frac * (n_bar_h - 20));
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_a = 0.85;
+    gfx_rect(rail_nx - 2, n_bar_y + n_bar_h - 10 - cut_len, 5, cut_len);
+    gfx_a = 1.00;
+
+    // Metallic Cap
+    gfx_r = 0.20; gfx_g = 0.28; gfx_b = 0.34;
+    gfx_rect(n_bar_x + 6, cap_y - 8, n_bar_w - 12, 16);
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+    gfx_rect(n_bar_x + 6, cap_y - 8, n_bar_w - 12, 16, 0);
+    gfx_line(n_bar_x + 8, cap_y, n_bar_x + n_bar_w - 8, cap_y);
+
+    gfx_setfont(1, "Consolas", 18, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+    v_txt = sprintf(#, "%+.1f dB", n_val);
+    gfx_measurestr(v_txt, nvw, nvh);
+    gfx_x = n_bar_x + (n_bar_w - nvw) * 0.5; gfx_y = n_bar_y + n_bar_h - 32;
+    gfx_drawstr(v_txt);
+
+    mouse_down && (mouse_x >= n_bar_x && mouse_x <= n_bar_x + n_bar_w && mouse_y >= n_bar_y && mouse_y <= n_bar_y + n_bar_h) ? (
+      set_db = -6.0 + (1.0 - ((mouse_y - (n_bar_y + 10)) / (n_bar_h - 20))) * 12.0;
+      set_db = max(-6.0, min(6.0, set_db));
+      ni == 0 ? (slider8 = set_db;) :
+      ni == 1 ? (slider10 = set_db;) :
+      (slider11 = set_db;);
+      update_bass_filters(); slider_automate();
+    );
+    ni += 1;
+  );
+);
+
+// =============================================================================
+// TAB 3: PHASE ALIGNMENT & KICK-TO-BASS CORRELATION RADAR
+// =============================================================================
+slider1 == 4 ? (
+  m_y = disp_y; m_h = disp_h; m_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, m_y, m_w, m_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, m_y, m_w, m_h, 0);
+
+  m_col_w = floor((m_w - 30) * 0.5);
+
+  // Left Column: Phase Controls
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = disp_x + 20; gfx_y = m_y + 14;
+  gfx_drawstr("KICK/BASS PHASE INTERLOCK & MICRO-DELAY");
+
+  gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 0.88;
+  gfx_x = disp_x + 20; gfx_y = m_y + 38;
+  gfx_drawstr("Aligns sub cycles to eliminate destructive phase cancellation.");
+
+  draw_bass_param_slider(m_y + 70, "1. TRANSIENT MICRO-DELAY", slider14, -5.0, 5.0, "%+.1f ms", 14);
+
+  // Polarity Flip Button
+  pol_by = m_y + 140; pol_w = m_col_w - 32; pol_h = 44;
+  pol_hov = (mouse_x >= disp_x + 20 && mouse_x <= disp_x + 20 + pol_w && mouse_y >= pol_by && mouse_y <= pol_by + pol_h);
+  gfx_r = slider15 ? 0.28 : (pol_hov ? 0.08 : 0.03);
+  gfx_g = slider15 ? 0.12 : (pol_hov ? 0.18 : 0.07);
+  gfx_b = slider15 ? 0.12 : (pol_hov ? 0.14 : 0.09);
+  gfx_rect(disp_x + 20, pol_by, pol_w, pol_h);
+  gfx_r = slider15 ? 0.98 : 0.06; gfx_g = slider15 ? 0.35 : 0.88; gfx_b = slider15 ? 0.15 : 0.50;
+  gfx_rect(disp_x + 20, pol_by, pol_w, pol_h, 0);
+
+  gfx_setfont(1, "Orbitron", 15, 'b');
+  gfx_r = slider15 ? 1.00 : 0.95; gfx_g = slider15 ? 0.85 : 0.95; gfx_b = slider15 ? 0.85 : 0.95;
+  pol_txt = slider15 ? "Ø POLARITY INVERTED (180° FLIPPED)" : "Ø POLARITY NORMAL (0° IN-PHASE)";
+  gfx_measurestr(pol_txt, plw, plh);
+  gfx_x = disp_x + 20 + (pol_w - plw) * 0.5; gfx_y = pol_by + 14;
+  gfx_drawstr(pol_txt);
+  mouse_clicked && pol_hov ? (slider15 = !slider15; slider_automate(););
+
+  // Status explanation box
+  ex_by = pol_by + 60; ex_h = m_h - (ex_by - m_y) - 20;
+  gfx_r = 0.014; gfx_g = 0.020; gfx_b = 0.026; gfx_rect(disp_x + 20, ex_by, pol_w, ex_h);
+  gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(disp_x + 20, ex_by, pol_w, ex_h, 0);
+
+  gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  gfx_x = disp_x + 32; gfx_y = ex_by + 16;
+  gfx_drawstr("ACOUSTIC PHASE CORRELATION ADVICE:");
+  gfx_setfont(1, "Consolas", 12.5, 'b');
+  cur_kick_bass_corr > 0.60 ? (
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+    gfx_x = disp_x + 32; gfx_y = ex_by + 40;
+    gfx_drawstr("● SUB IS IN-PHASE: Kick & Bass sum constructively for punch.");
+  ) : cur_kick_bass_corr > 0.10 ? (
+    gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20;
+    gfx_x = disp_x + 32; gfx_y = ex_by + 40;
+    gfx_drawstr("▲ PARTIAL CORRELATION: Adjust micro-delay to peak punch.");
+  ) : (
+    gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;
+    gfx_x = disp_x + 32; gfx_y = ex_by + 40;
+    gfx_drawstr("▼ PHASE CANCELLATION DETECTED: Flip Polarity (180°) now!");
+  );
+
+  // Right Column: Polar Radar Scope
+  r_col_x = disp_x + m_col_w + 14; r_col_w = m_w - m_col_w - 28;
+  gfx_r = 0.014; gfx_g = 0.020; gfx_b = 0.026; gfx_rect(r_col_x, m_y + 12, r_col_w, m_h - 24);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(r_col_x, m_y + 12, r_col_w, m_h - 24, 0);
+
+  gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = r_col_x + 14; gfx_y = m_y + 24;
+  gfx_drawstr("POLAR KICK/BASS PHASE CORRELATION RADAR");
+
+  sc_cx = r_col_x + r_col_w * 0.5; sc_cy = m_y + 12 + (m_h - 90) * 0.5;
+  sc_rad = min(r_col_w * 0.38, (m_h - 110) * 0.42);
+
+  // Concentric Radar Rings
+  gfx_r = 0.06; gfx_g = 0.14; gfx_b = 0.18;
+  gfx_circle(sc_cx, sc_cy, sc_rad, 0);
+  gfx_circle(sc_cx, sc_cy, floor(sc_rad * 0.66), 0);
+  gfx_circle(sc_cx, sc_cy, floor(sc_rad * 0.33), 0);
+  gfx_line(sc_cx - sc_rad, sc_cy, sc_cx + sc_rad, sc_cy);
+  gfx_line(sc_cx, sc_cy - sc_rad, sc_cx, sc_cy + sc_rad);
+
+  // Phase Correlation Arc & Needle
+  ang = cur_kick_bass_corr * 1.57;
+  gfx_r = cur_kick_bass_corr > 0.5 ? 0.06 : (cur_kick_bass_corr > 0.0 ? 1.00 : 0.98);
+  gfx_g = cur_kick_bass_corr > 0.5 ? 0.88 : (cur_kick_bass_corr > 0.0 ? 0.75 : 0.22);
+  gfx_b = cur_kick_bass_corr > 0.5 ? 0.50 : (cur_kick_bass_corr > 0.0 ? 0.20 : 0.22);
+  gfx_line(sc_cx, sc_cy, sc_cx + sin(ang) * (sc_rad - 6), sc_cy - cos(ang) * (sc_rad - 6));
+  gfx_line(sc_cx - 1, sc_cy, sc_cx + sin(ang) * (sc_rad - 6) - 1, sc_cy - cos(ang) * (sc_rad - 6));
+
+  gfx_r = 0.04; gfx_g = 0.08; gfx_b = 0.10; gfx_circle(sc_cx, sc_cy, 8, 1);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_circle(sc_cx, sc_cy, 8, 0);
+
+  // Radar Labels
+  gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;
+  gfx_x = sc_cx - sc_rad + 4; gfx_y = sc_cy - 14; gfx_drawstr("-1.0 (OUT)");
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_x = sc_cx + sc_rad - 65; gfx_y = sc_cy - 14; gfx_drawstr("+1.0 (LOCK)");
+  gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_x = sc_cx - 14; gfx_y = sc_cy - sc_rad + 4; gfx_drawstr("PHASE");
+);
+
+// =============================================================================
+// TAB 4: ANALOG CONSOLE, TUBE SATURATION & OPTO GLUE
+// =============================================================================
+slider1 == 5 ? (
+  a_y = disp_y; a_h = disp_h; a_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, a_y, a_w, a_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, a_y, a_w, a_h, 0);
+
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = disp_x + 20; gfx_y = a_y + 14;
+  gfx_drawstr("SMASH & GRAB COMPRESSOR & DECAPITATOR SATURATION RACK");
+
+  gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 0.88;
+  gfx_x = disp_x + 20; gfx_y = a_y + 38;
+  gfx_drawstr("Complements Britson Buss + Smash & Grab v2 with modeled Neve & Darkglass stages.");
+
+  at_w = floor((a_w - 48) / 3); at_h = a_h - 75;
+  ai = 0;
+  loop(3,
+    ax = disp_x + 16 + ai * (at_w + 8); ay = a_y + 60;
+    gfx_r = 0.026; gfx_g = 0.036; gfx_b = 0.046; gfx_rect(ax, ay, at_w, at_h);
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(ax, ay, at_w, at_h, 0);
+
+    ai == 0 ? (
+      gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = ax + 14; gfx_y = ay + 14; gfx_drawstr("BRITSON NEVE DESK");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = ax + 14; gfx_y = ay + 36; gfx_drawstr("Harmonic Desk Saturation");
+
+      gx = ax + at_w * 0.5; gy = ay + 100; g_rad = min(46, floor(at_w * 0.26));
+      gfx_r = 0.12; gfx_g = 0.16; gfx_b = 0.20; gfx_circle(gx, gy, g_rad, 1);
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_circle(gx, gy, g_rad, 0);
+
+      d_ang = -1.8 + (slider23 / 100.0) * 3.6;
+      gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;
+      gfx_line(gx, gy, gx + sin(d_ang) * (g_rad - 8), gy - cos(d_ang) * (g_rad - 8));
+      gfx_line(gx - 1, gy, gx + sin(d_ang) * (g_rad - 8) - 1, gy - cos(d_ang) * (g_rad - 8));
+
+      gfx_r = 0.04; gfx_g = 0.08; gfx_b = 0.10; gfx_circle(gx, gy, 8, 1);
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_circle(gx, gy, 8, 0);
+
+      gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.75; gfx_g = 0.90; gfx_b = 0.92;
+      thd_txt = sprintf(#, "THD: %.2f%%", slider23 * 0.024);
+      gfx_measurestr(thd_txt, tdw, tdh);
+      gfx_x = ax + (at_w - tdw) * 0.5; gfx_y = ay + 155;
+      gfx_drawstr(thd_txt);
+      a_drv = slider23;
+    ) : ai == 1 ? (
+      gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = ax + 14; gfx_y = ay + 14; gfx_drawstr("DARKGLASS TUBE DRIVE");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = ax + 14; gfx_y = ay + 36; gfx_drawstr("Even Harmonic Low Tube Grit");
+
+      // Dual 12AX7 Glowing Vacuum Tube Filaments
+      gx1 = ax + at_w * 0.35; gx2 = ax + at_w * 0.65; gy = ay + 100;
+      t_w = 28; t_h = 60;
+      gfx_r = 0.05; gfx_g = 0.08; gfx_b = 0.12;
+      gfx_rect(gx1 - t_w*0.5, gy - t_h*0.5, t_w, t_h);
+      gfx_rect(gx2 - t_w*0.5, gy - t_h*0.5, t_w, t_h);
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+      gfx_rect(gx1 - t_w*0.5, gy - t_h*0.5, t_w, t_h, 0);
+      gfx_rect(gx2 - t_w*0.5, gy - t_h*0.5, t_w, t_h, 0);
+
+      // Glowing Filaments (Orange Glow)
+      glow_a = 0.40 + (slider25 / 100.0) * 0.60;
+      gfx_r = 0.98; gfx_g = 0.55; gfx_b = 0.15; gfx_a = glow_a;
+      gfx_circle(gx1, gy - 8, 6, 1); gfx_circle(gx1, gy + 8, 6, 1);
+      gfx_circle(gx2, gy - 8, 6, 1); gfx_circle(gx2, gy + 8, 6, 1);
+      gfx_a = 1.00;
+
+      gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.75; gfx_g = 0.90; gfx_b = 0.92;
+      tb_txt = "WARMTH: DUAL 12AX7 GLOW";
+      gfx_measurestr(tb_txt, tbw, tbh);
+      gfx_x = ax + (at_w - tbw) * 0.5; gfx_y = ay + 155;
+      gfx_drawstr(tb_txt);
+      a_drv = slider25;
+    ) : (
+      gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+      gfx_x = ax + 14; gfx_y = ay + 14; gfx_drawstr("SMASH & GRAB OPTO GLUE");
+      gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+      gfx_x = ax + 14; gfx_y = ay + 36; gfx_drawstr("Optical Leveler & Slam");
+
+      gr_bx = ax + 20; gr_by = ay + 78; gr_bw = at_w - 40; gr_bh = 46;
+      gfx_r = 0.02; gfx_g = 0.03; gfx_b = 0.05; gfx_rect(gr_bx, gr_by, gr_bw, gr_bh);
+      gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(gr_bx, gr_by, gr_bw, gr_bh, 0);
+
+      gr_s = sprintf(#, "OPTO GR: %+.1f dB", -min(3.5, slider24 * 0.04));
+      gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+      gfx_measurestr(gr_s, grw, grh);
+      gfx_x = gr_bx + (gr_bw - grw) * 0.5; gfx_y = gr_by + 14; gfx_drawstr(gr_s);
+
+      gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+      gl_txt = "SWEET SPOT: 1.5 - 2.5 dB GR";
+      gfx_measurestr(gl_txt, glw, glh);
+      gfx_x = ax + (at_w - glw) * 0.5; gfx_y = ay + 155;
+      gfx_drawstr(gl_txt);
+      a_drv = slider24;
+    );
+
+    a_bar_w = at_w - 28; a_bar_h = at_h - 195;
+    a_bar_x = ax + 14; a_bar_y = ay + 180;
+    gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.032; gfx_rect(a_bar_x, a_bar_y, a_bar_w, a_bar_h);
+    gfx_r = 0.14; gfx_g = 0.28; gfx_b = 0.32; gfx_rect(a_bar_x, a_bar_y, a_bar_w, a_bar_h, 0);
+
+    rail_ax = a_bar_x + floor(a_bar_w * 0.5);
+    gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.22;
+    gfx_line(rail_ax, a_bar_y + 4, rail_ax, a_bar_y + a_bar_h - 4);
+    gfx_line(rail_ax + 1, a_bar_y + 4, rail_ax + 1, a_bar_y + a_bar_h - 4);
+
+    a_frac = max(0.0, min(1.0, a_drv / 100.0));
+    cap_y_a = a_bar_y + a_bar_h - 10 - floor(a_frac * (a_bar_h - 20));
+
+    // Illuminated Drive Track
+    fill_len_a = floor(a_frac * (a_bar_h - 20));
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_a = 0.80;
+    gfx_rect(rail_ax - 2, a_bar_y + a_bar_h - 10 - fill_len_a, 5, fill_len_a);
+    gfx_a = 1.00;
+
+    gfx_r = 0.20; gfx_g = 0.28; gfx_b = 0.34;
+    gfx_rect(a_bar_x + 6, cap_y_a - 8, a_bar_w - 12, 16);
+    gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+    gfx_rect(a_bar_x + 6, cap_y_a - 8, a_bar_w - 12, 16, 0);
+    gfx_line(a_bar_x + 8, cap_y_a, a_bar_x + a_bar_w - 8, cap_y_a);
+
+    gfx_setfont(1, "Consolas", 18, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+    d_txt = sprintf(#, "%d %%", a_drv);
+    gfx_measurestr(d_txt, dtw, dth);
+    gfx_x = a_bar_x + (a_bar_w - dtw) * 0.5; gfx_y = a_bar_y + a_bar_h - 30;
+    gfx_drawstr(d_txt);
+
+    mouse_down && (mouse_x >= a_bar_x && mouse_x <= a_bar_x + a_bar_w && mouse_y >= a_bar_y && mouse_y <= a_bar_y + a_bar_h) ? (
+      set_pct = floor((1.0 - ((mouse_y - (a_bar_y + 10)) / (a_bar_h - 20))) * 100.0);
+      set_pct = max(0, min(100, set_pct));
+      ai == 0 ? (slider23 = set_pct;) :
+      ai == 1 ? (slider25 = set_pct;) :
+      (slider24 = set_pct;);
+      slider_automate();
+    );
+    ai += 1;
+  );
+);
+
+// =============================================================================
+// TAB 5: PRODUCER BASS MATRIX (17 INDUSTRY REFERENCE PROFILES)
+// =============================================================================
+slider1 == 6 ? (
+  p_y = disp_y; p_h = disp_h; p_w = disp_w;
+  gfx_r = 0.020; gfx_g = 0.028; gfx_b = 0.036; gfx_rect(disp_x, p_y, p_w, p_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(disp_x, p_y, p_w, p_h, 0);
+
+  gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = disp_x + 20; gfx_y = p_y + 14;
+  gfx_drawstr("PRODUCER BASS SIGNATURE MATRIX (17 INDUSTRY REFERENCE PROFILES)");
+
+  cols = 4;
+  tile_pw = floor((p_w - 40) / cols);
+  tile_ph = 36;
+  pi = 0;
+  loop(17,
+    row = floor(pi / cols);
+    col = pi % cols;
+    px = disp_x + 16 + col * (tile_pw + 8);
+    py = p_y + 44 + row * (tile_ph + 5);
+
+    is_sel = (slider20 == pi);
+    is_hov = (mouse_x >= px && mouse_x <= px + tile_pw && mouse_y >= py && mouse_y <= py + tile_ph);
+
+    gfx_r = is_sel ? 0.08 : (is_hov ? 0.05 : 0.025);
+    gfx_g = is_sel ? 0.26 : (is_hov ? 0.14 : 0.035);
+    gfx_b = is_sel ? 0.20 : (is_hov ? 0.12 : 0.045);
+    gfx_rect(px, py, tile_pw, tile_ph);
+
+    gfx_r = is_sel ? 0.06 : 0.14;
+    gfx_g = is_sel ? 0.88 : 0.28;
+    gfx_b = is_sel ? 0.50 : 0.32;
+    gfx_rect(px, py, tile_pw, tile_ph, 0);
+
+    gfx_setfont(1, "Orbitron", 12, 'b');
+    gfx_r = is_sel ? 0.15 : 0.80;
+    gfx_g = is_sel ? 0.96 : 0.90;
+    gfx_b = is_sel ? 0.60 : 0.92;
+
+    p_lbl = (
+      pi == 0  ? "0: Default Neutral Wire" :
+      pi == 1  ? "1: Lance Prenc (Alpha Wolf)" :
+      pi == 2  ? "2: Scott Seigel (DIESECT)" :
+      pi == 3  ? "3: Jonathan Dolese (Cane Hill)" :
+      pi == 4  ? "4: Buster Odeholm (thrown)" :
+      pi == 5  ? "5: Kel Pinchin (Currents)" :
+      pi == 6  ? "6: Sam Guaiana (Silverstein)" :
+      pi == 7  ? "7: Forrester Savell (Karnivool)" :
+      pi == 8  ? "8: Jens Bogren (Fascination)" :
+      pi == 9  ? "9: Adam Nolly (Periphery)" :
+      pi == 10 ? "10: Will Putney (FFAA)" :
+      pi == 11 ? "11: George Lever (Sleep Token)" :
+      pi == 12 ? "12: Sam Bassal (Thornhill)" :
+      pi == 13 ? "13: Henrik Udd (Architects)" :
+      pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
+      pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
+      "16: Zakk Cervini (Blink-182)"
+    );
+
+    gfx_x = px + 10; gfx_y = py + 10;
+    gfx_drawstr(p_lbl);
+
+    mouse_clicked && is_hov ? (
+      slider20 = pi; apply_bass_preset(slider20); slider_automate();
+    );
+    pi += 1;
+  );
+
+  // Bottom Session Blueprint & Multi-Bus Guidance Deck
+  bk_y = p_y + 260; bk_h = p_h - 275;
+  gfx_r = 0.014; gfx_g = 0.020; gfx_b = 0.026;
+  gfx_rect(disp_x + 16, bk_y, p_w - 32, bk_h);
+  gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+  gfx_rect(disp_x + 16, bk_y, p_w - 32, bk_h, 0);
+
+  gfx_setfont(1, "Orbitron", 15, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
+  gfx_x = disp_x + 28; gfx_y = bk_y + 12;
+  gfx_drawstr("BASS ENGINE MASTER PRODUCTION BLUEPRINT & SUB-INTERLOCK");
+
+  gfx_setfont(1, "Consolas", 14, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
+  p_idx = slider20;
+  p_idx == 15 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("DAN BRAUNSTEIN BLUEPRINT: 92Hz Sub-Mono Anchor, -2.5dB dynamic kick ducking (22ms att / 60ms rel),");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("with -2.4dB mud scoop at 250Hz and +2.8dB aggressive pick clank at 2.8kHz to sit under quad-wall guitars.");
+  ) : p_idx == 4 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("BUSTER ODEHOLM BLUEPRINT: 85Hz Sub-Mono, -3.2dB deep dynamic sidechain duck, heavy tube distortion");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("with +2.2dB low-shelf punch at 55Hz creating the crushing, thunderous 'thrown / Vildhjarta' thall foundation.");
+  ) : p_idx == 9 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("ADAM 'NOLLY' GETGOOD BLUEPRINT: Multi-scale Dingwall signature tone. High-headroom 90Hz clean DI sub,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("steep mid grit (90Hz-1.2kHz) with +3.2dB pick bite at 2.8kHz and opto leveling glue.");
+  ) : (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("UNIVERSAL SUB-ANCHOR BLUEPRINT: Strict 90Hz mono collapse, -2.2dB dynamic kick pocket ducking,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("providing an unshakeable low-end foundation while upper harmonics glue seamlessly into rhythm guitars.");
+  );
+
+  gfx_setfont(1, "Consolas", 13, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
+  gfx_x = disp_x + 28; gfx_y = bk_y + 88;
+  gfx_drawstr("ROUTING: KICK CH 3/4 -> SUB-MONO ELLIPTICAL -> 3-WAY SPLIT -> BRITSON NEVE -> OPTO GLUE -> CEIL");
+);

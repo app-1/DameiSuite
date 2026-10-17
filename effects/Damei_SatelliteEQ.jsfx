@@ -1,0 +1,161 @@
+﻿desc:Damei Satellite EQ - Remote-controlled per-track EQ
+author:Damei
+version:1.1
+about:
+  Per-track EQ controlled remotely from the Damei Mix Console.
+  Place on any track and set the Track Slot slider (0-7).
+  The master console writes EQ parameters via gmem.
+  Supports 5 biquad bands (bell / low shelf / high shelf).
+  Feature D: Delta Audition mode (gmem[4500]=1 outputs difference signal).
+
+options:gmem=DameiMetering
+options:maxmem=524288
+options:no_meter
+
+slider1:0<0,7,1>Track Slot (0-7)
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+
+NUM_BANDS  = 5;
+DRY_LEN    = 512;    // dry delay line length (samples per channel)
+DELTA_FLAG = 4500;   // gmem flag: 0=bypass, 1=delta audition mode
+
+// Memory map
+MEM_COEF   = 0;      // 5 bands x 6 coefficients = 30
+MEM_STATE  = 30;     // 5 bands x 4 state vars x 2 channels = 40
+MEM_PREV   = 70;     // Previous params for change detection: 35
+MEM_DRY    = 105;    // Dry delay line: 512 stereo pairs = 1024 samples
+
+memset(MEM_COEF,  0, 30);
+memset(MEM_STATE, 0, 40);
+memset(MEM_PREV,  0, 35);
+memset(MEM_DRY,   0, 1024);
+
+slot     = 0;
+dry_wptr = 0;
+
+@slider
+slot = slider1|0;
+
+@sample
+
+// ── Feature D: Capture dry sample BEFORE EQ (zero-latency delta path) ────
+MEM_DRY[dry_wptr * 2]     = spl0;
+MEM_DRY[dry_wptr * 2 + 1] = spl1;
+
+// Read EQ params from gmem based on slot
+gm_slot_base = 800 + slot * 35;
+
+eq_l = spl0;
+eq_r = spl1;
+
+band = 0;
+loop(NUM_BANDS,
+  gm_base = gm_slot_base + band * 7;
+  eq_freq    = gmem[gm_base + 0];
+  eq_gain_db = gmem[gm_base + 1];
+  eq_q       = gmem[gm_base + 2];
+  eq_type    = gmem[gm_base + 3];
+  eq_enabled = gmem[gm_base + 4];
+
+  eq_enabled > 0.5 && eq_freq > 10 && eq_freq < 22000 && eq_type > 0 ? (
+    // Check if params changed
+    prv_base = band * 7;
+    params_changed = 0;
+    eq_freq != MEM_PREV[prv_base] ? params_changed = 1;
+    eq_gain_db != MEM_PREV[prv_base+1] ? params_changed = 1;
+    eq_q != MEM_PREV[prv_base+2] ? params_changed = 1;
+    eq_type != MEM_PREV[prv_base+3] ? params_changed = 1;
+
+    params_changed ? (
+      MEM_PREV[prv_base]   = eq_freq;
+      MEM_PREV[prv_base+1] = eq_gain_db;
+      MEM_PREV[prv_base+2] = eq_q;
+      MEM_PREV[prv_base+3] = eq_type;
+
+      eq_A = pow(10, eq_gain_db / 40.0);
+      eq_w0 = 2.0 * $pi * eq_freq / srate;
+      eq_cosw = cos(eq_w0);
+      eq_sinw = sin(eq_w0);
+      eq_q < 0.1 ? eq_q = 0.1;
+      eq_alpha = eq_sinw / (2.0 * eq_q);
+
+      coef_base = band * 6;
+
+      eq_type == 1 ? (
+        cb0 = 1.0 + eq_alpha * eq_A;
+        cb1 = -2.0 * eq_cosw;
+        cb2 = 1.0 - eq_alpha * eq_A;
+        ca0 = 1.0 + eq_alpha / eq_A;
+        ca1 = -2.0 * eq_cosw;
+        ca2 = 1.0 - eq_alpha / eq_A;
+      ) : eq_type == 2 ? (
+        sq_A = 2.0 * sqrt(eq_A) * eq_alpha;
+        cb0 = eq_A * ((eq_A + 1) - (eq_A - 1) * eq_cosw + sq_A);
+        cb1 = 2 * eq_A * ((eq_A - 1) - (eq_A + 1) * eq_cosw);
+        cb2 = eq_A * ((eq_A + 1) - (eq_A - 1) * eq_cosw - sq_A);
+        ca0 = (eq_A + 1) + (eq_A - 1) * eq_cosw + sq_A;
+        ca1 = -2 * ((eq_A - 1) + (eq_A + 1) * eq_cosw);
+        ca2 = (eq_A + 1) + (eq_A - 1) * eq_cosw - sq_A;
+      ) : eq_type == 3 ? (
+        sq_A = 2.0 * sqrt(eq_A) * eq_alpha;
+        cb0 = eq_A * ((eq_A + 1) + (eq_A - 1) * eq_cosw + sq_A);
+        cb1 = -2 * eq_A * ((eq_A - 1) + (eq_A + 1) * eq_cosw);
+        cb2 = eq_A * ((eq_A + 1) + (eq_A - 1) * eq_cosw - sq_A);
+        ca0 = (eq_A + 1) - (eq_A - 1) * eq_cosw + sq_A;
+        ca1 = 2 * ((eq_A - 1) - (eq_A + 1) * eq_cosw);
+        ca2 = (eq_A + 1) - (eq_A - 1) * eq_cosw - sq_A;
+      );
+
+      MEM_COEF[coef_base + 0] = cb0 / ca0;
+      MEM_COEF[coef_base + 1] = cb1 / ca0;
+      MEM_COEF[coef_base + 2] = cb2 / ca0;
+      MEM_COEF[coef_base + 3] = ca1 / ca0;
+      MEM_COEF[coef_base + 4] = ca2 / ca0;
+    );
+
+    // Apply biquad (Direct Form II Transposed)
+    coef_base = band * 6;
+    st_base   = band * 8;
+
+    eb0 = MEM_COEF[coef_base + 0];
+    eb1 = MEM_COEF[coef_base + 1];
+    eb2 = MEM_COEF[coef_base + 2];
+    ea1 = MEM_COEF[coef_base + 3];
+    ea2 = MEM_COEF[coef_base + 4];
+
+    // Left
+    tmp_l = eb0 * eq_l + MEM_STATE[st_base + 0];
+    MEM_STATE[st_base + 0] = eb1 * eq_l - ea1 * tmp_l + MEM_STATE[st_base + 1];
+    MEM_STATE[st_base + 1] = eb2 * eq_l - ea2 * tmp_l;
+    eq_l = tmp_l;
+
+    // Right
+    tmp_r = eb0 * eq_r + MEM_STATE[st_base + 4];
+    MEM_STATE[st_base + 4] = eb1 * eq_r - ea1 * tmp_r + MEM_STATE[st_base + 5];
+    MEM_STATE[st_base + 5] = eb2 * eq_r - ea2 * tmp_r;
+    eq_r = tmp_r;
+  );
+
+  band += 1;
+);
+
+// ── Feature D: Delta Audition output ──────────────────────────────────────
+// When gmem[4500] == 1: output processed - dry = the effect difference only.
+// This isolates the artifact (what the EQ is adding/removing) for auditioning.
+// SatelliteEQ has zero inherent latency (direct biquad), so no delay offset needed.
+gmem[DELTA_FLAG] > 0.5 ? (
+  spl0 = eq_l - MEM_DRY[dry_wptr * 2];
+  spl1 = eq_r - MEM_DRY[dry_wptr * 2 + 1];
+) : (
+  spl0 = eq_l;
+  spl1 = eq_r;
+);
+
+// Advance dry write pointer (circular)
+dry_wptr = (dry_wptr + 1) % DRY_LEN;
