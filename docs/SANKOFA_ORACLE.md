@@ -1,33 +1,67 @@
 # Damei Sankofa Oracle (`Damei_AssessmentMatrix.jsfx`)
 
 ## Overview
-The **Damei Sankofa Oracle** is a reference match analyzer and closed-loop auto-correction brain. Inserted on the mix master, audio passes through 100% untouched while the engine performs continuous 7-band spectral analysis, stereo imaging audits, and loudness metrics against reference fingerprints.
+The **Damei Sankofa Oracle** is an intelligent reference match analyzer, closed-loop auto-correction brain, and full-scale **Mastering Console** for Cockos REAPER. Inserted on the mix/master channel, audio passes through 100% untouched while the engine performs continuous real-time analysis against commercial reference targets.
 
-## Key Features
+---
 
-### 1. 7-Band Spectral Divergence Analysis
-The spectrum is segmented into 7 standard critical listening bands:
-* **Band 0 (20 - 60 Hz)**: Sub-bass fundamental
-* **Band 1 (60 - 250 Hz)**: Bass punch & kick body
-* **Band 2 (250 - 800 Hz)**: Low-mid body / mud zone
-* **Band 3 (800 - 2.5 kHz)**: Vocal core & guitar bite
-* **Band 4 (2.5 - 6.0 kHz)**: High-mid presence & vocal clarity
-* **Band 5 (6.0 - 10.0 kHz)**: Highs & drum cymbals
-* **Band 6 (10.0 - 18.0 kHz)**: Air & sheen
+## 🎛️ Navigation Views
+The plugin UI features three dedicated views accessible via the top-right header:
+1. **`MATRIX VIEW`**: 7-band spectral divergence bars, stereo width deviation, dynamics, and heuristic critic recommendations.
+2. **`MASTERING CONSOLE`**: Dedicated full-screen commercial mastering dashboard with high-resolution meters, True Peak ISP, EBU R128 loudness, streaming platform penalties, and mono translation racks.
+3. **`REF LIBRARY`**: Interactive browser of 22 commercial reference tracks with live percentage match indicators.
 
-### 2. Multi-Metric Scoring Engine
-* **Tonal Score (0 - 100%)**: Weighted spectral match against the reference target curve.
-* **Stereo Score (0 - 100%)**: Correlation and width per band.
-* **Dynamics Score (0 - 100%)**: Peak-to-Loudness Ratio (PLR), Crest Factor, and Integrated LUFS.
-* **Overall Score (0 - 100%)**: Composite production readiness index.
+---
 
-### 3. Closed-Loop Auto-Correction Trim Lane
-When enabled (`Slider 7: Apply`), the Oracle continuously calculates the exact trim needed across the 7 bands and publishes correction offsets over `gmem:DameiMixMetering` directly to:
-* Drums (`1300`)
-* Guitars (`1316`)
-* Bass (`1332`)
-* Vocals (`1348`)
-* Synths (`1364`)
-* Devastator FX (`1380`)
+## 📊 Comprehensive Mastering Metrics Suite
 
-Trims are rate-limited and dead-banded to prevent integrator windup and ensure transparent sonic adjustments.
+### 1. EBU R128 & ITU-R BS.1770-4 Loudness Engine
+* **`LUFS-I` (Integrated Loudness)**: Gated commercial loudness (-70 LUFS absolute, -10 LU relative).
+* **`LUFS-S` (Short-Term Loudness)**: 3-second sliding window with continuous peak hold (`LUFS-S Max`).
+* **`LUFS-M` (Momentary Loudness)**: 400 ms sliding window with continuous peak hold (`LUFS-M Max`).
+* **`LRA` (Loudness Range)**: EBU R128 statistical distribution (p95 - p10 in LU).
+
+### 2. Intersample True Peak & Headroom Engine
+* **4x Polyphase True Peak (dBTP)**: Zero-latency Hermite interpolator detecting inter-sample overs before lossy encoding (MP3, AAC).
+* **True Peak Max L & R**: Independent channel monitoring.
+* **ISP Overs Counter**: Real-time counter of inter-sample clipping events (`>= 0.0 dBTP`).
+* **Dynamic Spread (PLR)**: Peak-to-Loudness Ratio in dB.
+* **Crest Factor**: Peak-to-RMS ratio in dB.
+* **DC Offset**: Direct current asymmetry detection (dBFS).
+
+### 3. Streaming Platform Distribution & Penalty Matrix
+Calculates real-time normalization penalties (how many dB the streaming service's normalizer will turn down the track) and compliance status:
+* **Spotify**: Target -14.0 LUFS, -1.0 dBTP ceiling
+* **Apple Music**: Target -16.0 LUFS, -1.0 dBTP (Sound Check)
+* **YouTube Music**: Target -14.0 LUFS, -1.0 dBTP
+* **Tidal / Amazon Music**: Target -14.0 LUFS, -1.0 dBTP
+* **Commercial CD / Club**: Target -8.5 LUFS to -6.5 LUFS, -0.3 dBTP
+
+### 4. Translation & Mono Compatibility Rack
+* **Stereo Phase Correlation**: Continuous -1.0 to +1.0 meter with phase cancellation warning threshold.
+* **Mono Summing Cancellation Loss (dB)**: Measures how much energy is lost when the stereo mix is collapsed to mono (critical for mobile phones and mono club PAs).
+* **Sub-Bass (<100 Hz) Mono Percentage**: Assesses whether low-end energy is centered (>95% for vinyl cutting and club subwoofers).
+
+---
+
+## 🌐 Telemetry Bus Mapping (`gmem:DameiMixMetering`)
+All mastering metrics are published to shared memory at audio rate for external script and bridge access:
+
+| Address | Parameter | Description |
+|---|---|---|
+| `1130` | `True_Peak_L` | True Peak Left channel (dBTP) |
+| `1131` | `True_Peak_R` | True Peak Right channel (dBTP) |
+| `1132` | `True_Peak_Max` | True Peak Global Max (dBTP) |
+| `1133` | `LUFS_M` | Momentary Loudness (LUFS) |
+| `1134` | `LUFS_M_Max` | Momentary Loudness Max (LUFS) |
+| `1135` | `LUFS_S` | Short-Term Loudness (LUFS) |
+| `1136` | `LUFS_S_Max` | Short-Term Loudness Max (LUFS) |
+| `1137` | `LRA` | Loudness Range (LU) |
+| `1138` | `Spotify_Penalty` | Spotify volume reduction (dB) |
+| `1139` | `Apple_Penalty` | Apple Sound Check reduction (dB) |
+| `1140` | `YouTube_Penalty` | YouTube volume reduction (dB) |
+| `1141` | `CD_Delta` | Difference from -8.5 LUFS CD target (dB) |
+| `1142` | `Mono_Loss_dB` | Mono collapse cancellation loss (dB) |
+| `1143` | `Sub_Mono_Pct` | Sub-bass mono percentage (%) |
+| `1144` | `DC_Offset_dB` | DC offset level (dBFS) |
+| `1145` | `ISP_Overs_Count` | Number of inter-sample overs detected |
