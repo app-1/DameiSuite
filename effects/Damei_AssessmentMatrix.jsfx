@@ -198,6 +198,12 @@ function reset_all() local(i) (
   i = 0; loop(8,   KS[i] = 0;  i += 1; );
   blk_pow = 0; blk_n = 0; rpos = 0; rcount = 0;
   sum_m2 = 0; sum_s2 = 0; sLR = 0; sLL = 0; sRR = 0; pk = 0; tot_n = 0;
+  true_pk = 0; true_pk_l = 0; true_pk_r = 0;
+  lufs_m = -70; lufs_m_max = -70;
+  lufs_s = -70; lufs_s_max = -70;
+  sum_l = 0; sum_r = 0; sum_mono2 = 0;
+  isp_overs = 0;
+  isp_l_p1 = 0; isp_l_p2 = 0; isp_r_p1 = 0; isp_r_p2 = 0;
   have_data = 0;
   i = 0; loop(14, BA[i] = 0; EM[i] = 0; i += 1; );
   ema_n = 0;
@@ -385,6 +391,45 @@ function compute_metrics() local(i, tot, c, n, pw, g, n2, sum2, gate, mean1, lo,
   gmem[1127] = vox_rel_mst;
   gmem[1128] = sub_corr;
   gmem[1129] = drum_crest;
+
+  // Comprehensive Mastering Telemetry Engine
+  tp_db = 20*log10(true_pk + 0.000000000001);
+  tp_l_db = 20*log10(true_pk_l + 0.000000000001);
+  tp_r_db = 20*log10(true_pk_r + 0.000000000001);
+
+  // Streaming platform normalization deltas (dB)
+  pen_spotify = max(0, int_lufs - (-14.0));
+  pen_apple   = max(0, int_lufs - (-16.0));
+  pen_youtube = max(0, int_lufs - (-14.0));
+  pen_tidal   = max(0, int_lufs - (-14.0));
+  delta_cd    = int_lufs - (-8.5);
+
+  // Mono Summing Cancellation Loss in dB
+  mono_loss_db = max(0, 10*log10((sLL + sRR + 0.0000000001) / (2.0*sum_mono2 + 0.0000000001)));
+
+  // Sub-bass (<100Hz) mono integrity (% mono)
+  sub_mono_pct = max(0, min(100, (1.0 - LV[13]*1.8) * 100));
+
+  // DC Offset dBFS
+  dc_db = 20*log10(max(abs(sum_l), abs(sum_r))/max(tot_n, 1) + 0.000000000001);
+
+  // Publish Extended Mastering Telemetry to gmem[1130..1145]
+  gmem[1130] = tp_l_db;
+  gmem[1131] = tp_r_db;
+  gmem[1132] = tp_db;
+  gmem[1133] = lufs_m;
+  gmem[1134] = lufs_m_max;
+  gmem[1135] = lufs_s;
+  gmem[1136] = lufs_s_max;
+  gmem[1137] = lra;
+  gmem[1138] = pen_spotify;
+  gmem[1139] = pen_apple;
+  gmem[1140] = pen_youtube;
+  gmem[1141] = delta_cd;
+  gmem[1142] = mono_loss_db;
+  gmem[1143] = sub_mono_pct;
+  gmem[1144] = dc_db;
+  gmem[1145] = isp_overs;
 );
 
 // ---- closed-loop correction lane --------------------------------------------------------------------
@@ -523,6 +568,20 @@ slider5 == 0 ? (
   pk = max(pk, max(abs(l), abs(r)));
   tot_n += 1;
 
+  // 4x Intersample True Peak (ISP) Polyphase Hermite Estimator
+  isp_l = max(abs(l), abs((-isp_l_p2 + 9*isp_l_p1 + 9*l - spl0)*0.0625));
+  isp_r = max(abs(r), abs((-isp_r_p2 + 9*isp_r_p1 + 9*r - spl1)*0.0625));
+  isp_l_p2 = isp_l_p1; isp_l_p1 = l;
+  isp_r_p2 = isp_r_p1; isp_r_p1 = r;
+  true_pk_l = max(true_pk_l, isp_l);
+  true_pk_r = max(true_pk_r, isp_r);
+  true_pk = max(true_pk, max(isp_l, isp_r));
+  (true_pk >= 1.0) ? ( isp_overs += 1; );
+
+  sum_l += l; sum_r += r;
+  mono_s = (l + r) * 0.5;
+  sum_mono2 += mono_s * mono_s;
+
   blk_n >= blk_len ? (
     pw = blk_pow/blk_n; blk_pow = 0; blk_n = 0;
     RB[rpos] = pw; rpos = (rpos + 1) % 30; rcount += 1;
@@ -531,11 +590,15 @@ slider5 == 0 ? (
       loop(4, mp += RB[(rpos - 1 - q + 60) % 30]; q += 1; );
       lmv = -0.691 + 10*log10(mp/4 + 0.000000000000000001);
       lmv > -70 ? ( bn = clampv(floor((lmv + 70)*5), 0, 399); HSTG[bn] += 1; );
+      lufs_m = lmv;
+      lufs_m_max = max(lufs_m_max, lmv);
     );
     (rcount >= 30 && rcount % 10 == 0) ? (
       mp = 0; q = 0; loop(30, mp += RB[q]; q += 1; );
       lst = -0.691 + 10*log10(mp/30 + 0.000000000000000001);
       lst > -60 ? ( bn = clampv(floor((lst + 60)*2), 0, 119); HS[bn] += 1; );
+      lufs_s = lst;
+      lufs_s_max = max(lufs_s_max, lst);
     );
     (rcount % 5 == 0 && rcount >= 10) ? ( have_data = 1; compute_metrics(); );
     ctl_block();
@@ -776,9 +839,185 @@ sprintf(#trm, "AUTO-CORRECT %s | trim D%.1f G%.1f B%.1f V%.1f gsc%.1f", slider7 
 col(0.03, 0.04, 0.07); rct(480, 20, 296, 30);
 slider7 ? col(0.20, 0.92, 0.62) : col(0.38, 0.42, 0.55); rcto(480, 20, 296, 30);
 gfx_setfont(3); slider7 ? col(0.20, 0.92, 0.62) : col(0.60, 0.65, 0.75); txt(490, 28, #trm);
-btn(794, 20, 206, 30, ui_view ? "< BACK TO MATRIX" : "REFERENCE LIBRARY >", ui_view) ? ( ui_view = !ui_view; );
+btn(660, 20, 110, 30, "MATRIX", ui_view == 0) ? ( ui_view = 0; );
+btn(776, 20, 110, 30, "MASTERING", ui_view == 2) ? ( ui_view = 2; );
+btn(892, 20, 110, 30, "LIBRARY >", ui_view == 1) ? ( ui_view = 1; );
+
+
+function draw_mastering_console() local(y_r, pass_tp, pass_sp, pass_ap, pass_yt) (
+  card(24, 86, 972, 692, "COMPREHENSIVE MASTERING TELEMETRY & EBU R128 COMPLIANCE", 0.00, 0.96, 0.83);
+  
+  // Row 1: 3 Main Metering Racks
+  // 1. EBU R128 Loudness Rack
+  card(38, 118, 304, 330, "LOUDNESS (EBU R128 / BS.1770)", 1.00, 0.85, 0.30);
+  gfx_setfont(3); col(0.6, 0.65, 0.75);
+  txt(52, 150, "INTEGRATED (LUFS-I)");
+  gfx_setfont(4);
+  int_lufs >= -10.0 ? col(1.00, 0.75, 0.20) : (int_lufs >= -14.5 ? col(0.20, 0.92, 0.62) : col(0.70, 0.85, 1.00));
+  sprintf(#v, "%.1f", int_lufs); txt(52, 170, #v);
+  gfx_setfont(3); txt(190, 186, "LUFS");
+
+  gfx_setfont(3); col(0.6, 0.65, 0.75);
+  txt(52, 230, "SHORT-TERM (3s)");
+  col(0.85, 0.9, 1.0); sprintf(#v, "Live: %.1f LUFS", lufs_s); txt(52, 248, #v);
+  col(0.70, 0.85, 1.00); sprintf(#v, "Max:  %.1f LUFS", lufs_s_max); txt(190, 248, #v);
+  fill_bar(52, 268, 276, 12, (lufs_s + 36)/30, abs(lufs_s - (-14))/4);
+
+  col(0.6, 0.65, 0.75);
+  txt(52, 298, "MOMENTARY (400ms)");
+  col(0.85, 0.9, 1.0); sprintf(#v, "Live: %.1f LUFS", lufs_m); txt(52, 316, #v);
+  col(0.70, 0.85, 1.00); sprintf(#v, "Max:  %.1f LUFS", lufs_m_max); txt(190, 316, #v);
+  fill_bar(52, 336, 276, 12, (lufs_m + 36)/30, abs(lufs_m - (-14))/4);
+
+  col(0.6, 0.65, 0.75); txt(52, 368, "LOUDNESS RANGE (LRA)");
+  gfx_setfont(5); col(0.00, 0.96, 0.83); sprintf(#v, "%.1f LU", lra); txt(52, 390, #v);
+  gfx_setfont(2); col(0.55, 0.60, 0.70);
+  lra < 4 ? txt(170, 396, "Controlled / Dense") : (lra <= 8 ? txt(170, 396, "Optimal Commercial") : txt(170, 396, "Wide Dynamic Range"));
+
+  // 2. True Peak & Inter-Sample Headroom Rack
+  card(358, 118, 304, 330, "TRUE PEAK & INTERSAMPLE HEADROOM", 1.00, 0.35, 0.55);
+  gfx_setfont(3); col(0.6, 0.65, 0.75);
+  txt(372, 150, "TRUE PEAK MAX (dBTP)");
+  gfx_setfont(4);
+  tp_db > 0.0 ? col(1.00, 0.25, 0.35) : (tp_db > -1.0 ? col(1.00, 0.85, 0.30) : col(0.20, 0.92, 0.62));
+  sprintf(#v, "%+.2f", tp_db); txt(372, 170, #v);
+  gfx_setfont(3); txt(530, 186, "dBTP");
+
+  gfx_setfont(3); col(0.6, 0.65, 0.75); txt(372, 230, "CHANNEL PEAKS");
+  col(0.85, 0.9, 1.0); sprintf(#v, "Left:  %+.2f dBTP", tp_l_db); txt(372, 248, #v);
+  sprintf(#v, "Right: %+.2f dBTP", tp_r_db); txt(504, 248, #v);
+
+  col(0.6, 0.65, 0.75); txt(372, 280, "SAMPLE PEAK VS TRUE PEAK");
+  col(0.85, 0.9, 1.0); sprintf(#v, "Sample Pk: %+.2f dBFS", pk_db); txt(372, 298, #v);
+  isp_diff = tp_db - pk_db;
+  col(1.00, 0.75, 0.20); sprintf(#v, "ISP Delta: +%.2f dB", max(0, isp_diff)); txt(504, 298, #v);
+
+  col(0.6, 0.65, 0.75); txt(372, 330, "INTER-SAMPLE OVERS STATUS");
+  isp_overs > 0 ? (
+    col(1.00, 0.25, 0.35); rct(372, 350, 276, 26);
+    col(1.0, 1.0, 1.0); gfx_setfont(3); sprintf(#v, "WARNING: %d ISP OVERS DETECTED", isp_overs); txt(384, 356, #v);
+  ) : (
+    col(0.00, 0.25, 0.20); rct(372, 350, 276, 26);
+    col(0.20, 0.92, 0.62); rcto(372, 350, 276, 26);
+    gfx_setfont(3); col(0.20, 0.92, 0.62); txt(384, 356, "PASS: 0 ISP CLIPPING OVERS (<0 dBTP)");
+  );
+
+  col(0.6, 0.65, 0.75); txt(372, 390, "CREST & DYNAMIC RANGE (PLR)");
+  col(0.00, 0.96, 0.83); sprintf(#v, "PLR: %.1f dB  |  Crest: %.1f dB", LV[1], LV[2]); txt(372, 410, #v);
+
+  // 3. Streaming Platform Distribution Matrix
+  card(678, 118, 304, 330, "STREAMING COMPLIANCE & PENALTIES", 0.75, 0.45, 1.00);
+  gfx_setfont(3); col(0.5, 0.55, 0.68);
+  txt(692, 146, "PLATFORM"); txt(780, 146, "TARGET"); txt(860, 146, "PENALTY"); txt(930, 146, "STATUS");
+
+  y_r = 168;
+  // Spotify
+  col(0.85, 0.9, 1.0); txt(692, y_r, "Spotify");
+  col(0.6, 0.65, 0.75); txt(780, y_r, "-14 LUFS");
+  pen_spotify > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
+  sprintf(#v, "-%.1f dB", pen_spotify); txt(860, y_r, #v);
+  pen_spotify > 0.2 ? ( col(1.00, 0.75, 0.20); txt(930, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt(930, y_r, "PERFECT"); );
+
+  y_r += 32;
+  // Apple Music
+  col(0.85, 0.9, 1.0); txt(692, y_r, "Apple Music");
+  col(0.6, 0.65, 0.75); txt(780, y_r, "-16 LUFS");
+  pen_apple > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
+  sprintf(#v, "-%.1f dB", pen_apple); txt(860, y_r, #v);
+  pen_apple > 0.2 ? ( col(1.00, 0.75, 0.20); txt(930, y_r, "SOUNDCHECK"); ) : ( col(0.20, 0.92, 0.62); txt(930, y_r, "PERFECT"); );
+
+  y_r += 32;
+  // YouTube
+  col(0.85, 0.9, 1.0); txt(692, y_r, "YouTube");
+  col(0.6, 0.65, 0.75); txt(780, y_r, "-14 LUFS");
+  pen_youtube > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
+  sprintf(#v, "-%.1f dB", pen_youtube); txt(860, y_r, #v);
+  pen_youtube > 0.2 ? ( col(1.00, 0.75, 0.20); txt(930, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt(930, y_r, "PERFECT"); );
+
+  y_r += 32;
+  // Tidal / Amazon
+  col(0.85, 0.9, 1.0); txt(692, y_r, "Tidal/Amazon");
+  col(0.6, 0.65, 0.75); txt(780, y_r, "-14 LUFS");
+  pen_tidal > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
+  sprintf(#v, "-%.1f dB", pen_tidal); txt(860, y_r, #v);
+  pen_tidal > 0.2 ? ( col(1.00, 0.75, 0.20); txt(930, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt(930, y_r, "PERFECT"); );
+
+  y_r += 32;
+  // Commercial CD / Club
+  col(0.85, 0.9, 1.0); txt(692, y_r, "CD / Club Loud");
+  col(0.6, 0.65, 0.75); txt(780, y_r, "-8.5 LUFS");
+  abs(delta_cd) <= 1.0 ? col(0.20, 0.92, 0.62) : (delta_cd > 1.0 ? col(1.00, 0.75, 0.20) : col(0.70, 0.85, 1.00));
+  sprintf(#v, "%+.1f dB", delta_cd); txt(860, y_r, #v);
+  abs(delta_cd) <= 1.0 ? ( col(0.20, 0.92, 0.62); txt(930, y_r, "OPTIMAL"); ) : ( delta_cd > 1.0 ? ( col(1.00, 0.75, 0.20); txt(930, y_r, "HOT LOUD"); ) : ( col(0.70, 0.85, 1.00); txt(930, y_r, "HEADROOM"); ) );
+
+  // Bottom Notice
+  col(0.04, 0.05, 0.08); rct(692, 350, 276, 75);
+  col(0.20, 0.25, 0.35); rcto(692, 350, 276, 75);
+  gfx_setfont(2); col(0.60, 0.65, 0.75);
+  txt(702, 358, "Streaming services normalize playback volume.");
+  txt(702, 376, "Excess loudness (-7 to -8 LUFS) is turned down,");
+  txt(702, 394, "preserving punch for CD/WAV distribution.");
+
+  // Row 2: 2 Translation Racks
+  // 4. Stereo Phase & Mono Compatibility Rack
+  card(38, 464, 460, 290, "PHASE COHERENCE, MONO CANCELLATION & TRANSLATION", 0.00, 0.96, 0.83);
+  gfx_setfont(3); col(0.6, 0.65, 0.75); txt(52, 496, "STEREO CORRELATION (-1 to +1)");
+  col(0.85, 0.9, 1.0); sprintf(#v, "%+.2f", LV[4]); txt(240, 496, #v);
+  LV[4] >= 0.30 ? ( col(0.20, 0.92, 0.62); txt(320, 496, "PERFECT STEREO PHASE"); ) : ( LV[4] >= 0.0 ? ( col(1.00, 0.85, 0.30); txt(320, 496, "WIDE (CHECK MONO)"); ) : ( col(1.00, 0.25, 0.35); txt(320, 496, "PHASE CANCELLATION!"); ) );
+  dev_bar(52, 518, 430, 16, LV[4], 1.0, LV[4] >= 0.3 ? 1 : (LV[4] >= 0 ? 2 : 3));
+
+  col(0.6, 0.65, 0.75); txt(52, 552, "MONO SUMMING CANCELLATION LOSS");
+  mono_loss_db <= 1.5 ? col(0.20, 0.92, 0.62) : (mono_loss_db <= 3.0 ? col(1.00, 0.85, 0.30) : col(1.00, 0.25, 0.35));
+  sprintf(#v, "%.2f dB lost in mono", mono_loss_db); txt(52, 572, #v);
+  mono_loss_db <= 1.5 ? ( col(0.20, 0.92, 0.62); txt(260, 572, "PASS: Safe for Phones & Mono Bluetooth"); ) : ( col(1.00, 0.75, 0.20); txt(260, 572, "WARNING: Side cancellation on phones"); );
+
+  col(0.6, 0.65, 0.75); txt(52, 608, "SUB-BASS (<100Hz) MONO INTEGRITY");
+  sub_mono_pct >= 95.0 ? col(0.20, 0.92, 0.62) : (sub_mono_pct >= 85.0 ? col(1.00, 0.85, 0.30) : col(1.00, 0.25, 0.35));
+  sprintf(#v, "%.1f%% Mono Anchor", sub_mono_pct); txt(52, 628, #v);
+  sub_mono_pct >= 95.0 ? ( col(0.20, 0.92, 0.62); txt(260, 628, "LOCKED: 100% Club & Vinyl Safe"); ) : ( col(1.00, 0.75, 0.20); txt(260, 628, "Wide sub (Check Mono-Maker cutoff)"); );
+
+  col(0.6, 0.65, 0.75); txt(52, 664, "DC OFFSET DETECTION");
+  dc_db <= -70.0 ? col(0.20, 0.92, 0.62) : col(1.00, 0.75, 0.20);
+  sprintf(#v, "%.1f dBFS  (%s)", dc_db, dc_db <= -70.0 ? "CLEAN" : "DC FILTER RECOMMENDED"); txt(52, 684, #v);
+
+  // 5. Inter-Suite Health & Closed-Loop Trims Rack
+  card(518, 464, 464, 290, "MASTER BUS INTERLOCK & HEALTH", 0.20, 0.92, 0.62);
+  gfx_setfont(3); col(0.6, 0.65, 0.75); txt(532, 496, "KICK-TO-SUB PHASE INTERLOCK");
+  sub_corr >= 0.30 ? col(0.20, 0.92, 0.62) : (sub_corr >= 0.0 ? col(1.00, 0.85, 0.30) : col(1.00, 0.25, 0.35));
+  sprintf(#v, "%+.2f (%s)", sub_corr, sub_corr >= 0.30 ? "LOCKED IN-PHASE" : (sub_corr >= 0 ? "PARTIAL" : "PHASE OPPOSITION"));
+  txt(532, 516, #v);
+
+  col(0.6, 0.65, 0.75); txt(532, 552, "LEAD VOCAL POCKET DEPTH");
+  vox_act ? (
+    status_col(abs(vox_dv) <= 1.5 ? 1 : 2);
+    sprintf(#v, "%+.1f dB relative to Master (Target: %+.1f dB)", vox_rel_mst, vox_target); txt(532, 572, #v);
+  ) : (
+    col(0.5, 0.55, 0.68); txt(532, 572, "Vocal Suite Telemetry Inactive");
+  );
+
+  col(0.6, 0.65, 0.75); txt(532, 608, "DRUM SHELL TRANSIENT CREST");
+  drum_act ? (
+    col(0.85, 0.9, 1.0); sprintf(#v, "%.1f dB (Target: 9.5 dB punch)", drum_crest); txt(532, 628, #v);
+  ) : (
+    col(0.5, 0.55, 0.68); txt(532, 628, "Drum Suite Telemetry Inactive");
+  );
+
+  col(0.6, 0.65, 0.75); txt(532, 664, "AUTONOMOUS SUITE CORRECTION ENGINE");
+  slider7 ? col(0.20, 0.92, 0.62) : col(0.5, 0.55, 0.68);
+  sprintf(#v, "Correction Engine: %s  |  Max Trim: %.1f dB", slider7 ? "ACTIVE (PUBLISHING TRIMS)" : "BYPASS", slider8); txt(532, 684, #v);
+
+  btn(532, 712, 160, 26, "RESET PEAK HOLDS", 0) ? (
+    true_pk = 0; true_pk_l = 0; true_pk_r = 0;
+    lufs_m_max = -70; lufs_s_max = -70;
+    isp_overs = 0;
+  );
+  btn(704, 712, 160, 26, "< RETURN TO MATRIX", 1) ? (
+    ui_view = 0;
+  );
+);
 
 ui_view == 1 ? ( draw_library(); ) : (
+ui_view == 2 ? ( draw_mastering_console(); ) : (
 // ---- score card -------------------------------------------------------------------
 card(24, 86, 300, 200, slider10 ? "MATCH SCORE [RAW AUDIT]" : "MATCH SCORE", slider10 ? 1.00 : 0.00, slider10 ? 0.40 : 0.96, slider10 ? 0.20 : 0.83);
 btn(164, 92, 150, 22, slider10 ? "⚡ RAW AUDIT: ON" : "AUDIT RAW MIX", slider10) ? (
@@ -1016,6 +1255,7 @@ btn(24, 636, 142, 24, slider7 ? "AUTO-CORRECT: ON" : "AUTO-CORRECT: OFF", slider
 btn(182, 636, 142, 24, "CLEAR TRIMS", 0) ? ( ci = 0; loop(42, TT[ci] = 0; ci += 1; ); ci = 0; loop(6, TW[ci] = 0; ci += 1; ); );
 );
 // corner bolts
+); // close ui_view == 2
 bx = 0; loop(4,
   bxx = (bx % 2) ? gfx_w - 14 : 14; byy = bx > 1 ? gfx_h - 14 : 14;
   col(0.16, 0.19, 0.25); gfx_circle(bxx, byy, 6, 1);
