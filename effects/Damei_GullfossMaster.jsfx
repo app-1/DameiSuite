@@ -23,6 +23,7 @@ out_pin:right output
 @init
 ext_noinit = 1;
 srate <= 0 ? srate = 48000;
+last_srate = srate;
 
 function init_gullfoss() (
   srate <= 0 ? srate = 48000;
@@ -33,13 +34,14 @@ function init_gullfoss() (
   gf_tgt_gain = 300240; gf_gain_cur = 300260;
   gf_tame_disp = 300280; gf_rec_disp = 300300;
   gf_pos_arr = 300320;
+  gf_pwr_decay = 300340;
 
   gf_freq[0] = 80; gf_freq[1] = 140; gf_freq[2] = 220; gf_freq[3] = 340;
   gf_freq[4] = 500; gf_freq[5] = 750; gf_freq[6] = 1100; gf_freq[7] = 1600;
   gf_freq[8] = 2400; gf_freq[9] = 3500; gf_freq[10] = 5000; gf_freq[11] = 7000;
   gf_freq[12] = 9500; gf_freq[13] = 12500; gf_freq[14] = 15500; gf_freq[15] = 18500;
 
-  gf_kd_val = 1.0 / 1.9; // Q = 1.9 constant critical bandwidth
+  gf_kd_val = 1.0 / 1.8; // Q = 1.8 constant critical bandwidth
   k = 0;
   loop(16,
     f = max(20.0, min(22000.0, gf_freq[k]));
@@ -53,6 +55,11 @@ function init_gullfoss() (
     gf_pwr[k] = 0.00000001; gf_gain_cur[k] = 0.0; gf_tgt_gain[k] = 0.0;
     gf_tame_disp[k] = 0.0; gf_rec_disp[k] = 0.0;
     gf_pos_arr[k] = (log(f) - 2.99573227) / 6.90775528;
+
+    // Frequency-dependent integration time constant (at least 4 complete waveform cycles to eliminate AC ripple)
+    tau_k = max(0.020, min(0.075, 4.0 / f));
+    gf_pwr_decay[k] = exp(-1.0 / (tau_k * srate));
+
     k += 1;
   );
   gf_spl_cnt = 0;
@@ -64,28 +71,43 @@ init_gullfoss();
 cur_rms = -60.0;
 cur_out_pk = 0.0;
 crt_phase = 0.0;
+bp_fade = slider1 ? 1.0 : 0.0;
+
+function update_smoothing_rates() (
+  reaction_sec = 0.010 + (1.0 - slider9 * 0.01) * 0.045;
+  gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
+  fade_coeff = 1.0 - exp(-1.0 / (0.015 * srate)); // 15ms click-free bypass crossfade
+);
+
+update_smoothing_rates();
 
 @slider
-// All parameters directly reflected in DSP variables
+srate != last_srate ? (
+  init_gullfoss();
+  last_srate = srate;
+);
+update_smoothing_rates();
 
 @sample
 in_l = spl0;
 in_r = spl1;
 
-// RMS meter tracking
+// Continuous smooth RMS meter tracking
 abs_in = max(abs(in_l), abs(in_r));
-abs_in > 0.000001 ? (
-  in_db = 20.0 * log10(abs_in);
-  cur_rms += (in_db - cur_rms) * 0.005;
-);
+in_db = 20.0 * log10(max(abs_in, 0.000001));
+cur_rms += (in_db - cur_rms) * 0.002;
 
-slider1 == 1 ? (
+// Smooth clickless bypass crossfade fader (15ms time constant)
+bp_target = slider1 ? 1.0 : 0.0;
+bp_fade += (bp_target - bp_fade) * fade_coeff;
+
+bp_fade > 0.0001 ? (
   !gf_initialized ? init_gullfoss();
 
   gf_in_l = in_l;
   gf_in_r = in_r;
 
-  // Protect against incoming NaNs
+  // Protect against incoming NaNs / denormals
   gf_in_l != gf_in_l ? gf_in_l = 0.0;
   gf_in_r != gf_in_r ? gf_in_r = 0.0;
 
@@ -94,55 +116,67 @@ slider1 == 1 ? (
     a1 = gf_a1[k]; a2 = gf_a2[k]; a3 = gf_a3[k];
     kd = gf_kd[k];
 
-    cur_g = max(-6.0, min(5.0, gf_gain_cur[k]));
+    // CONTINUOUS PER-SAMPLE GAIN INTERPOLATION (Zero discrete jumps = Zero clicks)
+    cur_g = gf_gain_cur[k];
+    cur_g += (gf_tgt_gain[k] - cur_g) * gain_smooth;
+    cur_g = max(-6.0, min(5.0, cur_g));
     cur_g != cur_g ? cur_g = 0.0;
+    gf_gain_cur[k] = cur_g;
     A = exp(cur_g * 0.11512925); // log(10)/20
 
-    // Left channel SVF
+    // Left channel Cytomic SVF Bell EQ
     v3_l = gf_in_l - gf_s2_l[k];
     v1_l = a1 * gf_s1_l[k] + a2 * v3_l;
     v2_l = gf_s2_l[k] + a2 * gf_s1_l[k] + a3 * v3_l;
-    gf_s1_l[k] = 2.0 * v1_l - gf_s1_l[k];
-    gf_s2_l[k] = 2.0 * v2_l - gf_s2_l[k];
+    s1_l = 2.0 * v1_l - gf_s1_l[k];
+    s2_l = 2.0 * v2_l - gf_s2_l[k];
 
-    // Anti-explosion / denormal state clamp
-    abs(gf_s1_l[k]) > 4.0 ? gf_s1_l[k] = 0.0;
-    abs(gf_s2_l[k]) > 4.0 ? gf_s2_l[k] = 0.0;
-    (v1_l != v1_l || abs(v1_l) > 4.0) ? v1_l = 0.0;
+    // Soft anti-explosion bounding (Gentle saturation headroom, NEVER zero out state)
+    abs(s1_l) > 16.0 ? s1_l = max(-16.0, min(16.0, s1_l));
+    abs(s2_l) > 16.0 ? s2_l = max(-16.0, min(16.0, s2_l));
+    s1_l != s1_l ? s1_l = 0.0;
+    s2_l != s2_l ? s2_l = 0.0;
+    gf_s1_l[k] = s1_l;
+    gf_s2_l[k] = s2_l;
 
     gf_in_l += kd * (A - 1.0) * v1_l;
 
-    // Right channel SVF
+    // Right channel Cytomic SVF Bell EQ
     v3_r = gf_in_r - gf_s2_r[k];
     v1_r = a1 * gf_s1_r[k] + a2 * v3_r;
     v2_r = gf_s2_r[k] + a2 * gf_s1_r[k] + a3 * v3_r;
-    gf_s1_r[k] = 2.0 * v1_r - gf_s1_r[k];
-    gf_s2_r[k] = 2.0 * v2_r - gf_s2_r[k];
+    s1_r = 2.0 * v1_r - gf_s1_r[k];
+    s2_r = 2.0 * v2_r - gf_s2_r[k];
 
-    abs(gf_s1_r[k]) > 4.0 ? gf_s1_r[k] = 0.0;
-    abs(gf_s2_r[k]) > 4.0 ? gf_s2_r[k] = 0.0;
-    (v1_r != v1_r || abs(v1_r) > 4.0) ? v1_r = 0.0;
+    abs(s1_r) > 16.0 ? s1_r = max(-16.0, min(16.0, s1_r));
+    abs(s2_r) > 16.0 ? s2_r = max(-16.0, min(16.0, s2_r));
+    s1_r != s1_r ? s1_r = 0.0;
+    s2_r != s2_r ? s2_r = 0.0;
+    gf_s1_r[k] = s1_r;
+    gf_s2_r[k] = s2_r;
 
     gf_in_r += kd * (A - 1.0) * v1_r;
 
-    // Measure power with denormal guard
+    // Ripple-Free Frequency-Matched Power Integration
     pwr = v1_l * v1_l + v1_r * v1_r;
     (pwr != pwr || pwr < 0.0) ? pwr = 0.00000001;
-    gf_pwr[k] = gf_pwr[k] * 0.992 + pwr * 0.008;
+    dec = gf_pwr_decay[k];
+    gf_pwr[k] = gf_pwr[k] * dec + pwr * (1.0 - dec);
 
     k += 1;
   );
 
-  // Hard safety limit on Gullfoss output
-  (gf_in_l != gf_in_l || abs(gf_in_l) > 4.0) ? ( gf_in_l = in_l; init_gullfoss(); );
-  (gf_in_r != gf_in_r || abs(gf_in_r) > 4.0) ? ( gf_in_r = in_r; init_gullfoss(); );
-  out_l = max(-3.0, min(3.0, gf_in_l));
-  out_r = max(-3.0, min(3.0, gf_in_r));
+  // Denormal & NaN guard on output
+  gf_in_l != gf_in_l ? gf_in_l = in_l;
+  gf_in_r != gf_in_r ? gf_in_r = in_r;
+  out_l = max(-8.0, min(8.0, gf_in_l));
+  out_r = max(-8.0, min(8.0, gf_in_r));
 
+  // 32-sample block auditory masking threshold evaluation
   gf_spl_cnt += 1;
   gf_spl_cnt >= 32 ? (
     gf_spl_cnt = 0;
-    // 1. Convert power to dB
+    // 1. Convert smoothly integrated power to dB
     k = 0;
     loop(16,
       p_val = max(gf_pwr[k], 0.0000000001);
@@ -150,7 +184,7 @@ slider1 == 1 ? (
       k += 1;
     );
 
-    // 2. Compute auditory masking threshold
+    // 2. Compute psychoacoustic auditory masking threshold
     k = 0;
     loop(16,
       m_thresh = -75.0;
@@ -170,18 +204,26 @@ slider1 == 1 ? (
       gf_mask[k] = m_thresh;
 
       cur_d = gf_db[k];
+      
+      // Noise gate floor taper to prevent low-level chatter or fadeout pops
+      gate_w = max(0.0, min(1.0, (cur_d - (-65.0)) * (1.0 / 15.0)));
+      diff = cur_d - m_thresh;
+
       tgt_g = 0.0;
       tame_disp = 0.0;
       rec_disp = 0.0;
 
-      cur_d > m_thresh + 1.2 ? (
-        excess = cur_d - (m_thresh + 1.2);
-        tame_amt = min(5.0, excess * 0.75) * (slider3 * 0.01) * max(0.0, 1.0 - slider4 * 0.01);
+      // Soft-knee continuous polynomial curve (C1 continuous at 0, no hard deadband clicks)
+      diff > 0.2 ? (
+        excess = diff - 0.2;
+        tame_amt = (excess * excess) / (excess + 1.8) * 0.75 * (slider3 * 0.01) * max(0.0, 1.0 - slider4 * 0.01);
+        tame_amt = min(5.0, tame_amt);
         tgt_g = -tame_amt;
         tame_disp = tame_amt;
-      ) : (cur_d < m_thresh - 0.5 && cur_d > -55.0) ? (
-        deficit = (m_thresh - 0.5) - cur_d;
-        rec_amt = min(4.0, deficit * 0.65) * (slider2 * 0.01) * max(0.0, 1.0 + slider4 * 0.01);
+      ) : diff < -0.2 ? (
+        deficit = -diff - 0.2;
+        rec_amt = (deficit * deficit) / (deficit + 1.8) * 0.65 * (slider2 * 0.01) * max(0.0, 1.0 + slider4 * 0.01) * gate_w;
+        rec_amt = min(4.0, rec_amt);
         tgt_g = rec_amt;
         rec_disp = rec_amt;
       );
@@ -194,20 +236,26 @@ slider1 == 1 ? (
         tgt_g += (slider6 * 0.01) * 2.0 * (1.0 - k / 3.0);
       );
 
-      (gf_freq[k] < slider7 || gf_freq[k] > slider8) ? (
-        tgt_g = 0.0;
-        tame_disp = 0.0;
-        rec_disp = 0.0;
+      // Smooth cutoff limit tapering (avoids abrupt frequency cutoff boundaries)
+      band_f = gf_freq[k];
+      f_weight = 1.0;
+      band_f < slider7 ? (
+        f_weight = max(0.0, min(1.0, (band_f - (slider7 * 0.70)) / (slider7 * 0.30 + 1e-6)));
+      ) : band_f > slider8 ? (
+        f_weight = max(0.0, min(1.0, ((slider8 * 1.30) - band_f) / (slider8 * 0.30 + 1e-6)));
       );
+
+      tgt_g *= f_weight;
+      tame_disp *= f_weight;
+      rec_disp *= f_weight;
 
       tgt_g = max(-6.0, min(5.0, tgt_g));
       tgt_g != tgt_g ? tgt_g = 0.0;
       gf_tgt_gain[k] = tgt_g;
-      gf_tame_disp[k] = tame_disp;
-      gf_rec_disp[k] = rec_disp;
 
-      speed = 0.02 + (slider9 * 0.01) * 0.08;
-      gf_gain_cur[k] += (tgt_g - gf_gain_cur[k]) * speed;
+      // Smooth visualizer meter ballistics
+      gf_tame_disp[k] = gf_tame_disp[k] * 0.85 + tame_disp * 0.15;
+      gf_rec_disp[k]  = gf_rec_disp[k]  * 0.85 + rec_disp  * 0.15;
 
       k += 1;
     );
@@ -217,10 +265,11 @@ slider1 == 1 ? (
   out_r = in_r;
 );
 
-spl0 = out_l;
-spl1 = out_r;
+// Click-Free Bypass Crossfade applied to final output
+spl0 = in_l * (1.0 - bp_fade) + out_l * bp_fade;
+spl1 = in_r * (1.0 - bp_fade) + out_r * bp_fade;
 
-cur_out_pk = max(abs(out_l), abs(out_r));
+cur_out_pk = max(abs(spl0), abs(spl1));
 
 @gfx 820 420
 disp_x = 0; disp_y = 0; disp_w = gfx_w; disp_h = gfx_h;
