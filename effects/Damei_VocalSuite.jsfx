@@ -358,8 +358,8 @@ dk_tip[16] = "Keep raw low-mid body (200-400 Hz) so grunts stay heavy.";
 dk_tip[17] = "Silence is the trick: choke, then dead air before the drop.";
 dk_tip[18] = "Telephone choke on the final bar, no reverb wash.";
 dk_tip[19] = "Stutter chop on the last beat, hard cut, then full impact.";
-dk_pn[5] = "Kel Pinchin"; dk_pm[5] = 8502; dk_ps[5] = 1; dk_pd[5] = 2; dk_pg[5] = 0.95;
-dk_tip[20] = "Layered clean/harsh: wide doubles in chorus, lead stays centred.";
+dk_pn[5] = "Kel Pinchin (Split Chain)"; dk_pm[5] = 12607; dk_ps[5] = 1; dk_pd[5] = 2; dk_pg[5] = 0.95;
+dk_tip[20] = "Gojira X BBD swirl on wide doubles; lead stays centred in pocket.";
 dk_tip[21] = "Filter rise opens as the clean line enters the chorus.";
 dk_tip[22] = "Ducked echo on the clean phrases for ambient trails.";
 dk_tip[23] = "Two-bar reverse bloom leads into the clean hook.";
@@ -1685,15 +1685,15 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   dg_pm_v = floor(dk_pm[dg_pbi] + 0.5);
   dg_n = 0; dg_k = 0;
   loop(16,
-    ((dg_pm_v & (1 << dg_k)) && (dg_n < 7)) ? (
+    ((dg_pm_v & (1 << dg_k)) && (dg_n < 9)) ? (
       (dg_k == dk_ps[dg_pbi]) ? ( gfx_r = 1.0; gfx_g = 0.9; gfx_b = 0.5; ) : ( gfx_r = 0.78; gfx_g = 0.82; gfx_b = 0.90; );
       sprintf(#dg_l, "%s%s: %s", (dg_k == dk_ps[dg_pbi]) ? "* " : "  ", dk_nm[dg_k], dk_hint[dg_k]);
-      gfx_x = dg_rx + 12; gfx_y = dg_ty + 172 + dg_n * 18; gfx_drawstr(#dg_l);
+      gfx_x = dg_rx + 12; gfx_y = dg_ty + 168 + dg_n * 15; gfx_drawstr(#dg_l);
       dg_n += 1;
     );
     dg_k += 1;
   );
-  dg_by = dg_ty + 304;
+  dg_by = dg_ty + 306;
   dg_hv = (mouse_x >= dg_rx + 12 && mouse_x <= dg_rx + dg_cw - 12 && mouse_y >= dg_by && mouse_y <= dg_by + 30);
   dg_hv ? ( gfx_r = ar * 0.35; gfx_g = ag * 0.35; gfx_b = ab * 0.35; ) : ( gfx_r = ar * 0.18; gfx_g = ag * 0.18; gfx_b = ab * 0.18; );
   gfx_rect(dg_rx + 12, dg_by, dg_cw - 24, 30);

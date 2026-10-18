@@ -65,6 +65,11 @@ graph TD
   * Real-time 7-band spectral divergence analyzer measuring your mix against offline-measured producer fingerprints or active library references.
   * Evaluates Integrated LUFS, Peak-to-Loudness Ratio (PLR), Crest Factor, Loudness Range (LRA), Stereo Correlation, and Lead Vocal Anchor Ratio.
   * Closed-loop auto-correction engine publishing trim commands over `gmem` directly to instrument busses.
+  * Native Ollama AI & MIR Critic console with DirectML RTX 3060 acceleration.
+
+* **`Damei_GullfossMaster.jsfx` (Auditory Perception & Psychoacoustic Dynamic EQ)**
+  * Soundtheory Gullfoss computational auditory perception engine with real-time 16-band psychoacoustic masking threshold computation and dynamic de-masking (Recover, Tame, Bias, Brightness, Boost).
+
 
 ### 2. Instrument & Stem Bus Suites
 * **`Damei_VocalSuite.jsfx` (Damei Vocal Sovereign)**

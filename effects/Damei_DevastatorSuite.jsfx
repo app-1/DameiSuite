@@ -7,7 +7,7 @@ desc:Damei Devastator Suite (Cinematic Hybrid FX & AI Co-Pilot)
 // =============================================================================
 
 slider1:0<0,3,1{1. Devastator Hub & Vital Envelopes,2. Reactor Core & DSP Sound Bays,3. Mix-Fit ReEQ & Master Compressor,4. Producer Trailer Playbook}>-Main Suite View Mode
-slider2:3<0,7,1{Jordan Fish (Bring Me The Horizon),Mick Gordon (DOOM / Wolfenstein),Chris Bedan (ONI NOIRE / KeepForest),Dan Braunstein (Spiritbox / Dayseeker),Buster Odeholm (thrown / Northlane),Bad Omens (THE DEATH OF PEACE OF MIND),Lance Prenc (Alpha Wolf / Polaris),George Lever (Loathe / Sleep Token)}>-Producer Cinematic Blueprint
+slider2:3<0,8,1{Jordan Fish (Bring Me The Horizon),Mick Gordon (DOOM / Wolfenstein),Chris Bedan (ONI NOIRE / KeepForest),Dan Braunstein (Spiritbox / Dayseeker),Buster Odeholm (thrown / Northlane),Bad Omens (THE DEATH OF PEACE OF MIND),Lance Prenc (Alpha Wolf / Polaris),George Lever (Loathe / Sleep Token),Kel Pinchin (Split Chain)}>-Producer Cinematic Blueprint
 slider3:0<0,11,1{C,C#,D,D#,E,F,F#,G,G#,A,A#,B}>-Song Root Key Note
 slider4:1<0,2,1{Manual Trigger,AI Context-Aware Auto-Trigger (Energy Delta Reasoning),Full Auto Region Sync}>-AI Creative Decision Mode
 slider5:-13.0<-24.0,0.0,0.5>-Master Sub-Bed Trim (dB) [Subtle Mix Integration]
@@ -340,7 +340,7 @@ function run_mixfit_advisor() (
   adv_prof_mid = (slider40 ? 0.6 : 0.0) + (slider11 ? 0.3 : 0.0);
   adv_prof_hi  = (slider20 ? min(1.0, slider23 * 0.01) * 0.8 : 0.0) + (slider42 >= 2 ? 0.3 : 0.0);
 
-  adv_ps = slider2 == 0 ? 0.8 : slider2 == 1 ? 0.5 : slider2 == 2 ? 0.8 : slider2 == 3 ? 1.0 : slider2 == 4 ? 0.6 : slider2 == 5 ? 0.9 : slider2 == 6 ? 0.7 : 1.0;
+  adv_ps = slider2 == 0 ? 0.8 : slider2 == 1 ? 0.5 : slider2 == 2 ? 0.8 : slider2 == 3 ? 1.0 : slider2 == 4 ? 0.6 : slider2 == 5 ? 0.9 : slider2 == 6 ? 0.7 : slider2 == 7 ? 1.0 : 0.85;
 
   // Low-mid: step aside for guitars, bass and any mud already in the mix
   adv_t_lm = -(adv_prof_mid * 1.6 + (gtr_roaring ? 1.2 : 0.0) + (adv_bass_on ? 0.8 : 0.0) + max(0.0, min(1.5, adv_lm_ex / 8.0)));
@@ -452,6 +452,12 @@ pb_tip[28] = "Slow burn: a long suck-back, but only from chorus two on.";
 pb_tip[29] = "No sub bombs; the drop stays organic.";
 pb_tip[30] = "Keeps it rare so every fire feels earned.";
 pb_tip[31] = "Signature move: the pull-back before the final chorus.";
+pb_f[8] = 3; pb_e[8] = 3; pb_s[8] = 1; pb_t[8] = -44;
+pb_n[8] = "Kel Pinchin (Split Chain)";
+pb_tip[32] = "Grunge drop tension: 2-bar suck-back bloom into hook.";
+pb_tip[33] = "Sub divebomb fires when chorus energy out-powers song.";
+pb_tip[34] = "Tasteful restraint: skips low-energy sections cleanly.";
+pb_tip[35] = "Signature move: the reverse pull-back before the hook.";
 pb_er[0] = "every chorus";
 pb_er[1] = "skips first chorus";
 pb_er[2] = "every 2nd chorus";
@@ -485,7 +491,7 @@ function dv_pb_esc(ev, n) local(e, g) (
 );
 
 function dv_playbook() local(n, lvl, go) (
-  dv_p = max(0, min(7, floor(slider2 + 0.5)));
+  dv_p = max(0, min(8, floor(slider2 + 0.5)));
   lvl = (mst_rms > pb_t[dv_p]);
 
   // 1) pre-chorus suck-back: timed to land on the chorus downbeat; evaluated once per upcoming chorus
@@ -1800,7 +1806,7 @@ function dv_pb_gui(gx, gy, gw, gh) local(cw, lx, rx, ty, p, i, k, tw, th, sx, bw
   gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.62; gfx_g = 0.68; gfx_b = 0.78;
   gfx_x = gx + 16; gfx_y = gy + 36; gfx_drawstr("Fires only while playing, only at section entrances, only when the producer's rules and the energy agree.");
 
-  p = max(0, min(7, floor(slider2 + 0.5)));
+  p = max(0, min(8, floor(slider2 + 0.5)));
   cw = floor((gw - 48) / 2); lx = gx + 16; rx = lx + cw + 16; ty = gy + 64;
 
   // mode toggle

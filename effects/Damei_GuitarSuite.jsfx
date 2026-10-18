@@ -477,11 +477,11 @@ dk_tip[16] = "Weight is everything: sub-octave shadow under the low chugs.";
 dk_tip[17] = "Whammy dive into dead silence before the drop.";
 dk_tip[18] = "Killswitch chop on the final beat, hard cut, then impact.";
 dk_tip[19] = "Almost no ambience: the heavy parts stay dry and dense.";
-dk_pn[5] = "Kel Pinchin"; dk_pm[5] = 57862; dk_ps[5] = 9; dk_pd[5] = 2; dk_pg[5] = 0.95;
-dk_tip[20] = "Ethereal layers: octave shimmer rises late in big choruses.";
-dk_tip[21] = "Reverse swell into the chorus plus dotted echo in the gaps.";
-dk_tip[22] = "Slow filter sweep and a gentle tremolo pulse on clean parts.";
-dk_tip[23] = "Haas widener gives the lead lines a halo.";
+dk_pn[5] = "Kel Pinchin (Split Chain)"; dk_pm[5] = 62118; dk_ps[5] = 9; dk_pd[5] = 2; dk_pg[5] = 0.95;
+dk_tip[20] = "90s shoegaze wall: wide Haas doubles with BBD chorus shimmer.";
+dk_tip[21] = "Radio choke & filter rise before the drop, explosive open.";
+dk_tip[22] = "Reverse swell into chorus plus dotted echo in riff gaps.";
+dk_tip[23] = "Parallel fuzz grit layer engages only when energy peaks.";
 dk_pn[6] = "Sam Guaiana"; dk_pm[6] = 8462; dk_ps[6] = 13; dk_pd[6] = 2; dk_pg[6] = 0.95;
 dk_tip[24] = "Punchy post-hardcore: sparkle air in the loud choruses.";
 dk_tip[25] = "Dotted echo only when the riff stops; slapback on sparse parts.";
@@ -3438,15 +3438,15 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   dg_pm_v = floor(dk_pm[dg_pbi] + 0.5);
   dg_n = 0; dg_k = 0;
   loop(16,
-    ((dg_pm_v & (1 << dg_k)) && (dg_n < 7)) ? (
+    ((dg_pm_v & (1 << dg_k)) && (dg_n < 9)) ? (
       (dg_k == dk_ps[dg_pbi]) ? ( gfx_r = 1.0; gfx_g = 0.9; gfx_b = 0.5; ) : ( gfx_r = 0.78; gfx_g = 0.82; gfx_b = 0.90; );
       sprintf(#dg_l, "%s%s: %s", (dg_k == dk_ps[dg_pbi]) ? "* " : "  ", dk_nm[dg_k], dk_hint[dg_k]);
-      gfx_x = dg_rx + 12; gfx_y = dg_ty + 172 + dg_n * 18; gfx_drawstr(#dg_l);
+      gfx_x = dg_rx + 12; gfx_y = dg_ty + 168 + dg_n * 15; gfx_drawstr(#dg_l);
       dg_n += 1;
     );
     dg_k += 1;
   );
-  dg_by = dg_ty + 304;
+  dg_by = dg_ty + 306;
   dg_hv = (mouse_x >= dg_rx + 12 && mouse_x <= dg_rx + dg_cw - 12 && mouse_y >= dg_by && mouse_y <= dg_by + 30);
   dg_hv ? ( gfx_r = ar * 0.35; gfx_g = ag * 0.35; gfx_b = ab * 0.35; ) : ( gfx_r = ar * 0.18; gfx_g = ag * 0.18; gfx_b = ab * 0.18; );
   gfx_rect(dg_rx + 12, dg_by, dg_cw - 24, 30);
