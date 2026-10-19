@@ -15,6 +15,7 @@ slider7:75<20,500,5>-Gullfoss Low Cutoff Limit (Hz)
 slider8:18500<5000,20000,250>-Gullfoss High Cutoff Limit (Hz)
 slider9:55<10,100,1>-Gullfoss Auditory Reaction Speed (%)
 slider10:1<0,2,1{Manual Standalone,Tandem Sync (Follow Sankofa / Ozone),Split Chain Signature Master (Robin Schmidt / Grant Berry)}>-Tandem Integration Mode
+slider11:0<-12,12,0.1>-Gullfoss Output Gain (dB)
 
 options:gmem=DameiMixMetering
 options:maxmem=65536
@@ -108,6 +109,7 @@ srate != last_srate ? (
   last_srate = srate;
 );
 update_smoothing_rates();
+out_gain_lin = exp(slider11 * 0.11512925);
 
 @block
 // ── 1. TANDEM INTEGRATION & RAW AUDIT BUS ────────────────────────────
@@ -229,9 +231,9 @@ loop(16,
   band_f = gf_freq[k];
   f_weight = 1.0;
   band_f < eff_locut ? (
-    f_weight = max(0.0, min(1.0, (band_f - (eff_locut * 0.70)) / (eff_locut * 0.30 + 1e-6)));
+    f_weight = max(0.0, min(1.0, (band_f - (eff_locut * 0.70)) / (eff_locut * 0.30 + 0.000001)));
   ) : band_f > eff_hicut ? (
-    f_weight = max(0.0, min(1.0, ((eff_hicut * 1.30) - band_f) / (eff_hicut * 0.30 + 1e-6)));
+    f_weight = max(0.0, min(1.0, ((eff_hicut * 1.30) - band_f) / (eff_hicut * 0.30 + 0.000001)));
   );
 
   tgt_g *= f_weight;
@@ -331,9 +333,9 @@ bp_fade > 0.0001 ? (
   out_r = in_r;
 );
 
-// Click-Free Bypass Crossfade applied to final output
-spl0 = in_l * (1.0 - bp_fade) + out_l * bp_fade;
-spl1 = in_r * (1.0 - bp_fade) + out_r * bp_fade;
+// Click-Free Bypass Crossfade applied to final output with Output Gain Trim
+spl0 = (in_l * (1.0 - bp_fade) + out_l * bp_fade) * out_gain_lin;
+spl1 = (in_r * (1.0 - bp_fade) + out_r * bp_fade) * out_gain_lin;
 
 cur_out_pk = max(abs(spl0), abs(spl1));
 
