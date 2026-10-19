@@ -12,6 +12,7 @@ slider3:0<-10,10,0.1>-Body (Low-Mid & Weight Shaper)
 slider4:0<-24,24,0.1>-Output Level (dB)
 slider5:0<0,1,1{Clean Transparent (0 THD),Subtle Transformer Glue}>-Analog Circuit Character
 slider6:1<0,2,1{Manual Standalone,Tandem Sync (Follow Sankofa / Ozone),Split Chain Master Lock}>-Tandem Integration Mode
+slider7:6<0,21,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic)}>-Mastering Engineer Signature Preset
 
 options:gmem=DameiMixMetering
 options:maxmem=65536
@@ -75,10 +76,36 @@ bp_fade = slider1 ? 1.0 : 0.0;
 fade_coeff = 1.0 - exp(-1.0 / (0.015 * srate)); // 15ms click-free bypass crossfade
 fonts_initialized = 0;
 
+
+function get_toneshaper_engineer_name(p_idx) (
+  p_idx == 0  ? "Default Modern Metal Clean" :
+  p_idx == 1  ? "Lance Prenc (Alpha Wolf)" :
+  p_idx == 2  ? "Scott Seigel (DIESECT)" :
+  p_idx == 3  ? "Jonathan Dolese (Mirrorcell)" :
+  p_idx == 4  ? "Buster Odeholm (thrown)" :
+  p_idx == 5  ? "Grant Berry (Fader Mastering)" :
+  p_idx == 6  ? "Robin Schmidt & Grant Berry" :
+  p_idx == 7  ? "Ted Jensen (Don Broco)" :
+  p_idx == 8  ? "Robin Schmidt (Static Dress)" :
+  p_idx == 9  ? "Mike Kalajian (Silverstein)" :
+  p_idx == 10 ? "Nick Townsend (Heavenward)" :
+  p_idx == 11 ? "Randy Merrill (City Of Souls)" :
+  p_idx == 12 ? "Leon Schmidt & C. Donaldson" :
+  p_idx == 13 ? "Ermin Hamidovic (Systematic)" :
+  p_idx == 14 ? "Will Putney (Fit For An Autopsy)" :
+  p_idx == 15 ? "George Lever (Loathe)" :
+  p_idx == 16 ? "Sam Bassal (Thornhill)" :
+  p_idx == 17 ? "Henrik Udd (Architects)" :
+  p_idx == 18 ? "Dan Braunstein (Spiritbox)" :
+  p_idx == 19 ? "Zakk Cervini & Erik Ron" :
+  p_idx == 20 ? "Jens Bogren (Fascination St.)" :
+  "Nolly (Periphery / GGD)";
+);
+
 function update_circuit() (
   // Effective values depending on tandem mode
-  eff_tone = is_splitchain ? 2.4 : ((slider6 == 1 && oracle_active) ? slider2 : slider2);
-  eff_body = is_splitchain ? -1.2 : ((slider6 == 1 && oracle_active) ? slider3 : slider3);
+  eff_tone = slider2;
+  eff_body = slider3;
   eff_out  = slider4;
 
   // 1. TONE: Passive High-Shelf centered at 3200 Hz with passive interaction dip at 500 Hz
@@ -105,12 +132,68 @@ function update_circuit() (
   out_lin = exp(eff_out * 0.11512925);
 );
 
+function apply_toneshaper_master_preset(p_idx) (
+  p_idx == 1 ? ( // Lance Prenc: ultra-cutting snare crack & high-sheen, tight chug scoop
+    slider2 = 3.2; slider3 = -1.6; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 2 ? ( // Scott Seigel: nu-metal low-mid body punch, subtle transformer glue
+    slider2 = 1.8; slider3 = 1.2; slider4 = -0.2; slider5 = 1;
+  ) : p_idx == 3 ? ( // Jonathan Dolese: glossy pop-metal air sheen, clean transparency
+    slider2 = 2.6; slider3 = -0.6; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 4 ? ( // Buster Odeholm: ultra-tight scooped low-mids, tape glue
+    slider2 = 2.2; slider3 = -1.8; slider4 = 0.2; slider5 = 1;
+  ) : p_idx == 5 ? ( // Grant Berry: warm shoegaze dynamic body, lush transformer harmonics
+    slider2 = 1.6; slider3 = 0.8; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain): signature 90s sheen & punch
+    slider2 = 2.4; slider3 = -1.2; slider4 = 0.5; slider5 = 1;
+  ) : p_idx == 7 ? ( // Ted Jensen: classic Sterling analog presence & rich low-mid weight
+    slider2 = 2.0; slider3 = 0.4; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 8 ? ( // Robin Schmidt (Static Dress): post-hardcore cutting bite & analog glue
+    slider2 = 2.5; slider3 = -0.8; slider4 = 0.2; slider5 = 1;
+  ) : p_idx == 9 ? ( // Mike Kalajian: drum transient focus, tight low end
+    slider2 = 2.0; slider3 = -1.0; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 10 ? ( // Nick Townsend: vintage vinyl lacquer body & warmth
+    slider2 = 1.0; slider3 = 1.4; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 11 ? ( // Randy Merrill: clean pristine commercial transparency
+    slider2 = 1.5; slider3 = -0.5; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 12 ? ( // Leon Schmidt & Christian Donaldson: cyber-metal precision
+    slider2 = 2.8; slider3 = -1.4; slider4 = 0.2; slider5 = 0;
+  ) : p_idx == 13 ? ( // Ermin Hamidovic: transparent phase-coherent benchmark
+    slider2 = 1.0; slider3 = 0.0; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 14 ? ( // Will Putney: aggressive forward presence, extreme chug clarity
+    slider2 = 2.4; slider3 = -2.0; slider4 = 0.3; slider5 = 1;
+  ) : p_idx == 15 ? ( // George Lever: atmospheric lush weight & silky top
+    slider2 = 1.2; slider3 = 1.6; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 16 ? ( // Sam Bassal: modern alternative glossy air & punch
+    slider2 = 2.6; slider3 = -0.8; slider4 = 0.2; slider5 = 1;
+  ) : p_idx == 17 ? ( // Henrik Udd: dense wall-of-sound clarity & controlled low-mids
+    slider2 = 2.5; slider3 = -1.5; slider4 = 0.2; slider5 = 0;
+  ) : p_idx == 18 ? ( // Dan Braunstein: forward modern vocal air, tight punch
+    slider2 = 2.8; slider3 = -0.6; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 19 ? ( // Zakk Cervini & Erik Ron: radio pop-metal sheen & sub-bass weight
+    slider2 = 3.0; slider3 = 0.5; slider4 = 0.2; slider5 = 1;
+  ) : p_idx == 20 ? ( // Jens Bogren: European organic metal weight & analog glue
+    slider2 = 1.4; slider3 = 0.6; slider4 = 0.0; slider5 = 1;
+  ) : p_idx == 21 ? ( // Nolly (Periphery / GGD): systematic definition & surgical body
+    slider2 = 2.2; slider3 = -1.0; slider4 = 0.0; slider5 = 0;
+  ) : ( // Default Modern Metal Clean
+    slider2 = 1.2; slider3 = -0.4; slider4 = 0.0; slider5 = 0;
+  );
+  slider_automate(2 | 4 | 8 | 16 | 64);
+  update_circuit();
+);
+
+apply_toneshaper_master_preset(slider7);
+prev_ts_preset = slider7;
 update_circuit();
 
 @slider
 srate != last_srate ? (
   srate <= 0 ? srate = 48000;
   last_srate = srate;
+);
+slider7 != prev_ts_preset ? (
+  prev_ts_preset = slider7;
+  apply_toneshaper_master_preset(slider7);
 );
 update_circuit();
 
@@ -120,6 +203,20 @@ oracle_raw_audit = (gmem[1098] == 1);
 oracle_active = (gmem[1100] == 1 && (time_precise() - gmem[1124]) < 2.0);
 active_pidx = oracle_active ? floor(gmem[1105] + 0.5) : -1;
 is_splitchain = (slider6 == 2) || (slider6 == 1 && active_pidx == 6);
+
+is_splitchain ? (
+  slider7 != 6 ? (
+    slider7 = 6;
+    prev_ts_preset = 6;
+    apply_toneshaper_master_preset(6);
+  );
+) : (slider6 == 1 && oracle_active) ? (
+  active_pidx >= 0 && active_pidx <= 21 && active_pidx != slider7 ? (
+    slider7 = active_pidx;
+    prev_ts_preset = slider7;
+    apply_toneshaper_master_preset(slider7);
+  );
+);
 
 update_circuit();
 
@@ -491,41 +588,69 @@ gfx_setfont(1);
 gfx_r = 0.30; gfx_g = 0.85; gfx_b = 1.00;
 gfx_x = c3_x + 12; gfx_y = card_y + 8; gfx_drawstr("OUTPUT & SIGNATURE");
 
-// Preset 1: SPLIT CHAIN MASTER
-p1_w = floor((col_w - 28) * 0.5); p1_h = 24;
-p1_x = c3_x + 10; p1_y = card_y + 34;
-p1_hov = (mouse_x >= p1_x && mouse_x <= p1_x + p1_w && mouse_y >= p1_y && mouse_y <= p1_y + p1_h);
-gfx_r = p1_hov ? 0.12 : 0.05; gfx_g = p1_hov ? 0.25 : 0.14; gfx_b = p1_hov ? 0.30 : 0.18;
-gfx_rect(p1_x, p1_y, p1_w, p1_h); gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_rect(p1_x, p1_y, p1_w, p1_h, 0);
-gfx_setfont(4); gfx_r = 0.90; gfx_g = 1.00; gfx_b = 0.95;
-gfx_x = p1_x + 6; gfx_y = p1_y + 6; gfx_drawstr("SPLIT CHAIN");
+// Preset Selector Row (<, Name/Menu, >)
+ts_sel_y = card_y + 32;
+ts_sel_h = 22;
+ts_prev_x = c3_x + 10;
+ts_prev_w = 22;
+ts_next_x = c3_x + col_w - 10 - 22;
+ts_next_w = 22;
+ts_menu_x = ts_prev_x + ts_prev_w + 4;
+ts_menu_w = ts_next_x - ts_menu_x - 4;
 
-// Preset 2: MODERN AIR
-p2_x = p1_x + p1_w + 8; p2_y = p1_y;
-p2_hov = (mouse_x >= p2_x && mouse_x <= p2_x + p1_w && mouse_y >= p2_y && mouse_y <= p2_y + p1_h);
-gfx_r = p2_hov ? 0.12 : 0.05; gfx_g = p2_hov ? 0.25 : 0.14; gfx_b = p2_hov ? 0.30 : 0.18;
-gfx_rect(p2_x, p2_y, p1_w, p1_h); gfx_r = 0.95; gfx_g = 0.85; gfx_b = 0.40; gfx_rect(p2_x, p2_y, p1_w, p1_h, 0);
-gfx_setfont(4); gfx_r = 1.00; gfx_g = 0.95; gfx_b = 0.80;
-gfx_x = p2_x + 10; gfx_y = p2_y + 6; gfx_drawstr("MODERN AIR");
+hov_ts_prev = (mouse_x >= ts_prev_x && mouse_x <= ts_prev_x + ts_prev_w && mouse_y >= ts_sel_y && mouse_y <= ts_sel_y + ts_sel_h);
+hov_ts_next = (mouse_x >= ts_next_x && mouse_x <= ts_next_x + ts_next_w && mouse_y >= ts_sel_y && mouse_y <= ts_sel_y + ts_sel_h);
+hov_ts_menu = (mouse_x >= ts_menu_x && mouse_x <= ts_menu_x + ts_menu_w && mouse_y >= ts_sel_y && mouse_y <= ts_sel_y + ts_sel_h);
 
-(mouse_cap & 1) && !prev_mouse_cap && p1_hov ? (
-  slider2 = 2.4;  // Tone +2.4 dB (sheen & upper-mid clarity matching Split Chain)
-  slider3 = -1.2; // Body -1.2 dB (tightens mud, focuses punch)
-  slider4 = 0.5;  // Output +0.5 dB
-  slider_automate(2 | 4 | 8);
+gfx_r = hov_ts_prev ? 0.16 : 0.06; gfx_g = hov_ts_prev ? 0.24 : 0.10; gfx_b = hov_ts_prev ? 0.32 : 0.14;
+gfx_rect(ts_prev_x, ts_sel_y, ts_prev_w, ts_sel_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ts_prev_x, ts_sel_y, ts_prev_w, ts_sel_h, 0);
+gfx_setfont(3); gfx_x = ts_prev_x + 7; gfx_y = ts_sel_y + 4; gfx_drawstr("<");
+
+gfx_r = hov_ts_menu ? 0.16 : 0.08; gfx_g = hov_ts_menu ? 0.24 : 0.12; gfx_b = hov_ts_menu ? 0.32 : 0.18;
+gfx_rect(ts_menu_x, ts_sel_y, ts_menu_w, ts_sel_h);
+gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_rect(ts_menu_x, ts_sel_y, ts_menu_w, ts_sel_h, 0);
+gfx_setfont(4); gfx_r = 0.95; gfx_g = 1.00; gfx_b = 0.95;
+gfx_x = ts_menu_x + 6; gfx_y = ts_sel_y + 4;
+gfx_printf("%02d: %s", slider7, get_toneshaper_engineer_name(slider7));
+
+gfx_r = hov_ts_next ? 0.16 : 0.06; gfx_g = hov_ts_next ? 0.24 : 0.10; gfx_b = hov_ts_next ? 0.32 : 0.14;
+gfx_rect(ts_next_x, ts_sel_y, ts_next_w, ts_sel_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ts_next_x, ts_sel_y, ts_next_w, ts_sel_h, 0);
+gfx_setfont(3); gfx_x = ts_next_x + 7; gfx_y = ts_sel_y + 4; gfx_drawstr(">");
+
+(mouse_cap & 1) && !prev_mouse_cap && hov_ts_prev ? (
+  slider7 = (slider7 - 1 + 22) % 22;
+  slider6 = 0;
+  prev_ts_preset = slider7;
+  apply_toneshaper_master_preset(slider7);
+  slider_automate(64 | 32);
 );
-(mouse_cap & 1) && !prev_mouse_cap && p2_hov ? (
-  slider2 = 3.0; slider3 = 0.5; slider4 = 0.0;
-  slider_automate(2 | 4 | 8);
+(mouse_cap & 1) && !prev_mouse_cap && hov_ts_next ? (
+  slider7 = (slider7 + 1) % 22;
+  slider6 = 0;
+  prev_ts_preset = slider7;
+  apply_toneshaper_master_preset(slider7);
+  slider_automate(64 | 32);
+);
+(mouse_cap & 1) && !prev_mouse_cap && hov_ts_menu ? (
+  ts_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)");
+  ts_choice > 0 ? (
+    slider7 = ts_choice - 1;
+    slider6 = 0;
+    prev_ts_preset = slider7;
+    apply_toneshaper_master_preset(slider7);
+    slider_automate(64 | 32);
+  );
 );
 
 // Output level trim row
 gfx_setfont(3);
 gfx_r = 0.85; gfx_g = 0.90; gfx_b = 1.00;
-gfx_x = c3_x + 12; gfx_y = card_y + 66;
+gfx_x = c3_x + 12; gfx_y = card_y + 60;
 gfx_printf("OUT : %+4.1f dB", slider4);
 
-b3_m_x = c3_x + col_w - 76; b3_m_y = card_y + 62;
+b3_m_x = c3_x + col_w - 76; b3_m_y = card_y + 56;
 b3_p_x = b3_m_x + 38;       b3_p_y = b3_m_y;
 b3_m_hov = (mouse_x >= b3_m_x && mouse_x <= b3_m_x + btn_w && mouse_y >= b3_m_y && mouse_y <= b3_m_y + btn_h);
 b3_p_hov = (mouse_x >= b3_p_x && mouse_x <= b3_p_x + btn_w && mouse_y >= b3_p_y && mouse_y <= b3_p_y + btn_h);
@@ -538,11 +663,11 @@ gfx_r = b3_p_hov ? 0.20 : 0.08; gfx_g = b3_p_hov ? 0.28 : 0.12; gfx_b = b3_p_hov
 gfx_rect(b3_p_x, b3_p_y, btn_w, btn_h); gfx_r = 0.30; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b3_p_x, b3_p_y, btn_w, btn_h, 0);
 gfx_x = b3_p_x + 11; gfx_y = b3_p_y + 4; gfx_drawstr("+");
 
-(mouse_cap & 1) && !prev_mouse_cap && b3_m_hov ? (slider4 = max(-24.0, slider4 - 0.5); slider_automate(8););
-(mouse_cap & 1) && !prev_mouse_cap && b3_p_hov ? (slider4 = min(24.0, slider4 + 0.5); slider_automate(8););
+(mouse_cap & 1) && !prev_mouse_cap && b3_m_hov ? (slider4 = max(-24.0, slider4 - 0.5); update_circuit(); slider_automate(8););
+(mouse_cap & 1) && !prev_mouse_cap && b3_p_hov ? (slider4 = min(24.0, slider4 + 0.5); update_circuit(); slider_automate(8););
 
 // Transformer switch button
-tr_x = c3_x + 10; tr_y = card_y + 90; tr_w = col_w - 20; tr_h = 20;
+tr_x = c3_x + 10; tr_y = card_y + 84; tr_w = col_w - 20; tr_h = 20;
 tr_hov = (mouse_x >= tr_x && mouse_x <= tr_x + tr_w && mouse_y >= tr_y && mouse_y <= tr_y + tr_h);
 gfx_r = slider5 ? 0.16 : 0.06; gfx_g = slider5 ? 0.12 : 0.08; gfx_b = slider5 ? 0.24 : 0.10;
 gfx_rect(tr_x, tr_y, tr_w, tr_h);
