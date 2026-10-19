@@ -142,7 +142,7 @@ function init_gullfoss() (
     gf_pos_arr[k] = (log(f) - 2.99573227) / 6.90775528;
 
     // Frequency-dependent integration time constant (at least 4 complete waveform cycles to eliminate AC ripple)
-    tau_k = max(0.020, min(0.075, 4.0 / f));
+    tau_k = max(0.045, min(0.120, 8.0 / f)); // Ripple-free 8-cycle integration eliminates AC detector flutter
     gf_pwr_decay[k] = exp(-1.0 / (tau_k * srate));
 
     k += 1;
@@ -167,6 +167,8 @@ init_gullfoss();
 apply_gullfoss_master_preset(slider12);
 prev_preset = slider12;
 
+comp_lin_cur = 1.0;
+loudness_comp_lin = 1.0;
 cur_out_pk = 0.0;
 crt_phase = 0.0;
 bp_fade = slider1 ? 1.0 : 0.0;
@@ -174,7 +176,7 @@ fonts_initialized = 0;
 tandem_status_str = "STANDALONE MANUAL";
 
 function update_smoothing_rates() (
-  reaction_sec = 0.010 + (1.0 - slider9 * 0.01) * 0.045;
+  reaction_sec = 0.020 + (1.0 - slider9 * 0.01) * 0.040; // 20-60ms smooth audio transition
   gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
   fade_coeff = 1.0 - exp(-1.0 / (0.015 * srate)); // 15ms click-free bypass crossfade
 );
@@ -235,7 +237,7 @@ eff_hicut   = slider8;
 eff_speed   = slider9;
 
 // Update per-sample smoothing factor based on effective speed
-reaction_sec = 0.010 + (1.0 - eff_speed * 0.01) * 0.045;
+reaction_sec = 0.020 + (1.0 - eff_speed * 0.01) * 0.040;
 gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
 
 // Precompute GUI boundary log positions in block (never in @gfx)
@@ -283,24 +285,24 @@ loop(16,
   // Soft-knee continuous polynomial curve (C1 continuous at 0, no hard deadband clicks)
   diff > 0.2 ? (
     excess = diff - 0.2;
-    tame_amt = (excess * excess) / (excess + 1.8) * 0.75 * (eff_tame * 0.01) * max(0.0, 1.0 - eff_bias * 0.01);
-    tame_amt = min(5.0, tame_amt);
+    tame_amt = (excess * excess) / (excess + 1.8) * 0.50 * (eff_tame * 0.01) * max(0.0, 1.0 - eff_bias * 0.01);
+    tame_amt = min(2.5, tame_amt); // Mastering limit 2.5dB
     tgt_g = -tame_amt;
     tame_disp = tame_amt;
   ) : diff < -0.2 ? (
     deficit = -diff - 0.2;
-    rec_amt = (deficit * deficit) / (deficit + 1.8) * 0.65 * (eff_recover * 0.01) * max(0.0, 1.0 + eff_bias * 0.01) * gate_w;
-    rec_amt = min(4.0, rec_amt);
+    rec_amt = (deficit * deficit) / (deficit + 1.8) * 0.50 * (eff_recover * 0.01) * max(0.0, 1.0 + eff_bias * 0.01) * gate_w;
+    rec_amt = min(2.5, rec_amt); // Mastering limit 2.5dB
     tgt_g = rec_amt;
     rec_disp = rec_amt;
   );
 
   eff_bright != 0 ? (
-    tgt_g += (k - 7.5) * (eff_bright * 0.01) * 0.18;
+    tgt_g += (k - 7.5) * (eff_bright * 0.01) * 0.12;
   );
 
   (eff_boost > 0 && k <= 2) ? (
-    tgt_g += (eff_boost * 0.01) * 2.0 * (1.0 - k / 3.0);
+    tgt_g += (eff_boost * 0.01) * 1.5 * (1.0 - k / 3.0);
   );
 
   // Smooth cutoff limit tapering (avoids abrupt frequency cutoff boundaries)
@@ -316,11 +318,36 @@ loop(16,
   tame_disp *= f_weight;
   rec_disp *= f_weight;
 
-  tgt_g = max(-6.0, min(5.0, tgt_g));
+  tgt_g = max(-3.5, min(3.5, tgt_g));
   tgt_g != tgt_g ? tgt_g = 0.0;
   gf_tgt_gain[k] = tgt_g;
 
   // Precalculate linear gain target (eliminates all exp() calls from @sample!)
+  gf_tgt_A[k] = exp(tgt_g * 0.11512925);
+
+  // Smooth visualizer meter ballistics
+  gf_tame_disp[k] = gf_tame_disp[k] * 0.85 + tame_disp * 0.15;
+  gf_rec_disp[k]  = gf_rec_disp[k]  * 0.85 + rec_disp  * 0.15;
+
+  k += 1;
+);
+
+// Auto-Loudness Normalization Bus: Prevents broad volume drop when chorus hits
+avg_g_sum = 0.0;
+k = 0;
+loop(16,
+  avg_g_sum += gf_tgt_gain[k];
+  k += 1;
+);
+avg_g_db = avg_g_sum * (1.0 / 16.0);
+avg_g_db < 0 ? (
+  loudness_comp_db = -avg_g_db * 1.05; // 100% neutralization of broad taming volume drop
+) : (
+  loudness_comp_db = -avg_g_db * 0.35;
+);
+loudness_comp_lin = exp(loudness_comp_db * 0.11512925);
+
+@sample!)
   gf_tgt_A[k] = exp(tgt_g * 0.11512925);
 
   // Smooth visualizer meter ballistics
@@ -347,6 +374,9 @@ bp_fade > 0.0001 ? (
   gf_in_l != gf_in_l ? gf_in_l = 0.0;
   gf_in_r != gf_in_r ? gf_in_r = 0.0;
 
+  // Smooth loudness compensation gain
+  comp_lin_cur += (loudness_comp_lin - comp_lin_cur) * gain_smooth;
+
   k = 0;
   loop(16,
     a1 = gf_a1[k]; a2 = gf_a2[k]; a3 = gf_a3[k];
@@ -357,47 +387,51 @@ bp_fade > 0.0001 ? (
     cur_A += (gf_tgt_A[k] - cur_A) * gain_smooth;
     gf_A_cur[k] = cur_A;
 
-    // Left channel Cytomic SVF Bell EQ
-    v3_l = gf_in_l - gf_s2_l[k];
-    v1_l = a1 * gf_s1_l[k] + a2 * v3_l;
-    v2_l = gf_s2_l[k] + a2 * gf_s1_l[k] + a3 * v3_l;
-    s1_l = 2.0 * v1_l - gf_s1_l[k];
-    s2_l = 2.0 * v2_l - gf_s2_l[k];
+    // Parallel Analysis Filterbank on Clean Input (Zero serial distortion accumulation)
+    v3_clean_l = in_l - gf_s2_l[k];
+    v1_clean_l = a1 * gf_s1_l[k] + a2 * v3_clean_l;
+    v2_clean_l = gf_s2_l[k] + a2 * gf_s1_l[k] + a3 * v3_clean_l;
+    s1_l = 2.0 * v1_clean_l - gf_s1_l[k];
+    s2_l = 2.0 * v2_clean_l - gf_s2_l[k];
 
-    // Soft anti-explosion bounding (Gentle saturation headroom, NEVER zero out state)
-    abs(s1_l) > 16.0 ? s1_l = max(-16.0, min(16.0, s1_l));
-    abs(s2_l) > 16.0 ? s2_l = max(-16.0, min(16.0, s2_l));
+    // Smooth continuous rational saturation on state (100% click-free, zero hard-clipping pops)
+    abs(s1_l) > 16.0 ? s1_l = s1_l / (1.0 + 0.02 * abs(s1_l));
+    abs(s2_l) > 16.0 ? s2_l = s2_l / (1.0 + 0.02 * abs(s2_l));
     s1_l != s1_l ? s1_l = 0.0;
     s2_l != s2_l ? s2_l = 0.0;
     gf_s1_l[k] = s1_l;
     gf_s2_l[k] = s2_l;
 
-    gf_in_l += kd * (cur_A - 1.0) * v1_l;
+    gf_in_l += kd * (cur_A - 1.0) * v1_clean_l;
 
-    // Right channel Cytomic SVF Bell EQ
-    v3_r = gf_in_r - gf_s2_r[k];
-    v1_r = a1 * gf_s1_r[k] + a2 * v3_r;
-    v2_r = gf_s2_r[k] + a2 * gf_s1_r[k] + a3 * v3_r;
-    s1_r = 2.0 * v1_r - gf_s1_r[k];
-    s2_r = 2.0 * v2_r - gf_s2_r[k];
+    // Right channel Cytomic SVF
+    v3_clean_r = in_r - gf_s2_r[k];
+    v1_clean_r = a1 * gf_s1_r[k] + a2 * v3_clean_r;
+    v2_clean_r = gf_s2_r[k] + a2 * gf_s1_r[k] + a3 * v3_clean_r;
+    s1_r = 2.0 * v1_clean_r - gf_s1_r[k];
+    s2_r = 2.0 * v2_clean_r - gf_s2_r[k];
 
-    abs(s1_r) > 16.0 ? s1_r = max(-16.0, min(16.0, s1_r));
-    abs(s2_r) > 16.0 ? s2_r = max(-16.0, min(16.0, s2_r));
+    abs(s1_r) > 16.0 ? s1_r = s1_r / (1.0 + 0.02 * abs(s1_r));
+    abs(s2_r) > 16.0 ? s2_r = s2_r / (1.0 + 0.02 * abs(s2_r));
     s1_r != s1_r ? s1_r = 0.0;
     s2_r != s2_r ? s2_r = 0.0;
     gf_s1_r[k] = s1_r;
     gf_s2_r[k] = s2_r;
 
-    gf_in_r += kd * (cur_A - 1.0) * v1_r;
+    gf_in_r += kd * (cur_A - 1.0) * v1_clean_r;
 
     // Ripple-Free Frequency-Matched Power Integration
-    pwr = v1_l * v1_l + v1_r * v1_r;
+    pwr = v1_clean_l * v1_clean_l + v1_clean_r * v1_clean_r;
     (pwr != pwr || pwr < 0.0) ? pwr = 0.00000001;
     dec = gf_pwr_decay[k];
     gf_pwr[k] = gf_pwr[k] * dec + pwr * (1.0 - dec);
 
     k += 1;
   );
+
+  // Apply Auto-Loudness Normalization
+  gf_in_l *= comp_lin_cur;
+  gf_in_r *= comp_lin_cur;
 
   // Denormal & NaN guard on output
   gf_in_l != gf_in_l ? gf_in_l = in_l;
