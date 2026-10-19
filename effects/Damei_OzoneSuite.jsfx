@@ -2485,17 +2485,31 @@ cl_side_in = (driven_l - driven_r) * 0.5;
 
 ceil_lin = exp(lim_ceil * (log(10.0) / 20.0));
 use_clip = ab_bypass ? 0.0 : clip_drive;
-clip_scale = exp(use_clip * (log(10.0) / 20.0));
 
-// Mid/Side Bias: kick & snare transients centered in Mid hit clipper, Sides remain open and sparkling
-mid_scale  = clip_scale * (1.0 + kclip_ms_bias * 0.35);
-side_scale = clip_scale * max(0.25, 1.0 - kclip_ms_bias * 0.50);
+use_clip > 0.05 ? (
+  clip_scale = exp(use_clip * (log(10.0) / 20.0));
+  mid_scale  = clip_scale * (1.0 + kclip_ms_bias * 0.35);
+  side_scale = clip_scale * max(0.25, 1.0 - kclip_ms_bias * 0.50);
 
-cl_m_norm = (cl_mid_in * mid_scale) / ceil_lin;
-cl_s_norm = (cl_side_in * side_scale) / ceil_lin;
+  cl_m_norm = (cl_mid_in * mid_scale) / ceil_lin;
+  cl_s_norm = (cl_side_in * side_scale) / ceil_lin;
 
-cl_m_clipped = (kclip_proc(cl_m_norm, kclip_mode, kclip_knee) * ceil_lin) / mid_scale;
-cl_s_clipped = (kclip_proc(cl_s_norm, kclip_mode, kclip_knee) * ceil_lin) / side_scale;
+  cl_m_clipped = (kclip_proc(cl_m_norm, kclip_mode, kclip_knee) * ceil_lin) / mid_scale;
+  cl_s_clipped = (kclip_proc(cl_s_norm, kclip_mode, kclip_knee) * ceil_lin) / side_scale;
+) : (
+  // 100% linear transparent passthrough when clipper drive is 0 dB
+  // Only soft-saturates if a peak actually exceeds the ceiling
+  abs(cl_mid_in) > ceil_lin ? (
+    cl_m_clipped = kclip_proc(cl_mid_in / ceil_lin, 0, 0.2) * ceil_lin;
+  ) : (
+    cl_m_clipped = cl_mid_in;
+  );
+  abs(cl_side_in) > ceil_lin ? (
+    cl_s_clipped = kclip_proc(cl_side_in / ceil_lin, 0, 0.2) * ceil_lin;
+  ) : (
+    cl_s_clipped = cl_side_in;
+  );
+);
 
 clipped_l = cl_m_clipped + cl_s_clipped;
 clipped_r = cl_m_clipped - cl_s_clipped;
