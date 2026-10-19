@@ -332,30 +332,8 @@ loop(16,
   k += 1;
 );
 
-// Auto-Loudness Normalization Bus: Prevents broad volume drop when chorus hits
-avg_g_sum = 0.0;
-k = 0;
-loop(16,
-  avg_g_sum += gf_tgt_gain[k];
-  k += 1;
-);
-avg_g_db = avg_g_sum * (1.0 / 16.0);
-avg_g_db < 0 ? (
-  loudness_comp_db = -avg_g_db * 1.05; // 100% neutralization of broad taming volume drop
-) : (
-  loudness_comp_db = -avg_g_db * 0.35;
-);
-loudness_comp_lin = exp(loudness_comp_db * 0.11512925);
-
-@sample!)
-  gf_tgt_A[k] = exp(tgt_g * 0.11512925);
-
-  // Smooth visualizer meter ballistics
-  gf_tame_disp[k] = gf_tame_disp[k] * 0.85 + tame_disp * 0.15;
-  gf_rec_disp[k]  = gf_rec_disp[k]  * 0.85 + rec_disp  * 0.15;
-
-  k += 1;
-);
+// Clean stable compensation - zero broadband dynamic volume pumping
+loudness_comp_lin = 1.0;
 
 @sample
 in_l = spl0;
@@ -429,9 +407,7 @@ bp_fade > 0.0001 ? (
     k += 1;
   );
 
-  // Apply Auto-Loudness Normalization
-  gf_in_l *= comp_lin_cur;
-  gf_in_r *= comp_lin_cur;
+  // Zero dynamic volume riding - output is purely band de-masked
 
   // Denormal & NaN guard on output
   gf_in_l != gf_in_l ? gf_in_l = in_l;
