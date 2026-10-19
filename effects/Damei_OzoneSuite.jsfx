@@ -1546,55 +1546,75 @@ in_r = spl1;
 
 // ─── TONYSHAPER PASSIVE STACK (TAB 7) ───
 slider51 == 1 ? (
+  in_l != in_l ? in_l = 0.0;
+  in_r != in_r ? in_r = 0.0;
+
+  // 1. Tone High Shelf (hp = u - kd*v1 - v2; y = u + (A-1)*hp)
   v3_l = in_l - ts_f_tone_l[6];
   v1_l = ts_f_tone_l[0] * ts_f_tone_l[5] + ts_f_tone_l[1] * v3_l;
   v2_l = ts_f_tone_l[6] + ts_f_tone_l[1] * ts_f_tone_l[5] + ts_f_tone_l[2] * v3_l;
-  ts_f_tone_l[5] = 2.0 * v1_l - ts_f_tone_l[5];
-  ts_f_tone_l[6] = 2.0 * v2_l - ts_f_tone_l[6];
-  in_l += (ts_f_tone_l[4] - 1.0) * (in_l - v2_l);
+  s1_l = 2.0 * v1_l - ts_f_tone_l[5]; s2_l = 2.0 * v2_l - ts_f_tone_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  ts_f_tone_l[5] = s1_l; ts_f_tone_l[6] = s2_l;
+  hp_l = in_l - ts_f_tone_l[3] * v1_l - v2_l;
+  in_l += (ts_f_tone_l[4] - 1.0) * hp_l;
 
   v3_r = in_r - ts_f_tone_r[6];
   v1_r = ts_f_tone_r[0] * ts_f_tone_r[5] + ts_f_tone_r[1] * v3_r;
   v2_r = ts_f_tone_r[6] + ts_f_tone_r[1] * ts_f_tone_r[5] + ts_f_tone_r[2] * v3_r;
-  ts_f_tone_r[5] = 2.0 * v1_r - ts_f_tone_r[5];
-  ts_f_tone_r[6] = 2.0 * v2_r - ts_f_tone_r[6];
-  in_r += (ts_f_tone_r[4] - 1.0) * (in_r - v2_r);
+  s1_r = 2.0 * v1_r - ts_f_tone_r[5]; s2_r = 2.0 * v2_r - ts_f_tone_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  ts_f_tone_r[5] = s1_r; ts_f_tone_r[6] = s2_r;
+  hp_r = in_r - ts_f_tone_r[3] * v1_r - v2_r;
+  in_r += (ts_f_tone_r[4] - 1.0) * hp_r;
 
+  // 2. Mid Scoop
   v3_l = in_l - ts_f_mid_l[6];
   v1_l = ts_f_mid_l[0] * ts_f_mid_l[5] + ts_f_mid_l[1] * v3_l;
   v2_l = ts_f_mid_l[6] + ts_f_mid_l[1] * ts_f_mid_l[5] + ts_f_mid_l[2] * v3_l;
-  ts_f_mid_l[5] = 2.0 * v1_l - ts_f_mid_l[5];
-  ts_f_mid_l[6] = 2.0 * v2_l - ts_f_mid_l[6];
+  s1_l = 2.0 * v1_l - ts_f_mid_l[5]; s2_l = 2.0 * v2_l - ts_f_mid_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  ts_f_mid_l[5] = s1_l; ts_f_mid_l[6] = s2_l;
   in_l += ts_f_mid_l[3] * (ts_f_mid_l[4] - 1.0) * v1_l;
 
   v3_r = in_r - ts_f_mid_r[6];
   v1_r = ts_f_mid_r[0] * ts_f_mid_r[5] + ts_f_mid_r[1] * v3_r;
   v2_r = ts_f_mid_r[6] + ts_f_mid_r[1] * ts_f_mid_r[5] + ts_f_mid_r[2] * v3_r;
-  ts_f_mid_r[5] = 2.0 * v1_r - ts_f_mid_r[5];
-  ts_f_mid_r[6] = 2.0 * v2_r - ts_f_mid_r[6];
+  s1_r = 2.0 * v1_r - ts_f_mid_r[5]; s2_r = 2.0 * v2_r - ts_f_mid_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  ts_f_mid_r[5] = s1_r; ts_f_mid_r[6] = s2_r;
   in_r += ts_f_mid_r[3] * (ts_f_mid_r[4] - 1.0) * v1_r;
 
+  // 3. Body Bell
   v3_l = in_l - ts_f_body_l[6];
   v1_l = ts_f_body_l[0] * ts_f_body_l[5] + ts_f_body_l[1] * v3_l;
   v2_l = ts_f_body_l[6] + ts_f_body_l[1] * ts_f_body_l[5] + ts_f_body_l[2] * v3_l;
-  ts_f_body_l[5] = 2.0 * v1_l - ts_f_body_l[5];
-  ts_f_body_l[6] = 2.0 * v2_l - ts_f_body_l[6];
+  s1_l = 2.0 * v1_l - ts_f_body_l[5]; s2_l = 2.0 * v2_l - ts_f_body_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  ts_f_body_l[5] = s1_l; ts_f_body_l[6] = s2_l;
   in_l += ts_f_body_l[3] * (ts_f_body_l[4] - 1.0) * v1_l;
 
   v3_r = in_r - ts_f_body_r[6];
   v1_r = ts_f_body_r[0] * ts_f_body_r[5] + ts_f_body_r[1] * v3_r;
   v2_r = ts_f_body_r[6] + ts_f_body_r[1] * ts_f_body_r[5] + ts_f_body_r[2] * v3_r;
-  ts_f_body_r[5] = 2.0 * v1_r - ts_f_body_r[5];
-  ts_f_body_r[6] = 2.0 * v2_r - ts_f_body_r[6];
+  s1_r = 2.0 * v1_r - ts_f_body_r[5]; s2_r = 2.0 * v2_r - ts_f_body_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  ts_f_body_r[5] = s1_r; ts_f_body_r[6] = s2_r;
   in_r += ts_f_body_r[3] * (ts_f_body_r[4] - 1.0) * v1_r;
 
   slider55 == 1 ? (
-    in_l = in_l - 0.05 * (in_l * in_l * in_l);
-    in_r = in_r - 0.05 * (in_r * in_r * in_r);
+    in_l = in_l / (1.0 + abs(in_l) * 0.15);
+    in_r = in_r / (1.0 + abs(in_r) * 0.15);
   );
 
-  in_l *= ts_out_lin;
-  in_r *= ts_out_lin;
+  in_l = max(-4.0, min(4.0, in_l * ts_out_lin));
+  in_r = max(-4.0, min(4.0, in_r * ts_out_lin));
 );
 
 // =============================================================================

@@ -134,79 +134,104 @@ bp_fade > 0.0001 ? (
   s_l = in_l;
   s_r = in_r;
 
-  // 1. TONE HIGH SHELF
+  // Protect against NaN/denormals
+  s_l != s_l ? s_l = 0.0;
+  s_r != s_r ? s_r = 0.0;
+
+  // 1. TONE HIGH SHELF (Strict Cytomic SVF: y = u + (A-1)*hp)
   a1 = f_tone_l[0]; a2 = f_tone_l[1]; a3 = f_tone_l[2]; kd = f_tone_l[3]; A_t = f_tone_l[4];
   v3_l = s_l - f_tone_l[6];
   v1_l = a1 * f_tone_l[5] + a2 * v3_l;
   v2_l = f_tone_l[6] + a2 * f_tone_l[5] + a3 * v3_l;
-  f_tone_l[5] = 2.0 * v1_l - f_tone_l[5];
-  f_tone_l[6] = 2.0 * v2_l - f_tone_l[6];
-  s_l += (A_t - 1.0) * (s_l - v2_l);
+  s1_l = 2.0 * v1_l - f_tone_l[5];
+  s2_l = 2.0 * v2_l - f_tone_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l));
+  abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  f_tone_l[5] = s1_l; f_tone_l[6] = s2_l;
+  hp_l = s_l - kd * v1_l - v2_l;
+  s_l += (A_t - 1.0) * hp_l;
 
   v3_r = s_r - f_tone_r[6];
   v1_r = a1 * f_tone_r[5] + a2 * v3_r;
   v2_r = f_tone_r[6] + a2 * f_tone_r[5] + a3 * v3_r;
-  f_tone_r[5] = 2.0 * v1_r - f_tone_r[5];
-  f_tone_r[6] = 2.0 * v2_r - f_tone_r[6];
-  s_r += (A_t - 1.0) * (s_r - v2_r);
+  s1_r = 2.0 * v1_r - f_tone_r[5];
+  s2_r = 2.0 * v2_r - f_tone_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r));
+  abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  f_tone_r[5] = s1_r; f_tone_r[6] = s2_r;
+  hp_r = s_r - kd * v1_r - v2_r;
+  s_r += (A_t - 1.0) * hp_r;
 
-  // 2. MID INTERACTION SCOOP
+  // 2. MID INTERACTION SCOOP (Cytomic SVF Bell)
   a1 = f_mid_l[0]; a2 = f_mid_l[1]; a3 = f_mid_l[2]; kd = f_mid_l[3]; A_m = f_mid_l[4];
   v3_l = s_l - f_mid_l[6];
   v1_l = a1 * f_mid_l[5] + a2 * v3_l;
   v2_l = f_mid_l[6] + a2 * f_mid_l[5] + a3 * v3_l;
-  f_mid_l[5] = 2.0 * v1_l - f_mid_l[5];
-  f_mid_l[6] = 2.0 * v2_l - f_mid_l[6];
+  s1_l = 2.0 * v1_l - f_mid_l[5]; s2_l = 2.0 * v2_l - f_mid_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  f_mid_l[5] = s1_l; f_mid_l[6] = s2_l;
   s_l += kd * (A_m - 1.0) * v1_l;
 
   v3_r = s_r - f_mid_r[6];
   v1_r = a1 * f_mid_r[5] + a2 * v3_r;
   v2_r = f_mid_r[6] + a2 * f_mid_r[5] + a3 * v3_r;
-  f_mid_r[5] = 2.0 * v1_r - f_mid_r[5];
-  f_mid_r[6] = 2.0 * v2_r - f_mid_r[6];
+  s1_r = 2.0 * v1_r - f_mid_r[5]; s2_r = 2.0 * v2_r - f_mid_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  f_mid_r[5] = s1_r; f_mid_r[6] = s2_r;
   s_r += kd * (A_m - 1.0) * v1_r;
 
-  // 3. BODY INDUCTOR BELL
+  // 3. BODY INDUCTOR BELL (Cytomic SVF Bell)
   a1 = f_body_l[0]; a2 = f_body_l[1]; a3 = f_body_l[2]; kd = f_body_l[3]; A_b = f_body_l[4];
   v3_l = s_l - f_body_l[6];
   v1_l = a1 * f_body_l[5] + a2 * v3_l;
   v2_l = f_body_l[6] + a2 * f_body_l[5] + a3 * v3_l;
-  f_body_l[5] = 2.0 * v1_l - f_body_l[5];
-  f_body_l[6] = 2.0 * v2_l - f_body_l[6];
+  s1_l = 2.0 * v1_l - f_body_l[5]; s2_l = 2.0 * v2_l - f_body_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  f_body_l[5] = s1_l; f_body_l[6] = s2_l;
   s_l += kd * (A_b - 1.0) * v1_l;
 
   v3_r = s_r - f_body_r[6];
   v1_r = a1 * f_body_r[5] + a2 * v3_r;
   v2_r = f_body_r[6] + a2 * f_body_r[5] + a3 * v3_r;
-  f_body_r[5] = 2.0 * v1_r - f_body_r[5];
-  f_body_r[6] = 2.0 * v2_r - f_body_r[6];
+  s1_r = 2.0 * v1_r - f_body_r[5]; s2_r = 2.0 * v2_r - f_body_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  f_body_r[5] = s1_r; f_body_r[6] = s2_r;
   s_r += kd * (A_b - 1.0) * v1_r;
 
-  // 4. SUB CONTROL
+  // 4. SUB RUMBLE CONTROL
   a1 = f_sub_l[0]; a2 = f_sub_l[1]; a3 = f_sub_l[2]; kd = f_sub_l[3]; A_s = f_sub_l[4];
   v3_l = s_l - f_sub_l[6];
   v1_l = a1 * f_sub_l[5] + a2 * v3_l;
   v2_l = f_sub_l[6] + a2 * f_sub_l[5] + a3 * v3_l;
-  f_sub_l[5] = 2.0 * v1_l - f_sub_l[5];
-  f_sub_l[6] = 2.0 * v2_l - f_sub_l[6];
+  s1_l = 2.0 * v1_l - f_sub_l[5]; s2_l = 2.0 * v2_l - f_sub_l[6];
+  abs(s1_l) > 8.0 ? s1_l = max(-8.0, min(8.0, s1_l)); abs(s2_l) > 8.0 ? s2_l = max(-8.0, min(8.0, s2_l));
+  s1_l != s1_l ? s1_l = 0.0; s2_l != s2_l ? s2_l = 0.0;
+  f_sub_l[5] = s1_l; f_sub_l[6] = s2_l;
   s_l += kd * (A_s - 1.0) * v1_l;
 
   v3_r = s_r - f_sub_r[6];
   v1_r = a1 * f_sub_r[5] + a2 * v3_r;
   v2_r = f_sub_r[6] + a2 * f_sub_r[5] + a3 * v3_r;
-  f_sub_r[5] = 2.0 * v1_r - f_sub_r[5];
-  f_sub_r[6] = 2.0 * v2_r - f_sub_r[6];
+  s1_r = 2.0 * v1_r - f_sub_r[5]; s2_r = 2.0 * v2_r - f_sub_r[6];
+  abs(s1_r) > 8.0 ? s1_r = max(-8.0, min(8.0, s1_r)); abs(s2_r) > 8.0 ? s2_r = max(-8.0, min(8.0, s2_r));
+  s1_r != s1_r ? s1_r = 0.0; s2_r != s2_r ? s2_r = 0.0;
+  f_sub_r[5] = s1_r; f_sub_r[6] = s2_r;
   s_r += kd * (A_s - 1.0) * v1_r;
 
-  // Subtle Transformer Character (if selected)
+  // Unconditionally Stable Transformer Saturation (zero polynomial divergence)
   slider5 == 1 ? (
-    // Gentle symmetric soft-saturation (0.08% THD at -10 dBFS)
-    s_l = s_l - 0.05 * (s_l * s_l * s_l);
-    s_r = s_r - 0.05 * (s_r * s_r * s_r);
+    s_l = s_l / (1.0 + abs(s_l) * 0.15);
+    s_r = s_r / (1.0 + abs(s_r) * 0.15);
   );
 
-  out_l = s_l * out_lin;
-  out_r = s_r * out_lin;
+  out_l = max(-4.0, min(4.0, s_l * out_lin));
+  out_r = max(-4.0, min(4.0, s_r * out_lin));
 ) : (
   out_l = in_l;
   out_r = in_r;
