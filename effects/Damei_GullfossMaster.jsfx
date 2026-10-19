@@ -31,7 +31,7 @@ last_srate = srate;
 
 function init_gullfoss() (
   srate <= 0 ? srate = 48000;
-  // Local fast cache memory layout (< 1024 slots)
+  // Local fast cache memory layout (< 600 slots)
   gf_freq      = 100;
   gf_a1        = 120; gf_a2 = 140; gf_a3 = 160; gf_kd = 180;
   gf_s1_l      = 200; gf_s2_l = 220; gf_s1_r = 240; gf_s2_r = 260;
@@ -40,6 +40,8 @@ function init_gullfoss() (
   gf_tgt_A     = 380; gf_A_cur = 400;
   gf_tame_disp = 420; gf_rec_disp = 440;
   gf_pos_arr   = 460; gf_pwr_decay = 480;
+  pt_x         = 500; pt_y = 520;
+  grid_norm_x  = 540;
 
   gf_freq[0] = 80; gf_freq[1] = 140; gf_freq[2] = 220; gf_freq[3] = 340;
   gf_freq[4] = 500; gf_freq[5] = 750; gf_freq[6] = 1100; gf_freq[7] = 1600;
@@ -68,15 +70,28 @@ function init_gullfoss() (
 
     k += 1;
   );
+
+  // Precompute grid line normalized positions (zero runtime transcendentals)
+  grid_norm_x[0] = (log(20) - 2.99573227) / 6.90775528;
+  grid_norm_x[1] = (log(50) - 2.99573227) / 6.90775528;
+  grid_norm_x[2] = (log(100) - 2.99573227) / 6.90775528;
+  grid_norm_x[3] = (log(200) - 2.99573227) / 6.90775528;
+  grid_norm_x[4] = (log(500) - 2.99573227) / 6.90775528;
+  grid_norm_x[5] = (log(1000) - 2.99573227) / 6.90775528;
+  grid_norm_x[6] = (log(2000) - 2.99573227) / 6.90775528;
+  grid_norm_x[7] = (log(5000) - 2.99573227) / 6.90775528;
+  grid_norm_x[8] = (log(10000) - 2.99573227) / 6.90775528;
+  grid_norm_x[9] = (log(20000) - 2.99573227) / 6.90775528;
+
   gf_initialized = 1;
 );
 
 init_gullfoss();
 
-cur_rms = -60.0;
 cur_out_pk = 0.0;
 crt_phase = 0.0;
 bp_fade = slider1 ? 1.0 : 0.0;
+fonts_initialized = 0;
 tandem_status_str = "STANDALONE MANUAL";
 
 function update_smoothing_rates() (
@@ -144,6 +159,10 @@ is_splitchain ? (
 // Update per-sample smoothing factor based on effective speed
 reaction_sec = 0.010 + (1.0 - eff_speed * 0.01) * 0.045;
 gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
+
+// Precompute GUI boundary log positions in block (never in @gfx)
+low_norm = (log(eff_locut) - 2.99573227) / 6.90775528;
+high_norm = (log(eff_hicut) - 2.99573227) / 6.90775528;
 
 // ── 2. AUDITORY MASKING & PSYCHOACOUSTIC TARGET CALCULATION ──────────
 // 1. Convert integrated power to dB
@@ -237,11 +256,6 @@ loop(16,
 in_l = spl0;
 in_r = spl1;
 
-// Continuous smooth RMS meter tracking
-abs_in = max(abs(in_l), abs(in_r));
-in_db = 20.0 * log10(max(abs_in, 0.000001));
-cur_rms += (in_db - cur_rms) * 0.002;
-
 // Smooth clickless bypass crossfade fader (15ms time constant)
 // When Sankofa Oracle enters Raw Audit (oracle_raw_audit == 1), Gullfoss crossfades to dry
 bp_target = (slider1 == 1 && !oracle_raw_audit) ? 1.0 : 0.0;
@@ -260,11 +274,10 @@ bp_fade > 0.0001 ? (
     a1 = gf_a1[k]; a2 = gf_a2[k]; a3 = gf_a3[k];
     kd = gf_kd[k];
 
-    // CONTINUOUS PER-SAMPLE LINEAR GAIN INTERPOLATION (Zero exp() calls in audio loop!)
+    // Ultra-lightweight linear gain interpolation (Zero transcendental functions in audio loop)
     cur_A = gf_A_cur[k];
     cur_A += (gf_tgt_A[k] - cur_A) * gain_smooth;
     gf_A_cur[k] = cur_A;
-    gf_gain_cur[k] = 20.0 * log10(max(cur_A, 0.0001)); // for GUI display curve
 
     // Left channel Cytomic SVF Bell EQ
     v3_l = gf_in_l - gf_s2_l[k];
@@ -327,6 +340,15 @@ cur_out_pk = max(abs(spl0), abs(spl1));
 @gfx 820 440
 disp_x = 0; disp_y = 0; disp_w = gfx_w; disp_h = gfx_h;
 
+// Initialize fonts ONCE (Eliminates 660 Windows GDI CreateFont calls/sec!)
+!fonts_initialized ? (
+  gfx_setfont(1, "Orbitron", 13, 'b');
+  gfx_setfont(2, "Orbitron", 10, 'b');
+  gfx_setfont(3, "Consolas", 11, 'b');
+  gfx_setfont(4, "Consolas", 10);
+  fonts_initialized = 1;
+);
+
 // Background
 gfx_r = 0.012; gfx_g = 0.015; gfx_b = 0.022;
 gfx_rect(0, 0, gfx_w, gfx_h);
@@ -341,12 +363,12 @@ gfx_r = 0.14; gfx_g = 0.22; gfx_b = 0.32;
 gfx_rect(disp_x + 8, hdr_y, disp_w - 16, hdr_h, 0);
 
 // Title & Tandem Status
-gfx_setfont(1, "Orbitron", 13, 'b');
+gfx_setfont(1);
 gfx_r = 0.90; gfx_g = 0.95; gfx_b = 1.00;
 gfx_x = disp_x + 18; gfx_y = hdr_y + 6;
 gfx_drawstr("G U L L F O S S   M A S T E R");
 
-gfx_setfont(1, "Consolas", 10, 'b');
+gfx_setfont(4);
 oracle_raw_audit ? (
   gfx_r = 1.00; gfx_g = 0.40; gfx_b = 0.20;
   gfx_x = disp_x + 18; gfx_y = hdr_y + 24;
@@ -368,7 +390,7 @@ oracle_raw_audit ? (
 par_x = disp_x + 290;
 par_step = floor((disp_w - 300 - 220) / 4);
 
-gfx_setfont(1, "Consolas", 11, 'b');
+gfx_setfont(3);
 gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = par_x; gfx_y = hdr_y + 12; gfx_drawstr("REC ");
 gfx_r = 0.00; gfx_g = 0.96; gfx_b = 0.65; gfx_printf("%2d%%", eff_recover);
 
@@ -393,12 +415,12 @@ gfx_r = is_splitchain ? 0.00 : (tandem_mode_active ? 0.00 : 0.40);
 gfx_g = is_splitchain ? 0.95 : (tandem_mode_active ? 0.85 : 0.50);
 gfx_b = is_splitchain ? 0.65 : (tandem_mode_active ? 1.00 : 0.60);
 gfx_rect(tan_x, tan_y, tan_w, tan_h, 0);
-gfx_setfont(1, "Orbitron", 10, 'b');
+gfx_setfont(2);
 gfx_x = tan_x + 8; gfx_y = tan_y + 5;
 slider10 == 2 ? gfx_drawstr("SPLIT CHAIN") : (slider10 == 1 ? gfx_drawstr("TANDEM SYNC") : gfx_drawstr("MANUAL"));
 (mouse_cap & 1) && !prev_mouse_cap && tan_hov ? (
   slider10 = (slider10 + 1) % 3;
-  slider_automate();
+  slider_automate(512);
 );
 
 // Far Right: BYPASS / ACTIVE Button
@@ -411,12 +433,12 @@ gfx_b = slider1 ? (byp_hov ? 0.38 : 0.22) : (byp_hov ? 0.08 : 0.05);
 gfx_rect(byp_x, byp_y, byp_w, byp_h);
 gfx_r = slider1 ? 0.00 : 0.85; gfx_g = slider1 ? 0.95 : 0.25; gfx_b = slider1 ? 0.65 : 0.25;
 gfx_rect(byp_x, byp_y, byp_w, byp_h, 0);
-gfx_setfont(1, "Orbitron", 10, 'b');
+gfx_setfont(2);
 gfx_x = byp_x + (slider1 ? 12 : 10); gfx_y = byp_y + 5;
 slider1 ? gfx_drawstr("• ACTIVE") : gfx_drawstr("✕ BYPASS");
 (mouse_cap & 1) && !prev_mouse_cap && byp_hov ? (
   slider1 = !slider1;
-  slider_automate();
+  slider_automate(1);
 );
 
 // 2. CENTRAL GULLFOSS AUDITORY EQ GRAPH DISPLAY
@@ -432,7 +454,7 @@ gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.24;
 gfx_rect(gp_x, gp_y, gp_w, gp_h, 0);
 
 // Horizontal Grid Lines & dB Scales (+12dB, +6dB, 0dB, -6dB, -12dB)
-gfx_setfont(1, "Consolas", 10);
+gfx_setfont(4);
 loop_i = 0;
 loop(5,
   db_val = 12.0 - loop_i * 6.0;
@@ -451,89 +473,96 @@ loop(5,
 );
 
 // Vertical Frequency Grid Lines
-grid_f_0 = 20;   grid_f_1 = 50;   grid_f_2 = 100;  grid_f_3 = 200;  grid_f_4 = 500;
-grid_f_5 = 1000; grid_f_6 = 2000; grid_f_7 = 5000; grid_f_8 = 10000; grid_f_9 = 20000;
 gi = 0;
 loop(10,
-  gf_i = (gi==0?grid_f_0:gi==1?grid_f_1:gi==2?grid_f_2:gi==3?grid_f_3:gi==4?grid_f_4:gi==5?grid_f_5:gi==6?grid_f_6:gi==7?grid_f_7:gi==8?grid_f_8:grid_f_9);
-  norm_x = (log(gf_i) - 2.99573227) / 6.90775528;
+  norm_x = grid_norm_x[gi];
   gx = gp_x + norm_x * gp_w;
   gfx_r = 0.06; gfx_g = 0.09; gfx_b = 0.14;
   gfx_line(gx, gp_y, gx, gp_y + gp_h);
 
-  gfx_setfont(1, "Consolas", 10);
+  gfx_setfont(4);
   gfx_r = 0.40; gfx_g = 0.50; gfx_b = 0.60;
   f_lbl = (gi==0?"20Hz":gi==1?"50":gi==2?"100":gi==3?"200":gi==4?"500":gi==5?"1k":gi==6?"2k":gi==7?"5k":gi==8?"10k":"20k");
-  gfx_measurestr(f_lbl, flw, flh);
+  flw = (gi==0 ? 24 : gi >= 7 ? 20 : 16);
   gfx_x = max(gp_x + 4, min(gp_x + gp_w - flw - 4, gx - flw * 0.5));
   gfx_y = gp_y + gp_h - 14;
   gfx_drawstr(f_lbl);
   gi += 1;
 );
 
-// 3. CONTINUOUS GULLFOSS PERCEPTUAL CURVE & GLOWING AURA
-step_px = 4;
-num_steps = floor(gp_w / step_px);
-prev_cx = gp_x;
-prev_cy = gp_cy;
+// 3. ULTRA-FAST CATMULL-ROM PERCEPTUAL CURVE (Zero exp() calls in GUI)
+// Populate 18 key curve nodes
+pt_x[0] = gp_x;
+pt_y[0] = gp_cy;
 
-si = 0;
-loop(num_steps + 1,
-  cx = gp_x + si * step_px;
-  cx > gp_x + gp_w ? cx = gp_x + gp_w;
-  c_norm = (cx - gp_x) / gp_w;
+k = 0;
+loop(16,
+  px = gp_x + gf_pos_arr[k] * gp_w;
+  g_db = gf_tgt_gain[k];
+  f_val = gf_freq[k];
+  (f_val < eff_locut || f_val > eff_hicut) ? g_db *= 0.15;
+  py = gp_cy - (g_db / 12.0) * (gp_h * 0.40);
+  pt_x[k + 1] = px;
+  pt_y[k + 1] = max(gp_y + 4, min(gp_y + gp_h - 16, py));
+  k += 1;
+);
 
-  c_gain = 0.0;
-  k = 0;
-  loop(16,
-    d = c_norm - gf_pos_arr[k];
-    w = exp(-d * d / 0.0075);
-    c_gain += gf_gain_cur[k] * w;
-    k += 1;
-  );
+pt_x[17] = gp_x + gp_w;
+pt_y[17] = gp_cy;
 
-  eval_f = exp(2.99573227 + c_norm * 6.90775528);
-  (eval_f < eff_locut || eval_f > eff_hicut) ? (
-    c_gain *= 0.15;
-  );
+// Render smooth spline curve across the 17 intervals (4 subdivisions each = 68 fast line segments)
+prev_cx = pt_x[0];
+prev_cy = pt_y[0];
 
-  cy_cur = gp_cy - (c_gain / 12.0) * (gp_h * 0.40);
-  cy_cur = max(gp_y + 4, min(gp_y + gp_h - 16, cy_cur));
+seg_i = 0;
+loop(17,
+  p0_y = pt_y[max(0, seg_i - 1)];
+  p1_y = pt_y[seg_i];
+  p2_y = pt_y[min(17, seg_i + 1)];
+  p3_y = pt_y[min(17, seg_i + 2)];
 
-  slider1 ? (
-    cy_cur < gp_cy ? (
-      gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_a = 0.22;
-      gfx_rect(cx - step_px, cy_cur, step_px, gp_cy - cy_cur);
-    ) : cy_cur > gp_cy ? (
-      gfx_r = 1.00; gfx_g = 0.18; gfx_b = 0.55; gfx_a = 0.22;
-      gfx_rect(cx - step_px, gp_cy, step_px, cy_cur - gp_cy);
+  x_start = pt_x[seg_i];
+  x_end   = pt_x[seg_i + 1];
+
+  sub_i = 1;
+  loop(4,
+    t = sub_i * 0.25;
+    t2 = t * t;
+    t3 = t2 * t;
+
+    cx = x_start + t * (x_end - x_start);
+    cy = 0.5 * ((2.0 * p1_y) + (-p0_y + p2_y) * t + (2.0 * p0_y - 5.0 * p1_y + 4.0 * p2_y - p3_y) * t2 + (-p0_y + 3.0 * p1_y - 3.0 * p2_y + p3_y) * t3);
+    cy = max(gp_y + 4, min(gp_y + gp_h - 16, cy));
+
+    (slider1 == 1 && !oracle_raw_audit) ? (
+      // Main glowing curve line
+      gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_a = 1.0;
+      gfx_line(prev_cx, prev_cy, cx, cy);
+      // Subtle aura lines (zero alpha software blending overhead)
+      gfx_r = 0.00; gfx_g = 0.60; gfx_b = 0.45; gfx_a = 0.50;
+      gfx_line(prev_cx, prev_cy - 1, cx, cy - 1);
+      gfx_line(prev_cx, prev_cy + 1, cx, cy + 1);
+    ) : (
+      gfx_r = 0.40; gfx_g = 0.48; gfx_b = 0.56; gfx_a = 0.40;
+      gfx_line(prev_cx, prev_cy, cx, cy);
     );
+
+    prev_cx = cx;
+    prev_cy = cy;
+    sub_i += 1;
   );
 
-  si > 0 ? (
-    gfx_a = slider1 ? 1.0 : 0.35;
-    gfx_r = slider1 ? 0.90 : 0.60;
-    gfx_g = slider1 ? 0.98 : 0.65;
-    gfx_b = slider1 ? 1.00 : 0.70;
-    gfx_line(prev_cx, prev_cy, cx, cy_cur);
-    gfx_line(prev_cx, prev_cy - 1, cx, cy_cur - 1);
-  );
-
-  prev_cx = cx;
-  prev_cy = cy_cur;
-  si += 1;
+  seg_i += 1;
 );
 gfx_a = 1.0;
 
-// 4. BOUNDARY BARS (LOW CUTOFF & HIGH CUTOFF)
-low_norm = (log(eff_locut) - 2.99573227) / 6.90775528;
+// 4. BOUNDARY BARS (LOW CUTOFF & HIGH CUTOFF - precomputed in @block)
 low_x = gp_x + max(0.0, min(1.0, low_norm)) * gp_w;
 
 gfx_r = 0.00; gfx_g = 0.02; gfx_b = 0.04; gfx_a = 0.68;
 gfx_rect(gp_x + 1, gp_y + 1, max(0, low_x - gp_x - 1), gp_h - 2);
 gfx_a = 1.0;
 
-high_norm = (log(eff_hicut) - 2.99573227) / 6.90775528;
 high_x = gp_x + max(0.0, min(1.0, high_norm)) * gp_w;
 
 gfx_r = 0.00; gfx_g = 0.02; gfx_b = 0.04; gfx_a = 0.68;
@@ -586,14 +615,16 @@ pad_m = 12;
 // CARD 1: PERCEPTION UNMASKING
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c1_x, ctrl_y, col_w, ctrl_h);
 gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c1_x, ctrl_y, col_w, ctrl_h, 0);
-gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
 gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("PERCEPTION UNMASKING");
 
 btn_w = 26; btn_gap = 4;
 btn_p_x = c1_x + col_w - pad_m - btn_w;
 btn_m_x = btn_p_x - btn_gap - btn_w;
 
-gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
+gfx_setfont(3);
+gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
 gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 32; gfx_printf("RECOVER : %3d%% (CLARITY)", eff_recover);
 b_r_m = (mouse_x >= btn_m_x && mouse_x <= btn_m_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
 b_r_p = (mouse_x >= btn_p_x && mouse_x <= btn_p_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
@@ -603,8 +634,8 @@ gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 31; gfx_drawstr("-");
 gfx_r = b_r_p ? 0.16 : 0.06; gfx_g = b_r_p ? 0.24 : 0.10; gfx_b = b_r_p ? 0.32 : 0.14;
 gfx_rect(btn_p_x, ctrl_y + 30, btn_w, 16); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_p_x, ctrl_y + 30, btn_w, 16, 0);
 gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 31; gfx_drawstr("+");
-(mouse_cap & 1) && !prev_mouse_cap && b_r_m ? (slider2 = max(0, slider2 - 2); slider10 = 0; slider_automate(););
-(mouse_cap & 1) && !prev_mouse_cap && b_r_p ? (slider2 = min(100, slider2 + 2); slider10 = 0; slider_automate(););
+(mouse_cap & 1) && !prev_mouse_cap && b_r_m ? (slider2 = max(0, slider2 - 2); slider10 = 0; slider_automate(2 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_r_p ? (slider2 = min(100, slider2 + 2); slider10 = 0; slider_automate(2 | 512););
 
 gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65;
 gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 56; gfx_printf("TAME    : %3d%% (DE-RESONANCE)", eff_tame);
@@ -613,11 +644,11 @@ b_t_p = (mouse_x >= btn_p_x && mouse_x <= btn_p_x + btn_w && mouse_y >= ctrl_y +
 gfx_r = b_t_m ? 0.16 : 0.06; gfx_g = b_t_m ? 0.24 : 0.10; gfx_b = b_r_m ? 0.32 : 0.14;
 gfx_rect(btn_m_x, ctrl_y + 54, btn_w, 16); gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65; gfx_rect(btn_m_x, ctrl_y + 54, btn_w, 16, 0);
 gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 55; gfx_drawstr("-");
-gfx_r = b_t_p ? 0.16 : 0.06; gfx_g = b_t_p ? 0.24 : 0.10; gfx_b = b_r_p ? 0.32 : 0.14;
+gfx_r = b_t_p ? 0.16 : 0.06; gfx_g = b_t_p ? 0.24 : 0.10; gfx_b = b_p_m ? 0.32 : 0.14;
 gfx_rect(btn_p_x, ctrl_y + 54, btn_w, 16); gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65; gfx_rect(btn_p_x, ctrl_y + 54, btn_w, 16, 0);
 gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 55; gfx_drawstr("+");
-(mouse_cap & 1) && !prev_mouse_cap && b_t_m ? (slider3 = max(0, slider3 - 2); slider10 = 0; slider_automate(););
-(mouse_cap & 1) && !prev_mouse_cap && b_t_p ? (slider3 = min(100, slider3 + 2); slider10 = 0; slider_automate(););
+(mouse_cap & 1) && !prev_mouse_cap && b_t_m ? (slider3 = max(0, slider3 - 2); slider10 = 0; slider_automate(4 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_t_p ? (slider3 = min(100, slider3 + 2); slider10 = 0; slider_automate(4 | 512););
 
 gfx_r = 0.70; gfx_g = 0.85; gfx_b = 1.00;
 gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("BIAS    : %+3d%%", eff_bias);
@@ -629,19 +660,21 @@ gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 79; gfx_drawstr("-");
 gfx_r = b_b_p ? 0.16 : 0.06; gfx_g = b_b_p ? 0.24 : 0.10; gfx_b = b_b_p ? 0.32 : 0.14;
 gfx_rect(btn_p_x, ctrl_y + 78, btn_w, 16); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_p_x, ctrl_y + 78, btn_w, 16, 0);
 gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 79; gfx_drawstr("+");
-(mouse_cap & 1) && !prev_mouse_cap && b_b_m ? (slider4 = max(-100, slider4 - 5); slider10 = 0; slider_automate(););
-(mouse_cap & 1) && !prev_mouse_cap && b_b_p ? (slider4 = min(100, slider4 + 5); slider10 = 0; slider_automate(););
+(mouse_cap & 1) && !prev_mouse_cap && b_b_m ? (slider4 = max(-100, slider4 - 5); slider10 = 0; slider_automate(8 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_b_p ? (slider4 = min(100, slider4 + 5); slider10 = 0; slider_automate(8 | 512););
 
 // CARD 2: ACOUSTIC WEIGHT & TILT
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c2_x, ctrl_y, col_w, ctrl_h);
 gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c2_x, ctrl_y, col_w, ctrl_h, 0);
-gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
 gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("ACOUSTIC WEIGHT & SPEED");
 
 btn2_p_x = c2_x + col_w - pad_m - btn_w;
 btn2_m_x = btn2_p_x - btn_gap - btn_w;
 
-gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25;
+gfx_setfont(3);
+gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25;
 gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 32; gfx_printf("BRIGHTEN: %+3d%%", eff_bright);
 b_br_m = (mouse_x >= btn2_m_x && mouse_x <= btn2_m_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
 b_br_p = (mouse_x >= btn2_p_x && mouse_x <= btn2_p_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
@@ -651,8 +684,8 @@ gfx_x = btn2_m_x + 10; gfx_y = ctrl_y + 31; gfx_drawstr("-");
 gfx_r = b_br_p ? 0.16 : 0.06; gfx_g = b_br_p ? 0.24 : 0.10; gfx_b = b_br_p ? 0.32 : 0.14;
 gfx_rect(btn2_p_x, ctrl_y + 30, btn_w, 16); gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25; gfx_rect(btn2_p_x, ctrl_y + 30, btn_w, 16, 0);
 gfx_x = btn2_p_x + 9; gfx_y = ctrl_y + 31; gfx_drawstr("+");
-(mouse_cap & 1) && !prev_mouse_cap && b_br_m ? (slider5 = max(-100, slider5 - 5); slider10 = 0; slider_automate(););
-(mouse_cap & 1) && !prev_mouse_cap && b_br_p ? (slider5 = min(100, slider5 + 5); slider10 = 0; slider_automate(););
+(mouse_cap & 1) && !prev_mouse_cap && b_br_m ? (slider5 = max(-100, slider5 - 5); slider10 = 0; slider_automate(16 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_br_p ? (slider5 = min(100, slider5 + 5); slider10 = 0; slider_automate(16 | 512););
 
 gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98;
 gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 56; gfx_printf("SPEED   : %3d%% (REACTION)", eff_speed);
@@ -664,8 +697,8 @@ gfx_x = btn2_m_x + 10; gfx_y = ctrl_y + 55; gfx_drawstr("-");
 gfx_r = b_sp_p ? 0.16 : 0.06; gfx_g = b_sp_p ? 0.24 : 0.10; gfx_b = b_sp_p ? 0.32 : 0.14;
 gfx_rect(btn2_p_x, ctrl_y + 54, btn_w, 16); gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98; gfx_rect(btn2_p_x, ctrl_y + 54, btn_w, 16, 0);
 gfx_x = btn2_p_x + 9; gfx_y = ctrl_y + 55; gfx_drawstr("+");
-(mouse_cap & 1) && !prev_mouse_cap && b_sp_m ? (slider9 = max(10, slider9 - 5); slider10 = 0; slider_automate(););
-(mouse_cap & 1) && !prev_mouse_cap && b_sp_p ? (slider9 = min(100, slider9 + 5); slider10 = 0; slider_automate(););
+(mouse_cap & 1) && !prev_mouse_cap && b_sp_m ? (slider9 = max(10, slider9 - 5); slider10 = 0; slider_automate(256 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_sp_p ? (slider9 = min(100, slider9 + 5); slider10 = 0; slider_automate(256 | 512););
 
 gfx_r = 0.50; gfx_g = 0.65; gfx_b = 0.80;
 gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("RANGE   : %.0fHz - %.0fkHz", eff_locut, eff_hicut * 0.001);
@@ -673,7 +706,8 @@ gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("RANGE   : %.0fHz - %.0fkH
 // CARD 3: MASTERING SIGNATURE PRESETS
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c3_x, ctrl_y, col_w, ctrl_h);
 gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c3_x, ctrl_y, col_w, ctrl_h, 0);
-gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
 gfx_x = c3_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("MASTERING SIGNATURE PRESETS");
 
 pw3 = floor((col_w - pad_m * 2 - 12) / 3);
@@ -687,11 +721,11 @@ gfx_g = (is_splitchain || p1_hov) ? 0.24 : 0.08;
 gfx_b = (is_splitchain || p1_hov) ? 0.16 : 0.12;
 gfx_rect(p1_x, p1_y, pw3, ph);
 gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.65; gfx_rect(p1_x, p1_y, pw3, ph, 0);
-gfx_setfont(1, "Consolas", 11, 'b');
+gfx_setfont(3);
 gfx_r = is_splitchain ? 0.00 : 0.90;
 gfx_g = is_splitchain ? 1.00 : 0.98;
 gfx_b = is_splitchain ? 0.70 : 1.00;
-gfx_measurestr("SPLIT CHAIN", p1w, p1h);
+p1w = 74;
 gfx_x = p1_x + floor((pw3 - p1w) * 0.5); gfx_y = p1_y + 6; gfx_drawstr("SPLIT CHAIN");
 
 // Preset 2: SNARE UNMASK
@@ -701,7 +735,7 @@ gfx_r = p2_hov ? 0.12 : 0.04; gfx_g = p2_hov ? 0.22 : 0.08; gfx_b = p2_hov ? 0.3
 gfx_rect(p2_x, p2_y, pw3, ph);
 gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(p2_x, p2_y, pw3, ph, 0);
 gfx_r = 0.90; gfx_g = 0.98; gfx_b = 1.00;
-gfx_measurestr("SNARE UNMASK", p2w, p2h);
+p2w = 84;
 gfx_x = p2_x + floor((pw3 - p2w) * 0.5); gfx_y = p2_y + 6; gfx_drawstr("SNARE UNMASK");
 
 // Preset 3: GUITAR TAME
@@ -711,22 +745,22 @@ gfx_r = p3_hov ? 0.12 : 0.04; gfx_g = p3_hov ? 0.22 : 0.08; gfx_b = p3_hov ? 0.3
 gfx_rect(p3_x, p3_y, pw3, ph);
 gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65; gfx_rect(p3_x, p3_y, pw3, ph, 0);
 gfx_r = 0.90; gfx_g = 0.98; gfx_b = 1.00;
-gfx_measurestr("GUITAR TAME", p3w, p3h);
+p3w = 78;
 gfx_x = p3_x + floor((pw3 - p3w) * 0.5); gfx_y = p3_y + 6; gfx_drawstr("GUITAR TAME");
 
 (mouse_cap & 1) && !prev_mouse_cap && p1_hov ? (
   slider10 = 2; // Split Chain Signature Lock
-  slider_automate();
+  slider_automate(512);
 );
 (mouse_cap & 1) && !prev_mouse_cap && p2_hov ? (
   slider10 = 0;
   slider1 = 1; slider2 = 34; slider3 = 18; slider4 = 15; slider5 = 10; slider6 = 0; slider7 = 150; slider8 = 16000; slider9 = 50;
-  slider_automate();
+  slider_automate(1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512);
 );
 (mouse_cap & 1) && !prev_mouse_cap && p3_hov ? (
   slider10 = 0;
   slider1 = 1; slider2 = 14; slider3 = 36; slider4 = -20; slider5 = -5; slider6 = 0; slider7 = 200; slider8 = 15000; slider9 = 45;
-  slider_automate();
+  slider_automate(1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512);
 );
 
 // Presets Row 2: 2 Wider Pills
@@ -737,7 +771,7 @@ gfx_r = p4_hov ? 0.12 : 0.04; gfx_g = p4_hov ? 0.22 : 0.08; gfx_b = p4_hov ? 0.3
 gfx_rect(p4_x, p4_y, pw2, ph);
 gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25; gfx_rect(p4_x, p4_y, pw2, ph, 0);
 gfx_r = 0.90; gfx_g = 0.98; gfx_b = 1.00;
-gfx_measurestr("AIR & PUNCH", p4w, p4h);
+p4w = 78;
 gfx_x = p4_x + floor((pw2 - p4w) * 0.5); gfx_y = p4_y + 6; gfx_drawstr("AIR & PUNCH");
 
 p5_x = p4_x + pw2 + 8; p5_y = p4_y;
@@ -746,18 +780,18 @@ gfx_r = p5_hov ? 0.12 : 0.04; gfx_g = p5_hov ? 0.22 : 0.08; gfx_b = p5_hov ? 0.3
 gfx_rect(p5_x, p5_y, pw2, ph);
 gfx_r = 0.60; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(p5_x, p5_y, pw2, ph, 0);
 gfx_r = 0.90; gfx_g = 0.98; gfx_b = 1.00;
-gfx_measurestr("TRANSPARENT GLUE", p5w, p5h);
+p5w = 112;
 gfx_x = p5_x + floor((pw2 - p5w) * 0.5); gfx_y = p5_y + 6; gfx_drawstr("TRANSPARENT GLUE");
 
 (mouse_cap & 1) && !prev_mouse_cap && p4_hov ? (
   slider10 = 0;
   slider1 = 1; slider2 = 28; slider3 = 20; slider4 = 5; slider5 = 15; slider6 = 0; slider7 = 120; slider8 = 18000; slider9 = 50;
-  slider_automate();
+  slider_automate(1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512);
 );
 (mouse_cap & 1) && !prev_mouse_cap && p5_hov ? (
   slider10 = 0;
   slider1 = 1; slider2 = 16; slider3 = 18; slider4 = 0; slider5 = 0; slider6 = 0; slider7 = 120; slider8 = 16000; slider9 = 40;
-  slider_automate();
+  slider_automate(1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512);
 );
 
 prev_mouse_cap = mouse_cap;
