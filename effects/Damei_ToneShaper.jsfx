@@ -65,6 +65,9 @@ f_body_l = 120; f_body_r = 130;
 f_mid_l  = 140; f_mid_r  = 150;
 f_sub_l  = 160; f_sub_r  = 170;
 curve_pts = 200; // 64 points for display curve
+scope_buf = 300; // 128-sample circular audio scope buffer
+scope_wptr = 0;
+scope_count = 0;
 
 memset(0, 0, 500);
 
@@ -212,6 +215,15 @@ bp_fade > 0.0001 ? (
 spl0 = in_l * (1.0 - bp_fade) + out_l * bp_fade;
 spl1 = in_r * (1.0 - bp_fade) + out_r * bp_fade;
 
+// Real-time oscilloscope tracking for live waveform display
+scope_count += 1;
+scope_count >= 6 ? (
+  scope_count = 0;
+  mono_s = (spl0 + spl1) * 0.5;
+  scope_buf[scope_wptr] = mono_s;
+  scope_wptr = (scope_wptr + 1) % 128;
+);
+
 @gfx 760 380
 disp_w = gfx_w; disp_h = gfx_h;
 
@@ -311,6 +323,26 @@ gfx_r = 0.40; gfx_g = 0.50; gfx_b = 0.60;
 gfx_x = gx1 - 10; gfx_y = gp_y + gp_h - 14; gfx_drawstr("100Hz");
 gfx_x = gx2 - 8;  gfx_y = gp_y + gp_h - 14; gfx_drawstr("1kHz");
 gfx_x = gx3 - 10; gfx_y = gp_y + gp_h - 14; gfx_drawstr("10kHz");
+
+// Live Audio Oscilloscope Waveform (Cyan glow behind passive curve)
+(slider1 == 1 && !oracle_raw_audit) ? (
+  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_a = 0.35;
+  sc_i = 0;
+  prev_sc_x = gp_x;
+  prev_sc_y = gp_cy;
+  loop(128,
+    read_idx = (scope_wptr + sc_i) % 128;
+    samp = scope_buf[read_idx];
+    sc_x = gp_x + (sc_i / 127.0) * gp_w;
+    sc_y = gp_cy - samp * (gp_h * 0.42);
+    sc_y = max(gp_y + 2, min(gp_y + gp_h - 2, sc_y));
+    sc_i > 0 ? gfx_line(prev_sc_x, prev_sc_y, sc_x, sc_y);
+    prev_sc_x = sc_x;
+    prev_sc_y = sc_y;
+    sc_i += 1;
+  );
+  gfx_a = 1.0;
+);
 
 // Passive Transfer Curve rendering (Calculated across 40 nodes)
 prev_cx = gp_x;
