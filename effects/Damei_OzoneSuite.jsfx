@@ -2327,6 +2327,19 @@ mb_gr2 = min(1.5, max(0.0, mb_gr2));
 g2 = exp(-mb_gr2 * (log(10.0) / 20.0));
 band2_l *= g2; band2_r *= g2;
 
+// Dynamic Guitar Chug Low-Mid Tamer (prevents palm-mute woof from overloading downstream clipper)
+chug_guard_on ? (
+  b2_peak = max(abs(band2_l), abs(band2_r));
+  b2_db = b2_peak > 0.000001 ? 20.0 * log10(b2_peak) : -120.0;
+  chug_excess = b2_db - (-18.0);
+  t_chug_gr = chug_excess > 0 ? min(2.5, chug_excess * 0.40) : 0.0;
+  // Fast 2.5ms attack to grab instantaneous chug peak, smooth 40ms release to recover before next double kick hit
+  chug_gr += (t_chug_gr > chug_gr ? (t_chug_gr - chug_gr) * 0.008 : (t_chug_gr - chug_gr) * 0.0005);
+  chug_linear = exp(-chug_gr * (log(10.0) / 20.0));
+  band2_l *= chug_linear;
+  band2_r *= chug_linear;
+);
+
 in3_pk = max(abs(band3_l), abs(band3_r));
 in3_db = in3_pk > 0.000001 ? 20.0 * log10(in3_pk) : -120.0;
 ex3 = in3_db - mb_th3;
@@ -2345,7 +2358,7 @@ mb_gr4 = min(1.5, max(0.0, mb_gr4));
 g4 = exp(-mb_gr4 * (log(10.0) / 20.0));
 band4_l *= g4; band4_r *= g4;
 
-// Multiband Solo check
+// Multiband Solo check (properly sums the tamed band2)
 has_solo = mb_solo1 || mb_solo2 || mb_solo3 || mb_solo4;
 has_solo ? (
   mb_sum_l = (mb_solo1 ? band1_l : 0) + (mb_solo2 ? band2_l : 0) + (mb_solo3 ? band3_l : 0) + (mb_solo4 ? band4_l : 0);
@@ -2356,17 +2369,6 @@ has_solo ? (
 );
 
 // BUSTERse & HoRNet H4K SSL 4000 VCA Glue Bus Compressor (Full Analog Model)
-// Dynamic Guitar Chug Low-Mid Tamer (prevents palm-mute woof from overloading downstream clipper)
-chug_guard_on ? (
-  b2_peak = max(abs(band2_l), abs(band2_r));
-  b2_db = b2_peak > 0.000001 ? 20.0 * log10(b2_peak) : -120.0;
-  chug_excess = b2_db - (-18.0);
-  t_chug_gr = chug_excess > 0 ? min(3.0, chug_excess * 0.45) : 0.0;
-  chug_gr += (t_chug_gr > chug_gr ? (t_chug_gr - chug_gr) * 0.008 : (t_chug_gr - chug_gr) * 0.0002);
-  chug_linear = exp(-chug_gr * (log(10.0) / 20.0));
-  band2_l *= chug_linear;
-  band2_r *= chug_linear;
-);
 
 // Step 1: Input Trim
 in_tr_l = mb_sum_l * exp(comp_in_trim * (log(10.0) / 20.0));
