@@ -17,7 +17,7 @@ slider8:0.8<0.0,3.0,0.1>-Vocal Pocket Dynamic Notch Depth (dB)
 slider9:1<0,1,1{Manual Lock, gmem Auto-Sensing}>-Vocal Pocket Corridor Mode
 slider10:1<0,1,1{Bypass, Engaged}>-Master Bus Glue Compressor
 slider11:0<0,1,1{British VCA Punch, Neve Diode Bridge Vintage}>-Bus Glue Topology
-slider12:-7.0<-36.0,0.0,0.5>-Bus Glue Threshold (dB)
+slider12:-16.0<-36.0,0.0,0.5>-Bus Glue Threshold (dB)
 slider13:2<0,3,1{1.5:1 Subtle, 2:1 Master Glue, 4:1 Modern Punch, 8:1 Heavy Squeeze}>-Bus Glue Ratio
 slider14:10.0<0.1,100.0,0.5>-Bus Glue Attack (ms)
 slider15:2<0,4,1{100ms Fast, 300ms Snappy, 600ms Classical, 1200ms Smooth, Auto Ballistics}>-Bus Glue Release
@@ -441,7 +441,7 @@ function apply_producer_preset(idx) (
     slider23 = 0; slider24 = 0.0; slider25 = 1.00; slider31 = 0.0;
   ) : idx == 6 ? ( // Kel Pinchin (Split Chain Target) - Forensic Replicate of Track 15 Legacy Chain
     slider3 = 0.0;
-    slider4 = -1.8;   // Net Headroom calibrated for exact legacy chain mix balance!
+    slider4 = -2.1;   // Net Headroom calibrated for exact legacy chain mix balance!
     slider5 = 0;      // Free Output Crest
     slider6 = 80;     // Sub-Bass Mono Anchor Cutoff (matches Bass Manager 80 Hz)
     slider7 = 1;      // Transient Sentry Active
@@ -449,7 +449,7 @@ function apply_producer_preset(idx) (
     slider9 = 1;      // gmem Auto-Sensing Corridor
     slider10 = 1;     // Bus Glue Engaged
     slider11 = 0;     // British VCA Punch (SSL 4000G / BUSTERse)
-    slider12 = -7.0;  // Threshold calibrated for authentic 1.4-1.8 dB musical glue!
+    slider12 = -16.0; // Threshold calibrated for authentic 1.4-1.8 dB musical glue!
     slider13 = 2;     // 4:1 Modern Punch (matches BUSTERse 4:1)
     slider14 = 10.0;  // Attack 10 ms (matches BUSTERse 10 ms)
     slider15 = 2;     // Release 600 ms (matches BUSTERse .6 sec)
@@ -466,79 +466,79 @@ function apply_producer_preset(idx) (
     slider31 = 3.0;   // 8.0kHz Sheen +3.0 dB (matches ReEQ Band 7)
   ) : idx == 9 ? ( // Sam Guaiana (Silverstein - Misery Made Me)
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 75; slider7 = 1;
-    slider8 = 0.9; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.0;
+    slider8 = 0.9; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 30.0; slider15 = 1; slider16 = 60; // 60Hz HPF kick/bass management trick!
     slider17 = 100; slider18 = 35; slider19 = 2.8; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
     slider23 = 1; slider24 = 3.0; slider25 = 1.12; slider31 = 2.8;
   ) : idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD Modern Metal Target)
     slider3 = 0.0; slider4 = -1.5; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.5;
+    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 39; // 39Hz HPF snare cut-through trick!
     slider17 = 100; slider18 = 35; slider19 = 3.0; slider20 = -3.2; slider21 = 1.2; slider22 = 3.2;
     slider23 = 1; slider24 = 3.2; slider25 = 1.15; slider31 = 3.0;
   ) : idx == 1 ? ( // Lance Prenc (Alpha Wolf - 60cm Of Steel)
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 85; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.5;
+    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 0; slider16 = 45; slider17 = 100;
     slider18 = 35; slider19 = 2.0; slider20 = -3.5; slider21 = 1.2; slider22 = 3.5;
     slider23 = 1; slider24 = 3.8; slider25 = 1.15; slider31 = 3.2;
   ) : idx == 2 ? ( // Scott Seigel (DIESECT - TOO MANY SCARS)
     slider3 = 0.0; slider4 = -1.0; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -6.8;
+    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 50; slider17 = 100;
     slider18 = 32; slider19 = 3.5; slider20 = -3.2; slider21 = 0.8; slider22 = 3.0;
     slider23 = 1; slider24 = 3.2; slider25 = 1.12; slider31 = 2.5;
   ) : idx == 3 ? ( // Jonathan Dolese (Mirrorcell - U(phoria))
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 0.9; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -6.5;
+    slider8 = 0.9; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
     slider13 = 1; slider14 = 10.0; slider15 = 2; slider16 = 55; slider17 = 100;
     slider18 = 35; slider19 = 2.5; slider20 = -2.8; slider21 = 1.5; slider22 = 2.8;
     slider23 = 2; slider24 = 2.6; slider25 = 1.10; slider31 = 3.2;
   ) : idx == 4 ? ( // Buster Odeholm (thrown / Northlane - Evian)
     slider3 = 0.0; slider4 = -1.4; slider5 = 0; slider6 = 90; slider7 = 1;
-    slider8 = 1.4; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -8.5;
+    slider8 = 1.4; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -17.0;
     slider13 = 3; slider14 = 10.0; slider15 = 0; slider16 = 60; slider17 = 100;
     slider18 = 40; slider19 = 3.2; slider20 = -4.0; slider21 = 0.5; slider22 = 4.0;
     slider23 = 1; slider24 = 4.0; slider25 = 1.25; slider31 = 3.5;
   ) : idx == 5 ? ( // Lewis Johns (Love Is Noise / blanket - Blur)
     slider3 = 0.0; slider4 = -0.9; slider5 = 0; slider6 = 75; slider7 = 1;
-    slider8 = 0.7; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -6.0;
+    slider8 = 0.7; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -15.5;
     slider13 = 1; slider14 = 25.0; slider15 = 2; slider16 = 45; slider17 = 100;
     slider18 = 30; slider19 = 2.0; slider20 = -2.2; slider21 = 1.8; slider22 = 2.0;
     slider23 = 2; slider24 = 2.4; slider25 = 1.05; slider31 = 2.6;
   ) : idx == 14 ? ( // Will Putney (Fit For An Autopsy - Walk With Me In Hell)
     slider3 = 0.0; slider4 = -1.4; slider5 = 0; slider6 = 85; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.5;
+    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 50; slider17 = 100;
     slider18 = 38; slider19 = 3.5; slider20 = -3.8; slider21 = 1.2; slider22 = 3.5;
     slider23 = 1; slider24 = 3.8; slider25 = 1.15; slider31 = 3.0;
   ) : idx == 15 ? ( // George Lever (Loathe - Agressive Evolution / Sleep Token)
     slider3 = 0.0; slider4 = -1.1; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 0.8; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -6.5;
+    slider8 = 0.8; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -15.5;
     slider13 = 1; slider14 = 20.0; slider15 = 2; slider16 = 45; slider17 = 100;
     slider18 = 32; slider19 = 3.2; slider20 = -2.8; slider21 = 1.4; slider22 = 2.6;
     slider23 = 3; slider24 = 2.8; slider25 = 1.12; slider31 = 3.2;
   ) : idx == 17 ? ( // Henrik Udd (Architects - Gravity)
     slider3 = 0.0; slider4 = -1.3; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.2;
+    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 40; slider17 = 100;
     slider18 = 38; slider19 = 3.2; slider20 = -3.0; slider21 = 1.2; slider22 = 3.0;
     slider23 = 1; slider24 = 3.2; slider25 = 1.15; slider31 = 3.2;
   ) : idx == 18 ? ( // Dan Braunstein (Spiritbox - Keep Sweet)
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -6.8;
+    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
     slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 42; slider17 = 100;
     slider18 = 32; slider19 = 2.5; slider20 = -2.5; slider21 = 1.0; slider22 = 2.5;
     slider23 = 1; slider24 = 3.0; slider25 = 1.10; slider31 = 2.8;
   ) : idx == 19 ? ( // Zakk Cervini & Erik Ron (Bad Omens - TDOPOM)
     slider3 = 0.0; slider4 = -1.3; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.0;
+    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 45; slider17 = 100;
     slider18 = 35; slider19 = 2.8; slider20 = -2.8; slider21 = 1.0; slider22 = 2.8;
     slider23 = 2; slider24 = 3.2; slider25 = 1.18; slider31 = 3.4;
   ) : ( // Modern Metal Standard Baseline
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -7.0;
+    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
     slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 40; slider17 = 100;
     slider18 = 35; slider19 = 2.6; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
     slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
@@ -922,24 +922,64 @@ function draw_adinkrahene_sigil(cx, cy, sz) (
   gfx_circle(cx, cy, 2, 1);
 );
 
-function draw_funtunfunefu_sigil(cx, cy, sz) local(d) (
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
-  d = sz * 0.65;
-  // Central shared stomach (unity of all stems into one bus)
-  gfx_circle(cx, cy, sz * 0.35, 0);
+function draw_funtunfunefu_sigil(cx, cy, sz) local(s, d) (
+  s = sz * 0.44;
+  
+  // 1. Central square frame (shared stomach)
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; // Burnished Rose Gold
+  gfx_rect(cx - s, cy - s, s * 2, s * 2, 0);
+  gfx_rect(cx - s + 1, cy - s + 1, (s - 1) * 2, (s - 1) * 2, 0);
+  
+  // Central X cross
+  gfx_line(cx - s, cy - s, cx + s, cy + s);
+  gfx_line(cx + s, cy - s, cx - s, cy + s);
+  gfx_line(cx - s + 1, cy - s, cx + s, cy + s - 1);
+  gfx_line(cx + s - 1, cy - s, cx - s, cy + s - 1);
+
+  // 2. Crocodile Head 1: Bottom-Left Diamond Snout
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; // Electric Sapphire
+  gfx_line(cx - s, cy + s, cx - s * 1.9, cy + s * 1.3);
+  gfx_line(cx - s, cy + s, cx - s * 1.3, cy + s * 1.9);
+  gfx_line(cx - s * 1.9, cy + s * 1.3, cx - s * 2.2, cy + s * 2.2);
+  gfx_line(cx - s * 1.3, cy + s * 1.9, cx - s * 2.2, cy + s * 2.2);
+  gfx_circle(cx - s * 1.55, cy + s * 1.55, 2, 1);
+
+  // Crocodile Head 2: Top-Right Diamond Snout
+  gfx_line(cx + s, cy - s, cx + s * 1.9, cy - s * 1.3);
+  gfx_line(cx + s, cy - s, cx + s * 1.3, cy - s * 1.9);
+  gfx_line(cx + s * 1.9, cy - s * 1.3, cx + s * 2.2, cy - s * 2.2);
+  gfx_line(cx + s * 1.3, cy - s * 1.9, cx + s * 2.2, cy - s * 2.2);
+  gfx_circle(cx + s * 1.55, cy - s * 1.55, 2, 1);
+
+  // 3. Crocodile Tail 1: Top-Left Arching Hook
   gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
-  gfx_circle(cx, cy, sz * 0.18, 1);
-  // 4 crocodile heads/limbs
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
-  gfx_line(cx - d, cy - d, cx - sz * 0.3, cy - sz * 0.3);
-  gfx_line(cx + d, cy - d, cx + sz * 0.3, cy - sz * 0.3);
-  gfx_line(cx - d, cy + d, cx - sz * 0.3, cy + sz * 0.3);
-  gfx_line(cx + d, cy + d, cx + sz * 0.3, cy + sz * 0.3);
-  gfx_circle(cx - d, cy - d, 2.5, 1);
-  gfx_circle(cx + d, cy - d, 2.5, 1);
-  gfx_circle(cx - d, cy + d, 2.5, 1);
-  gfx_circle(cx + d, cy + d, 2.5, 1);
+  gfx_line(cx - s * 0.4, cy - s, cx - s * 1.4, cy - s * 1.8);
+  gfx_line(cx - s * 1.4, cy - s * 1.8, cx - s * 2.1, cy - s * 1.4);
+  gfx_line(cx - s * 2.1, cy - s * 1.4, cx - s * 2.4, cy - s * 0.6);
+  gfx_line(cx - s, cy - s * 0.4, cx - s * 1.8, cy - s * 1.2);
+
+  // Crocodile Tail 2: Bottom-Right Arching Hook
+  gfx_line(cx + s * 0.4, cy + s, cx + s * 1.4, cy + s * 1.8);
+  gfx_line(cx + s * 1.4, cy + s * 1.8, cx + s * 2.1, cy + s * 1.4);
+  gfx_line(cx + s * 2.1, cy + s * 1.4, cx + s * 2.4, cy + s * 0.6);
+  gfx_line(cx + s, cy + s * 0.4, cx + s * 1.8, cy + s * 1.2);
+
+  // 4. Curved Limbs / Claws (Rotational Symmetry)
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68; // Celestial Mint Claw Accent
+  gfx_line(cx - s, cy + s * 0.2, cx - s * 1.7, cy + s * 0.5);
+  gfx_line(cx - s * 1.7, cy + s * 0.5, cx - s * 1.5, cy + s * 0.9);
+  
+  gfx_line(cx + s, cy - s * 0.2, cx + s * 1.7, cy - s * 0.5);
+  gfx_line(cx + s * 1.7, cy - s * 0.5, cx + s * 1.5, cy - s * 0.9);
+
+  gfx_line(cx - s * 0.2, cy - s, cx - s * 0.5, cy - s * 1.7);
+  gfx_line(cx - s * 0.5, cy - s * 1.7, cx - s * 0.9, cy - s * 1.5);
+
+  gfx_line(cx + s * 0.2, cy + s, cx + s * 0.5, cy + s * 1.7);
+  gfx_line(cx + s * 0.5, cy + s * 1.7, cx + s * 0.9, cy + s * 1.5);
 );
+
+
 
 function draw_mpatapo_sigil(cx, cy, sz) local(d) (
   gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; // Knot of reconciliation / Bus Glue
@@ -1012,18 +1052,45 @@ function draw_adinkra_watermark(cx, cy, cw, ch, sigil_type) local(cen_x, cen_y, 
   draw_aya_sigil(cen_x, cen_y, sz);
   gfx_a = 1.0;
 );
+function draw_arc(cx, cy, r, a1, a2, red, green, blue) local(step, a, prev_x, prev_y, cur_x, cur_y) (
+  gfx_r = red; gfx_g = green; gfx_b = blue;
+  step = (a2 - a1) / 32.0;
+  a = a1;
+  prev_x = cx + sin(a) * r;
+  prev_y = cy - cos(a) * r;
+  loop(32,
+    a += step;
+    cur_x = cx + sin(a) * r;
+    cur_y = cy - cos(a) * r;
+    gfx_line(prev_x, prev_y, cur_x, cur_y);
+    prev_x = cur_x; prev_y = cur_y;
+  );
+);
+
+function draw_radar_bar(rx, ry, rw, val, label, is_match) local(h) (
+  gfx_r = 0.04; gfx_g = 0.06; gfx_b = 0.09; gfx_rect(rx, ry - 110, rw, 110);
+  gfx_r = 0.15; gfx_g = 0.22; gfx_b = 0.32; gfx_rect(rx, ry - 110, rw, 110, 0);
+  h = floor(clamp(val, 0.0, 1.0) * 106);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; // Sapphire fill
+  gfx_rect(rx + 2, ry - h, rw - 4, h);
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68; // Mint cap
+  gfx_rect(rx + 2, ry - h, rw - 4, 3);
+  gfx_setfont(2, "Arial", 9.5, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_x = rx + floor((rw - 28) * 0.5); gfx_y = ry + 8; gfx_drawstr(label);
+);
+
 
 function get_producer_name(idx) (
   idx == 0 ? "00: Unity Transparent Pass" :
   idx == 1 ? "01: Lance Prenc (Alpha Wolf)" :
   idx == 2 ? "02: Scott Seigel (DIESECT)" :
-  idx == 3 ? "03: Jonathan Dolese (Mirrorcell)" :
+  idx == 3 ? "03: Jonathan Dolese (Mirrorcell - U(phoria))" :
   idx == 4 ? "04: Buster Odeholm (thrown)" :
   idx == 5 ? "05: Lewis Johns (Love Is Noise)" :
   idx == 6 ? "06: Kel Pinchin (Split Chain) *" :
   idx == 7 ? "07: Dan Lancaster (Don Broco)" :
   idx == 8 ? "08: Erik Bickerstaffe (Static Dress)" :
-  idx == 9 ? "09: Sam Guaiana (Silverstein)" :
+  idx == 9 ? "09: Sam Guaiana (Silverstein - Misery Made Me)" :
   idx == 10 ? "10: Zach Tuch (Heavenward)" :
   idx == 11 ? "11: Forrester Savell (Karnivool)" :
   idx == 12 ? "12: Leon Schmidt (SUNBORN)" :
@@ -1246,14 +1313,16 @@ gfx_r = 0.015; gfx_g = 0.020; gfx_b = 0.028; gfx_rect(0, 0, gfx_w, hdr_h);
 gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_line(0, hdr_h - 1, gfx_w, hdr_h - 1);
 gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_line(0, hdr_h, gfx_w, hdr_h);
 
-// Golden Adinkra Insignia & Flagship Branding
-gfx_setfont(1, "Orbitron", 17, 'b'); gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;
-gfx_x = 18; gfx_y = 12;
+// Authentic Funtunfunefu-Denkyemfunefu Insignia Emblem & Conclave Branding
+draw_funtunfunefu_sigil(42, 30, 20);
+
+gfx_setfont(1, "Orbitron", 15.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; // Imperial Sapphire
+gfx_x = 74; gfx_y = 12;
 gfx_drawstr("DAMEI INSTRUMENTAL BUS CONCLAVE");
 
-gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;
-gfx_x = 18; gfx_y = 35;
-gfx_drawstr("FUNTUNFUNEFU-DENKYEMFUNEFU // COLLECTIVE SUMMING & HARMONIC CONCLAVE");
+gfx_setfont(2, "Arial", 11); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; // Rose Gold / Copper
+gfx_x = 74; gfx_y = 35;
+gfx_drawstr("Funtunfunefu-Denkyemfunefu  //  Collective Summing & Harmonic Imperium");
 
 // Live Master Status Badges
 badge_x = gfx_w - 380;
@@ -1422,87 +1491,115 @@ function draw_component_header(title, mission, role, signal_path) (
 // =============================================================================
 slider1 == 0 ? (
   draw_component_header("TAB 0 // MASTER TELEMETRY DASHBOARD",
-                        "Harmonic summing telemetry, SIFAM moving-coil ballistics & phosphor radar",
+                        "Harmonic summing telemetry, SIFAM moving-coil ballistics & 5-band tonal balance radar",
                         "Glued instrumental master pass prior to vocal bus interaction",
                         "IN -> 7-BAND ReEQ -> POCKET -> CRUCIBLE -> VCA GLUE -> M/S -> OUT");
 
-  dash_y = ws_y + 68;
-  top_row_h = 220;
-  meter_w = floor((ws_w - 48) * 0.35);
-  scope_w = ws_w - 32 - meter_w * 2;
+  // CARD 1: SIFAM ANALOG MOVING-COIL CONSOLE VU METER (Left)
+  c1_x = 28; c1_y = 386; c1_w = 330; c1_h = 214;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(c1_x, c1_y, c1_w, c1_h);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c1_x, c1_y, c1_w, c1_h, 0);
+  draw_adinkra_watermark(c1_x, c1_y, c1_w, c1_h, 2); // Funtunfunefu Watermark
 
-  draw_sifam_meter(ws_x + 8, dash_y, meter_w, top_row_h, "SIFAM DIRECTOR // CONSOLE DRIVE", sifam_needle_vu, 3.0, 0, 1.00, 0.85, 0.30);
-  draw_sifam_meter(ws_x + 16 + meter_w, dash_y, meter_w, top_row_h, "STUDIO BUS GLUE // GAIN REDUCTION", sifam_needle_gr, 20.0, 1, 0.00, 0.85, 1.00);
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_x = c1_x + 14; gfx_y = c1_y + 12; gfx_drawstr("SIFAM DIRECTOR // CONSOLE DRIVE");
+  gfx_setfont(2, "Arial", 9.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  gfx_x = c1_x + c1_w - 74; gfx_y = c1_y + 12; gfx_drawstr("STUDIO VU");
 
-  // Stereo Phase & Lissajous Radar with Phosphor Trails
-  sc_x = ws_x + 24 + meter_w * 2; sc_y = dash_y;
-  gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(sc_x, sc_y, scope_w, top_row_h);
-  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(sc_x, sc_y, scope_w, top_row_h, 0);
+  // SIFAM Moving-Coil Needle Arc
+  sif_cx = c1_x + floor(c1_w * 0.5); sif_cy = c1_y + 190; sif_r = 150;
+  draw_arc(sif_cx, sif_cy, sif_r, -0.65, 0.65, 0.15, 0.20, 0.30);
+  draw_arc(sif_cx, sif_cy, sif_r, 0.25, 0.65, 0.85, 0.25, 0.25); // Redline
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
-  gfx_x = sc_x + 14; gfx_y = sc_y + 10; gfx_drawstr("STEREO PHASE RADAR");
+  vu_val = clamp(inst_rms + 18.0, -20.0, 3.0);
+  sifam_needle_vu += (vu_val - sifam_needle_vu) * 0.15;
+  n_ang = -0.65 + ((sifam_needle_vu + 20.0) / 23.0) * 1.30;
+  
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_line(sif_cx, sif_cy, sif_cx + sin(n_ang) * (sif_r - 10), sif_cy - cos(n_ang) * (sif_r - 10));
+  gfx_circle(sif_cx, sif_cy, 14, 1);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_circle(sif_cx, sif_cy, 14, 0);
 
-  r_cx = sc_x + scope_w * 0.5; r_cy = sc_y + 115;
-  r_dyn = 1.0 + max(0.0, (inst_rms + 35.0) / 45.0) * 0.20;
-  gfx_r = 0.10; gfx_g = 0.14; gfx_b = 0.20;
-  gfx_circle(r_cx, r_cy, floor(60 * r_dyn), 0);
-  gfx_circle(r_cx, r_cy, 38, 0);
-  gfx_line(r_cx - 60, r_cy, r_cx + 60, r_cy);
-  gfx_line(r_cx, r_cy - 60, r_cx, r_cy + 60);
+  gfx_setfont(2, "Arial", 10, 'b'); gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.85;
+  gfx_x = c1_x + 14; gfx_y = c1_y + c1_h - 22; gfx_printf("RMS: %3.1f dBFS", inst_rms);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  gfx_x = c1_x + c1_w - 95; gfx_y = c1_y + c1_h - 22; gfx_drawstr("0 VU = -18 dBFS");
 
-  pi = 0; prev_sx = r_cx; prev_sy = r_cy;
-  loop(48,
-    s_idx = (scope_pos - pi * 3 + 256) % 256;
-    sl = scope_buf_l[s_idx]; sr = scope_buf_r[s_idx];
-    sx = r_cx + (sl - sr) * 48.0;
-    sy = r_cy - (sl + sr) * 48.0;
-    pi > 0 ? (
-      gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_a = 0.65;
-      gfx_line(prev_sx, prev_sy, sx, sy);
-    );
-    prev_sx = sx; prev_sy = sy;
-    pi += 1;
-  );
-  gfx_a = 1.0;
+  // CARD 2: 5-BAND TONAL BALANCE ENERGY RADAR (Center - Replaces redundant Bus Glue meter!)
+  c2_x = 368; c2_y = 386; c2_w = 340; c2_h = 214;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(c2_x, c2_y, c2_w, c2_h);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c2_x, c2_y, c2_w, c2_h, 0);
+  draw_adinkra_watermark(c2_x, c2_y, c2_w, c2_h, 4); // Sankofa Reference Radar Watermark
 
-  c_bar_y = sc_y + top_row_h - 28;
-  c_bar_w = scope_w - 24;
-  gfx_r = 0.05; gfx_g = 0.07; gfx_b = 0.10; gfx_rect(sc_x + 12, c_bar_y, c_bar_w, 14);
-  gfx_r = 0.25; gfx_g = 0.35; gfx_b = 0.45; gfx_rect(sc_x + 12, c_bar_y, c_bar_w, 14, 0);
-  c_mid = sc_x + 12 + c_bar_w * 0.5;
-  gfx_line(c_mid, c_bar_y - 2, c_mid, c_bar_y + 16);
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_x = c2_x + 14; gfx_y = c2_y + 12; gfx_drawstr("TONAL BALANCE ENERGY RADAR");
+  gfx_setfont(2, "Arial", 9.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_x = c2_x + c2_w - 75; gfx_y = c2_y + 12; gfx_drawstr("5-BAND LIVE");
 
-  c_fill_w = floor(corr_smooth * (c_bar_w * 0.5));
-  corr_smooth >= 0 ? (
-    gfx_r = 0.00; gfx_g = 0.85; gfx_b = 0.45;
-    gfx_rect(c_mid, c_bar_y + 2, c_fill_w, 10);
-  ) : (
-    gfx_r = 0.95; gfx_g = 0.25; gfx_b = 0.20;
-    gfx_rect(c_mid + c_fill_w, c_bar_y + 2, -c_fill_w, 10);
-  );
+  // 5 Real-Time Spectral Energy Bars: Sub (20-80), Low Punch (80-200), Mud (200-500), Bite (1.5-3k), Air (8k+)
+  b_w = 48; b_gap = 16; b_base_x = c2_x + 18; b_y = c2_y + 160;
+  
+  // Dynamic audio band energy from live spectrum bins
+  e_sub = min(1.0, (spec_bins[2] + spec_bins[3] + spec_bins[4]) * 0.85);
+  e_low = min(1.0, (spec_bins[6] + spec_bins[8] + spec_bins[10]) * 0.90);
+  e_mud = min(1.0, (spec_bins[12] + spec_bins[15] + spec_bins[18]) * 0.75);
+  e_mid = min(1.0, (spec_bins[24] + spec_bins[30] + spec_bins[36]) * 0.85);
+  e_air = min(1.0, (spec_bins[44] + spec_bins[52] + spec_bins[60]) * 0.75);
 
-  bot_y = dash_y + top_row_h + 12;
-  bot_h = ws_h - 68 - top_row_h - 20;
-  gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(ws_x + 8, bot_y, ws_w - 16, bot_h);
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ws_x + 8, bot_y, ws_w - 16, bot_h, 0);
+  draw_radar_bar(b_base_x + 0 * (b_w + b_gap), b_y, b_w, e_sub, "SUB", 1);
+  draw_radar_bar(b_base_x + 1 * (b_w + b_gap), b_y, b_w, e_low, "LOW", 1);
+  draw_radar_bar(b_base_x + 2 * (b_w + b_gap), b_y, b_w, e_mud, "MUD", 1);
+  draw_radar_bar(b_base_x + 3 * (b_w + b_gap), b_y, b_w, e_mid, "BITE", 1);
+  draw_radar_bar(b_base_x + 4 * (b_w + b_gap), b_y, b_w, e_air, "AIR", 1);
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
-  gfx_x = ws_x + 20; gfx_y = bot_y + 12; gfx_drawstr("FLAGSHIP BUS INTEGRATION // MISSION TELEMETRY");
+  // CARD 3: STEREO PHASE & CORRELATION RADAR (Right)
+  c3_x = 718; c3_y = 386; c3_w = 334; c3_h = 214;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(c3_x, c3_y, c3_w, c3_h);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c3_x, c3_y, c3_w, c3_h, 0);
+  draw_adinkra_watermark(c3_x, c3_y, c3_w, c3_h, 1); // Adinkrahene Mastery Watermark
 
-  gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
-  gfx_x = ws_x + 20; gfx_y = bot_y + 36;
-  gfx_printf("• HEADROOM TRIM : %+3.1f dB (Forensic DeeGain Staging Lock)", slider4);
-  gfx_x = ws_x + 20; gfx_y = bot_y + 56;
-  gfx_printf("• BUS GLUE VCA  : Thresh %4.1fdB | 4:1 Ratio | 10ms Attack | 600ms Release | HPF %dHz", slider12, slider16);
-  gfx_x = ws_x + 20; gfx_y = bot_y + 76;
-  gfx_printf("• HARMONIC DESK : Neve 8014 Iron Desk | Saturation Drive %+3.1f dB", slider24);
-  gfx_x = ws_x + 20; gfx_y = bot_y + 96;
-  gfx_printf("• STEREO MATRIX : Sub-Mono Anchor %d Hz | M/S Quad Width %.2fx | Pocket Notch -%3.1fdB", slider6, active_width, pocket_depth);
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_x = c3_x + 14; gfx_y = c3_y + 12; gfx_drawstr("STEREO PHASE RADAR");
+
+  pr_cx = c3_x + floor(c3_w * 0.5); pr_cy = c3_y + 104; pr_r = 56;
+  gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.26;
+  gfx_circle(pr_cx, pr_cy, pr_r, 0);
+  gfx_circle(pr_cx, pr_cy, pr_r * 0.66, 0);
+  gfx_circle(pr_cx, pr_cy, pr_r * 0.33, 0);
+  gfx_line(pr_cx - pr_r, pr_cy, pr_cx + pr_r, pr_cy);
+  gfx_line(pr_cx, pr_cy - pr_r, pr_cx, pr_cy + pr_r);
+
+  // Phase point
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_circle(pr_cx + corr_smooth * 18, pr_cy - abs(dry_l - dry_r) * 20, 3, 1);
+
+  // Phase Correlation Bar
+  bar_y = c3_y + 178; bar_w = c3_w - 28;
+  gfx_r = 0.04; gfx_g = 0.06; gfx_b = 0.09; gfx_rect(c3_x + 14, bar_y, bar_w, 14);
+  gfx_r = 0.15; gfx_g = 0.22; gfx_b = 0.32; gfx_rect(c3_x + 14, bar_y, bar_w, 14, 0);
+  cor_x = c3_x + 14 + floor(((corr_smooth + 1.0) * 0.5) * bar_w);
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_rect(cor_x - 3, bar_y + 1, 6, 12);
+
+  // BOTTOM CARD: MISSION TELEMETRY & STAGING STATUS (Sankofa Oracle Typography & Zero Spilling)
+  bot_x = 28; bot_y = 612; bot_w = 1024; bot_h = 240;
+  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(bot_x, bot_y, bot_w, bot_h);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(bot_x, bot_y, bot_w, bot_h, 0);
+
+  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_x = bot_x + 18; gfx_y = bot_y + 14; gfx_drawstr("FLAGSHIP CONCLAVE INTEGRATION // MASTER STATUS");
+
+  gfx_setfont(2, "Arial", 11); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_x = bot_x + 18; gfx_y = bot_y + 38;
+  gfx_printf("* HEADROOM TRIM : %3.1f dB (Forensic DeeGain Staging Lock - Bit-Exact Parity)", slider4);
+  gfx_x = bot_x + 18; gfx_y = bot_y + 58;
+  gfx_printf("* BUS GLUE VCA  : Thresh %3.1f dB | Ratio %s | 10ms Attack | 600ms Release | HPF %2.0f Hz", slider12, slider13==0?"1.5:1":slider13==1?"2:1":slider13==2?"4:1":"8:1", slider16);
+  gfx_x = bot_x + 18; gfx_y = bot_y + 78;
+  gfx_printf("* HARMONIC DESK : %s | Drive %+2.1f dB (Britson Console Saturation)", slider23==0?"Transparent Pass":slider23==1?"Neve 8014 Iron Desk":slider23==2?"Studer A800 Tape":"Triode Tube", slider24);
+  gfx_x = bot_x + 18; gfx_y = bot_y + 98;
+  gfx_printf("* STEREO MATRIX : Sub-Mono Anchor %2.0f Hz | M/S Quad Width %3.2fx | Dynamic Pocket Notch -%2.1f dB", slider6, slider25, pocket_dyn_dip);
 );
 
-// =============================================================================
-// TAB 1: TONAL EQ (7-BAND REEQ ARCHITECTURE)
-// =============================================================================
 slider1 == 1 ? (
   draw_component_header("TAB 1 // 7-BAND TONAL FORGE EQUALIZER",
                         "Forensic linear-phase spectral sculpting & resonance management",
