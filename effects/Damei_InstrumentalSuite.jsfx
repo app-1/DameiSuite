@@ -143,6 +143,33 @@ dk_nm[5] = "Air Sheen Excitement";  dk_hint[5] = "+1.2dB silky 8kHz sheen on soa
 dk_nm[6] = "Kick Decoupling Anchor";dk_hint[6] = "60Hz HPF stops kick sub ducking guitars";
 dk_nm[7] = "Haas Wall Widener";     dk_hint[7] = "Haas spatial spread on rhythm walls";
 
+dk_pm = 50500;
+dk_pm[0] = 0;   // Unity Baseline
+dk_pm[1] = 58;  // Lance Prenc (Alpha Wolf) - Sub Slam (4) + Snare Snap (16) + Silk Sheen (32) + Tape Warmth (2)
+dk_pm[2] = 50;  // Scott Seigel (DIESECT) - Tape Warmth (2) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[3] = 43;  // Jonathan Dolese (Mirrorcell) - Stereo Bloom (1) + Tape Warmth (2) + Desk Lift (8) + Silk Sheen (32)
+dk_pm[4] = 85;  // Buster Odeholm (thrown) - Stereo Bloom (1) + Sub Slam (4) + Snare Snap (16) + Kick Decouple (64)
+dk_pm[5] = 41;  // Lewis Johns (Love Is Noise) - Stereo Bloom (1) + Desk Lift (8) + Silk Sheen (32)
+dk_pm[6] = 62;  // Kel Pinchin (Split Chain) - Tape Warmth (2) + Sub Slam (4) + Desk Lift (8) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[7] = 49;  // Dan Lancaster & Jason Perry (Don Broco) - Stereo Bloom (1) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[8] = 58;  // Erik Bickerstaffe (Static Dress) - Tape Warmth (2) + Sub Slam (4) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[9] = 105; // Sam Guaiana (Shyeye) - Stereo Bloom (1) + Desk Lift (8) + Silk Sheen (32) + Kick Decouple (64)
+dk_pm[10] = 43; // Zach Tuch (Heavenward)
+dk_pm[11] = 57; // Forrester Savell (City Of Souls / Karnivool) - Stereo Bloom (1) + Desk Lift (8) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[12] = 169;// Leon Schmidt (SUNBORN) - Stereo Bloom (1) + Desk Lift (8) + Kick Decouple (64) + Haas Widener (128)
+dk_pm[13] = 50; // Ermin Hamidovic (Systematic) - Tape Warmth (2) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[14] = 30; // Will Putney (Fit For An Autopsy) - Tape Warmth (2) + Sub Slam (4) + Desk Lift (8) + Snare Snap (16)
+dk_pm[15] = 171;// George Lever (Loathe / Sleep Token) - Stereo Bloom (1) + Tape Warmth (2) + Desk Lift (8) + Silk Sheen (32) + Haas Widener (128)
+dk_pm[16] = 59; // Sam Bassal (Thornhill) - Stereo Bloom (1) + Tape Warmth (2) + Desk Lift (8) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[17] = 58; // Henrik Udd (Architects) - Tape Warmth (2) + Sub Slam (4) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[18] = 43; // Dan Braunstein (Spiritbox) - Stereo Bloom (1) + Tape Warmth (2) + Desk Lift (8) + Silk Sheen (32)
+dk_pm[19] = 105;// Zakk Cervini & Erik Ron (Bad Omens) - Stereo Bloom (1) + Desk Lift (8) + Silk Sheen (32) + Kick Decouple (64)
+dk_pm[20] = 58; // Jens Bogren - Tape Warmth (2) + Sub Slam (4) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[21] = 57; // Adam Nolly Getgood (Periphery) - Stereo Bloom (1) + Desk Lift (8) + Snare Snap (16) + Silk Sheen (32)
+dk_pm[22] = 171;// Acle Kahney (TesseracT)
+dk_pm[23] = 43; // Adam Cichocki (heaving.)
+dk_pm[24] = 105;// Manuel Renner (SENNA)
+
 dk_tn[0] = "Open / Undefined";
 dk_tn[1] = "Intro";
 dk_tn[2] = "Verse";
@@ -545,8 +572,8 @@ function apply_producer_preset(idx) (
     slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
   );
   // Pure Static Discipline - Zero Dynamic Moves Across All Producer Presets
-  slider48 = 0; // Ear Candy Director Disabled (Pure Static Pass)
-  slider50 = 0; // Trick Palette Mask Locked to 0
+  slider48 = 1; // Ear Candy Director Active (Applies Curated Trick Selections Automatically)
+  slider50 = dk_pm[idx]; // Automatically assign producer's signature trick palette!
   slider9 = 0;  // Vocal Pocket Default: Static Flat Wire Bypass (Zero Flutter)
   slider51 ? dg_pbi = idx;
   update_filters();
@@ -662,8 +689,14 @@ spec_bins[spec_idx] = max(spec_bins[spec_idx], abs(dry_l) + abs(dry_r));
 // =============================================================================
 // REAL-TIME EAR-CANDY DIRECTOR & SECTION DETECTION
 // =============================================================================
-dk_sec = (gmem[100] == 1) ? gmem[101] : 0;
-dk_r_idx = dk_sec == 1 ? 3 : (dk_sec == 2 ? 3 : (dk_sec == 3 ? 4 : (dk_sec == 4 ? 5 : (dk_sec == 5 ? 2 : 0))));
+dk_bridge_active = (gmem[100] == 1);
+dk_r_type = dk_bridge_active ? gmem[106] : 0;
+dk_r_type > 0 ? (
+  dk_r_idx = dk_r_type;
+) : (
+  dk_sec = dk_bridge_active ? gmem[101] : 0;
+  dk_r_idx = (dk_sec == 3) ? 4 : (dk_sec == 1 ? 3 : (dk_sec == 4 ? 5 : (dk_sec == 5 ? 2 : (dk_sec == 2 ? 3 : 0))));
+);
 
 // Bus energy tracking
 dk_fast_db += (inst_rms - dk_fast_db) * 0.05;
@@ -672,46 +705,53 @@ dk_song_db += (inst_rms - dk_song_db) * 0.0004;
 
 dk_dens = clamp((dk_fast_db - dk_slow_db + 10.0) / 20.0, 0.1, 1.0);
 dk_ctx = dk_r_idx == 4 ? 1.15 : (dk_r_idx == 3 ? 0.90 : (dk_r_idx == 5 ? 0.85 : 1.00));
-
-// Dynamic trick activation envelopes (controlled by Director or manual sliders)
 dk_amt = slider49 * 0.01;
-dk_auto = (slider48 == 1 && slider37 == 1);
 
 // =============================================================================
-// STATIC EAR-CANDY IMPLEMENTATION (ZERO DYNAMIC DRIFT / ZERO SECTION PUMPING)
-// Like the legacy chain, all processes are applied statically to preserve mix balance!
+// DIRECTOR ACTIVE SELECTION LOGIC (AUTOMATIC SELECTIONS APPLIED AS STATIC COLORATIONS)
+// The Director automatically selects tricks from the producer's palette based on section!
+// All tricks are static, subtle enhancements: NO dynamic gain pumping, NO volume ducking.
 // =============================================================================
-slider48 == 0 ? (
-  // PURE STATIC PASS: All ear candy tricks locked strictly to 0
-  dk_env0 = 0.0; dk_env1 = 0.0; dk_env2 = 0.0; dk_env3 = 0.0;
-  dk_env4 = 0.0; dk_env5 = 0.0; dk_env6 = 0.0; dk_env7 = 0.0;
+slider48 == 1 ? (
+  // Director ON: Automatically selects appropriate tricks from the active palette!
+  dk_r_idx == 4 ? (
+    // Chorus: Deploys spacious stereo bloom (1), air sheen (32), and sub foundation (4)
+    dk_sel_mask = slider50 & (1 | 32 | 4);
+    dk_sel_desc = "Chorus: Stereo Bloom + Silk Air Sheen + Sub Anchor";
+  ) : dk_r_idx == 2 ? (
+    // Verse: Deploys desk warmth (8) and snare sidechain snap (16)
+    dk_sel_mask = slider50 & (8 | 16);
+    dk_sel_desc = "Verse: Desk Transformer Warmth + Snare Snap";
+  ) : dk_r_idx == 3 ? (
+    // Pre-Drop / Build: Deploys tape warmth (2) and kick decoupling (64)
+    dk_sel_mask = slider50 & (2 | 64);
+    dk_sel_desc = "Pre-Drop: Tape Head Saturation + Kick Decoupling";
+  ) : dk_r_idx == 5 ? (
+    // Breakdown / Bridge: Deploys desk warmth (8) and spatial air decorrelation (128)
+    dk_sel_mask = slider50 & (8 | 128);
+    dk_sel_desc = "Breakdown: Desk Warmth + Spatial Decorrelation";
+  ) : (
+    // Baseline / Intro / Outro: Engages core tone profile (desk warmth 8 + snare snap 16 + silk sheen 32)
+    dk_sel_mask = slider50 & (8 | 16 | 32);
+    dk_sel_desc = "Standard: Desk Warmth + Snare Snap + Air Sheen";
+  );
+  // Manual overrides add to active selection
+  dk_sel_mask = dk_sel_mask | (slider33 ? 1 : 0) | (slider34 ? 2 : 0) | (slider35 ? 4 : 0) | (slider36 ? 8 : 0);
 ) : (
-  // STATIC EAR CANDY PROFILE:
-  // Processes apply as constant, static harmonic/spatial colorations without time-varying envelopes!
-  // Trick 0: Static Stereo Air Bloom
-  dk_env0 = ((slider50 & 1) || slider33) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 1: Static Analog Tape Head Saturation (zero volume ducking)
-  dk_env1 = ((slider50 & 2) || slider34) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 2: Static Sub Foundation Weight
-  dk_env2 = ((slider50 & 4) || slider35) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 3: Static Desk Transformer Warmth (+0.3dB Neve desk drive)
-  dk_env3 = ((slider50 & 8) || slider36) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 4: Static Snare Sidechain Snap (39Hz Detector HPF)
-  dk_env4 = (slider50 & 16) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 5: Static Air Sheen (+0.3dB Silk Air Shelf)
-  dk_env5 = (slider50 & 32) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 6: Static Kick Decoupling Anchor (60Hz Detector HPF)
-  dk_env6 = (slider50 & 64) ? (dk_amt * 1.0) : 0.0;
-
-  // Trick 7: Static Spatial Air Decorrelation
-  dk_env7 = (slider50 & 128) ? (dk_amt * 1.0) : 0.0;
+  // Director OFF: Manual selection mode based on slider50 and individual toggles
+  dk_sel_mask = slider50 | (slider33 ? 1 : 0) | (slider34 ? 2 : 0) | (slider35 ? 4 : 0) | (slider36 ? 8 : 0);
+  dk_sel_desc = "Manual Selection Mode";
 );
+
+// Update envelopes for each trick (static profile scaling, zero dynamic pumping!)
+dk_env0 = (dk_sel_mask & 1)   ? dk_amt : 0.0;
+dk_env1 = (dk_sel_mask & 2)   ? dk_amt : 0.0;
+dk_env2 = (dk_sel_mask & 4)   ? dk_amt : 0.0;
+dk_env3 = (dk_sel_mask & 8)   ? dk_amt : 0.0;
+dk_env4 = (dk_sel_mask & 16)  ? dk_amt : 0.0;
+dk_env5 = (dk_sel_mask & 32)  ? dk_amt : 0.0;
+dk_env6 = (dk_sel_mask & 64)  ? dk_amt : 0.0;
+dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
 
 // 1:1 Complete Bit-Exact Transparent Pass if Suite Bypassed OR Preset 00
 (slider27 == 0 || slider2 == 0) ? (
@@ -785,6 +825,12 @@ slider48 == 0 ? (
   s8k_x2_l = s8k_x1_l; s8k_x1_l = k_l; s8k_y2_l = s8k_y1_l; s8k_y1_l = eq_out_l;
   eq_out_r = (s8k_b0 * k_r + s8k_b1 * s8k_x1_r + s8k_b2 * s8k_x2_r - s8k_a1 * s8k_y1_r - s8k_a2 * s8k_y2_r) / s8k_a0;
   s8k_x2_r = s8k_x1_r; s8k_x1_r = k_r; s8k_y2_r = s8k_y1_r; s8k_y1_r = eq_out_r;
+
+  // Trick 5: Static Silk Air Sheen (parallel harmonic gloss, zero volume drop)
+  dk_env5 > 0.001 ? (
+    sheen_factor = 1.0 + (dk_env5 * 0.035);
+    eq_out_l *= sheen_factor; eq_out_r *= sheen_factor;
+  );
 
   // ===========================================================================
   // STAGE 3: LITEON BASS MANAGER RATIONAL SATURATION (STAGE 4 IN LEGACY CHAIN)
@@ -2407,6 +2453,32 @@ slider1 == 6 ? (
 );
 
 slider1 == 7 ? (
+  // Keep section telemetry and Director selections live even when REAPER transport is stopped!
+  dk_bridge_active = (gmem[100] == 1);
+  dk_r_type = dk_bridge_active ? gmem[106] : 0;
+  dk_r_type > 0 ? (
+    dk_r_idx = dk_r_type;
+  ) : (
+    dk_sec = dk_bridge_active ? gmem[101] : 0;
+    dk_r_idx = (dk_sec == 3) ? 4 : (dk_sec == 1 ? 3 : (dk_sec == 4 ? 5 : (dk_sec == 5 ? 2 : (dk_sec == 2 ? 3 : 0))));
+  );
+  dk_amt = slider49 * 0.01;
+  slider48 == 1 ? (
+    dk_r_idx == 4 ? (
+      dk_sel_mask = slider50 & (1 | 32 | 4);
+    ) : dk_r_idx == 2 ? (
+      dk_sel_mask = slider50 & (8 | 16);
+    ) : dk_r_idx == 3 ? (
+      dk_sel_mask = slider50 & (2 | 64);
+    ) : dk_r_idx == 5 ? (
+      dk_sel_mask = slider50 & (8 | 128);
+    ) : (
+      dk_sel_mask = slider50 & (8 | 16 | 32);
+    );
+    dk_sel_mask = dk_sel_mask | (slider33 ? 1 : 0) | (slider34 ? 2 : 0) | (slider35 ? 4 : 0) | (slider36 ? 8 : 0);
+  ) : (
+    dk_sel_mask = slider50 | (slider33 ? 1 : 0) | (slider34 ? 2 : 0) | (slider35 ? 4 : 0) | (slider36 ? 8 : 0);
+  );
   draw_component_header("TAB 7 // EAR-CANDY DIRECTOR & PRODUCER PLAYBOOK [CREATIVE AUDITION]",
                         "Production mode locked to 100% static pass to preserve mix balance stability",
                         "Dynamic tricks are strictly optional creative audition tools - disabled in mix",
@@ -2476,13 +2548,41 @@ slider1 == 7 ? (
     gfx_r = is_on ? 0.85 : 0.25; gfx_g = is_on ? 0.70 : 0.30; gfx_b = is_on ? 0.22 : 0.40;
     gfx_rect(lx + 16, ty, col_w - 32, tr_h, 0);
 
+    is_sel = (dk_sel_mask & (1 << k_i)) > 0;
+
+    // Visual styling: Selected (Active) vs Armed in Palette vs Inactive
+    is_sel ? (
+      gfx_r = 0.08; gfx_g = 0.22; gfx_b = 0.38; gfx_rect(lx + 16, ty, col_w - 32, tr_h);
+      gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(lx + 16, ty, col_w - 32, tr_h, 0);
+    ) : is_on ? (
+      gfx_r = 0.03; gfx_g = 0.07; gfx_b = 0.12; gfx_rect(lx + 16, ty, col_w - 32, tr_h);
+      gfx_r = 0.25; gfx_g = 0.60; gfx_b = 0.85; gfx_rect(lx + 16, ty, col_w - 32, tr_h, 0);
+    ) : (
+      gfx_r = 0.015; gfx_g = 0.020; gfx_b = 0.028; gfx_rect(lx + 16, ty, col_w - 32, tr_h);
+      gfx_r = 0.22; gfx_g = 0.25; gfx_b = 0.35; gfx_rect(lx + 16, ty, col_w - 32, tr_h, 0);
+    );
+
     gfx_setfont(2, "Consolas", 10.5, 'b');
-    gfx_r = is_on ? 1.0 : 0.55; gfx_g = is_on ? 0.95 : 0.60; gfx_b = is_on ? 0.70 : 0.70;
+    is_sel ? (
+      gfx_r = 1.00; gfx_g = 0.88; gfx_b = 0.45;
+    ) : is_on ? (
+      gfx_r = 0.85; gfx_g = 0.92; gfx_b = 1.00;
+    ) : (
+      gfx_r = 0.50; gfx_g = 0.55; gfx_b = 0.62;
+    );
     gfx_x = lx + 24; gfx_y = ty + 6;
     gfx_drawstr(dk_nm[k_i]);
 
-    gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = lx + 200; gfx_y = ty + 6;
-    gfx_drawstr(dk_hint[k_i]);
+    is_sel ? (
+      gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_x = lx + 185; gfx_y = ty + 6;
+      gfx_drawstr("[ ACTIVE // SELECTED ]");
+    ) : is_on ? (
+      gfx_r = 0.35; gfx_g = 0.75; gfx_b = 0.95; gfx_x = lx + 185; gfx_y = ty + 6;
+      gfx_drawstr("[ ARMED IN PALETTE ]");
+    ) : (
+      gfx_r = 0.45; gfx_g = 0.50; gfx_b = 0.58; gfx_x = lx + 185; gfx_y = ty + 6;
+      gfx_drawstr(dk_hint[k_i]);
+    );
 
     mouse_clicked && t_hov ? (
       slider50 = is_on ? (slider50 - (1 << k_i)) : (slider50 + (1 << k_i));
@@ -2508,10 +2608,17 @@ slider1 == 7 ? (
   gfx_printf("DENSITY: %d%% | AUTO-DEPLOY TACTICIAN: %s", floor(dk_dens * 100), slider37 ? "ENGAGED" : "MANUAL");
 
   gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30; gfx_x = lx + 24; gfx_y = log_y + 62;
-  dk_r_idx == 4 ? gfx_drawstr("STATUS: ACTIVE CHORUS BLOOM (+12% WIDTH) & SILK AIR EXPANSION") :
-  dk_r_idx == 3 ? gfx_drawstr("STATUS: PRE-DROP TENSION ARMING // SUB-CUT TUCK READY") :
-  dk_r_idx == 2 ? gfx_drawstr("STATUS: VERSE GROOVE DISCIPLINE // TRANSIENT PASS PRIORITIZED") :
-  gfx_drawstr("STATUS: MONITORING SONG TIMELINE FOR NEXT TRANSITION ENTRY");
+  slider48 ? (
+    gfx_drawstr("DIRECTOR SELECTION: ");
+    gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
+    dk_r_idx == 4 ? gfx_drawstr("[CHORUS] -> Stereo Bloom + Silk Air Sheen + Sub Anchor") :
+    dk_r_idx == 2 ? gfx_drawstr("[VERSE] -> Desk Transformer Warmth + Snare Sidechain Snap") :
+    dk_r_idx == 3 ? gfx_drawstr("[PRE-DROP] -> Tape Head Saturation + Kick Decoupling") :
+    dk_r_idx == 5 ? gfx_drawstr("[BREAKDOWN] -> Desk Warmth + Spatial Air Decorrelation") :
+    gfx_drawstr("[STANDARD] -> Desk Warmth + Snare Snap + Silk Air Sheen");
+  ) : (
+    gfx_drawstr("DIRECTOR OFF // MANUAL SELECTION AUDITION PASSIVE MODE");
+  );
 
   // Right Column: Producer Playbook Carousel & Craft Heuristics
   rx = ws_x + 20 + col_w;
