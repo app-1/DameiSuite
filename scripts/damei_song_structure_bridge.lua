@@ -57,18 +57,18 @@ local function get_song_structure()
             cur_sec_id = 3 -- ⚡ CHORUS IMPACT
             cur_rgn_type = 4
           elseif n:find("pre") or n:find("build") then
-            -- Pre-chorus / build: if right before chorus (< 0.8s), trigger pre-drop breath, otherwise pre-chorus build
-            cur_sec_id = (dist_to_chorus > 0.0 and dist_to_chorus <= 0.8) and 2 or 1
+            -- Pre-chorus / build: musical tension build, no artificial volume drops
+            cur_sec_id = 1
             cur_rgn_type = 3
           elseif n:find("bridge") or n:find("break") or n:find("middle") or n:find("solo") then
-            -- Bridge / breakdown: if right before chorus (< 0.8s), trigger pre-drop breath, otherwise breakdown/bridge
-            cur_sec_id = (dist_to_chorus > 0.0 and dist_to_chorus <= 0.8) and 2 or 4
+            -- Bridge / breakdown: musical breakdown flow
+            cur_sec_id = 4
             cur_rgn_type = 5
           elseif n:find("verse") or n:find("groove") or n:find("main") then
             cur_sec_id = 5 -- ■ VERSE / GROOVE
             cur_rgn_type = 2
           elseif n:find("intro") then
-            cur_sec_id = 3 -- ⚡ INTRO IMPACT (Full-Band Entry)
+            cur_sec_id = 5 -- ■ INTRO (Steady-state groove baseline, zero macro level cliff into Verse)
             cur_rgn_type = 1
           elseif n:find("outro") then
             cur_sec_id = 5 -- ■ OUTRO
@@ -87,10 +87,10 @@ local function get_song_structure()
               cur_rgn_type = 4
             end
           elseif (n:find("pre") or n:find("build")) and math.abs(play_pos - pos) < 4.0 and play_pos >= pos then
-            cur_sec_id = (dist_to_chorus > 0.0 and dist_to_chorus <= 0.8) and 2 or 1
+            cur_sec_id = 1
             cur_rgn_type = 3
           elseif (n:find("bridge") or n:find("break")) and math.abs(play_pos - pos) < 1.0 then
-            cur_sec_id = (dist_to_chorus > 0.0 and dist_to_chorus <= 0.8) and 2 or 4
+            cur_sec_id = 4
             cur_rgn_type = 5
           elseif n:find("verse") and math.abs(play_pos - pos) < 1.0 then
             cur_sec_id = 5
@@ -101,11 +101,7 @@ local function get_song_structure()
     end
   end
 
-  -- Pre-Intro Breath (Lead-in vacuum between 0.8s and 1.951s before song downbeat)
-  if cur_sec_id == 0 and play_pos >= 0.8 and play_pos < 1.951 then
-    cur_sec_id = 2 -- Pre-intro breath / vacuum
-    cur_rgn_type = 1
-  end
+  -- Pre-Intro: Play naturally with continuous full-fidelity audio (vacuum cut removed)
   
   local bridge_active = (has_regions or num_markers > 0) and 1 or 0
   

@@ -1,0 +1,235 @@
+{
+  "reference": {
+    "path": "H:\\REFERENCES\\Split Chain - motionblur - 03 I'm Not Dying To Be Here.wav",
+    "duration_sec": 204.12,
+    "lufs_integrated": -10.26,
+    "peak_dbfs": -0.3,
+    "plr": 9.96,
+    "crest_db": 9.27,
+    "overall_width": 0.6269999742507935,
+    "inter_channel_corr": 0.435,
+    "band_pct_energy": [
+      16.34,
+      38.6,
+      14.86,
+      20.41,
+      8.33,
+      1.15,
+      0.31
+    ],
+    "band_widths": [
+      0.018,
+      0.339,
+      0.887,
+      0.897,
+      0.782,
+      0.857,
+      1.164
+    ],
+    "chorus_rms_db": -7.54,
+    "verse_rms_db": -29.41,
+    "macro_dynamic_spread_db": 21.86,
+    "chorus_width": 0.625,
+    "verse_width": 1.069000005722046,
+    "width_expansion_chorus_pct": -41.599998474121094
+  },
+  "mix": {
+    "path": "H:\\HexGirls2\\HexGyal\\DemoMix\\HexGyal.wav",
+    "duration_sec": 108.95,
+    "lufs_integrated": -21.72,
+    "peak_dbfs": -7.21,
+    "plr": 14.5,
+    "crest_db": 13.81,
+    "overall_width": 0.4569999873638153,
+    "inter_channel_corr": 0.654,
+    "band_pct_energy": [
+      11.12,
+      48.91,
+      9.84,
+      26.01,
+      3.62,
+      0.27,
+      0.23
+    ],
+    "band_widths": [
+      0.042,
+      0.254,
+      0.603,
+      0.697,
+      0.682,
+      0.718,
+      1.031
+    ],
+    "chorus_rms_db": -19.38,
+    "verse_rms_db": -26.7,
+    "macro_dynamic_spread_db": 7.32,
+    "chorus_width": 0.4480000138282776,
+    "verse_width": 0.49900001287460327,
+    "width_expansion_chorus_pct": -10.199999809265137
+  },
+  "reference_stems": {
+    "Bass": {
+      "path": "H:\\STEMS FOLDER\\SplitChain\\I'm Not Dying To Be Here\\1_Split Chain - \uff02I'm Not Dying To Be Here\uff02_(Bass).wav",
+      "duration_sec": 204.21,
+      "lufs_integrated": -19.82,
+      "peak_dbfs": -6.43,
+      "plr": 13.39,
+      "crest_db": 12.7,
+      "overall_width": 0.0729999989271164,
+      "inter_channel_corr": 0.99,
+      "band_pct_energy": [
+        3.28,
+        96.44,
+        0.15,
+        0.08,
+        0.05,
+        0.0,
+        0.0
+      ],
+      "band_widths": [
+        0.049,
+        0.072,
+        0.172,
+        0.083,
+        0.09,
+        0.615,
+        0.638
+      ],
+      "chorus_rms_db": -16.34,
+      "verse_rms_db": -49.26,
+      "macro_dynamic_spread_db": 32.92,
+      "chorus_width": 0.0560000017285347,
+      "verse_width": 0.10599999874830246,
+      "width_expansion_chorus_pct": -46.900001525878906
+    },
+    "Drums": {
+      "path": "H:\\STEMS FOLDER\\SplitChain\\I'm Not Dying To Be Here\\1_Split Chain - \uff02I'm Not Dying To Be Here\uff02_(Drums).wav",
+      "duration_sec": 204.21,
+      "lufs_integrated": -17.58,
+      "peak_dbfs": 0.0,
+      "plr": 17.58,
+      "crest_db": 16.89,
+      "overall_width": 0.20999999344348907,
+      "inter_channel_corr": 0.915,
+      "band_pct_energy": [
+        39.05,
+        45.25,
+        9.21,
+        1.9,
+        2.18,
+        1.72,
+        0.69
+      ],
+      "band_widths": [
+        0.024,
+        0.144,
+        0.231,
+        0.317,
+        0.602,
+        0.868,
+        1.015
+      ],
+      "chorus_rms_db": -13.76,
+      "verse_rms_db": -27.42,
+      "macro_dynamic_spread_db": 13.65,
+      "chorus_width": 0.20800000429153442,
+      "verse_width": 0.10599999874830246,
+      "width_expansion_chorus_pct": 96.4000015258789
+    },
+    "Other": {
+      "path": "H:\\STEMS FOLDER\\SplitChain\\I'm Not Dying To Be Here\\1_Split Chain - \uff02I'm Not Dying To Be Here\uff02_(Other).wav",
+      "duration_sec": 204.21,
+      "lufs_integrated": -14.69,
+      "peak_dbfs": 0.0,
+      "plr": 14.69,
+      "crest_db": 14.0,
+      "overall_width": 1.1759999990463257,
+      "inter_channel_corr": -0.161,
+      "band_pct_energy": [
+        0.2,
+        20.62,
+        29.36,
+        37.85,
+        11.79,
+        0.16,
+        0.02
+      ],
+      "band_widths": [
+        0.662,
+        1.099,
+        1.161,
+        1.22,
+        1.231,
+        1.288,
+        1.265
+      ],
+      "chorus_rms_db": -11.29,
+      "verse_rms_db": -36.78,
+      "macro_dynamic_spread_db": 25.49,
+      "chorus_width": 1.2079999446868896,
+      "verse_width": 1.2269999980926514,
+      "width_expansion_chorus_pct": -1.5
+    },
+    "Vocals": {
+      "path": "H:\\STEMS FOLDER\\SplitChain\\I'm Not Dying To Be Here\\1_Split Chain - \uff02I'm Not Dying To Be Here\uff02_(Vocals).wav",
+      "duration_sec": 204.21,
+      "lufs_integrated": -19.65,
+      "peak_dbfs": -0.0,
+      "plr": 19.65,
+      "crest_db": 18.96,
+      "overall_width": 0.5550000071525574,
+      "inter_channel_corr": 0.529,
+      "band_pct_energy": [
+        0.01,
+        7.89,
+        27.06,
+        41.13,
+        16.32,
+        6.19,
+        1.4
+      ],
+      "band_widths": [
+        0.267,
+        0.444,
+        0.636,
+        0.539,
+        0.491,
+        0.605,
+        0.601
+      ],
+      "chorus_rms_db": -14.63,
+      "verse_rms_db": -22.9,
+      "macro_dynamic_spread_db": 8.27,
+      "chorus_width": 0.5540000200271606,
+      "verse_width": 0.6110000014305115,
+      "width_expansion_chorus_pct": -9.300000190734863
+    }
+  },
+  "comparison": {
+    "lufs_delta": -11.46,
+    "plr_delta": 4.54,
+    "crest_delta": 4.54,
+    "width_delta": -0.17000000178813934,
+    "corr_delta": 0.219,
+    "band_energy_delta": [
+      -5.22,
+      10.31,
+      -5.02,
+      5.6,
+      -4.71,
+      -0.88,
+      -0.08
+    ],
+    "band_width_delta": [
+      0.024,
+      -0.085,
+      -0.284,
+      -0.2,
+      -0.1,
+      -0.139,
+      -0.133
+    ],
+    "macro_spread_delta": -14.54,
+    "chorus_expansion_delta": 31.399999618530273
+  }
+}

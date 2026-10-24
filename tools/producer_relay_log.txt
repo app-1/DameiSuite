@@ -1,0 +1,201 @@
+================================================================================
+⚡ DAMEI SUITE: RELAYING PRODUCER DNA & EAR-CANDY PLAYS
+   Producer Blueprint: Kel Pinchin (Split Chain / motionblur)
+   Reference Track: 'I'm Not Dying To Be Here'
+   Target: -10.3 LUFS-I | 9.3 dB Crest | 0.63 Width | +21.9 dB Dynamic Spread
+================================================================================
+✔ RELAYING MIXING SUITE on [MASTER TRACK]
+   ├─ Producer Preset (Kel Pinchin / Split Chain): 6.00
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Stereo Width Expander (1.18x): 1.18
+   ├─ Spectral Tilt Brightness Sheen (+1.8 dB): 1.80
+   ├─ Pre-Master Headroom Target (-6.0 dBTP): -6.00
+   ├─ Mix Bus Clipper (Lance Prenc Soft Clip): 1.00
+   ├─ Comp Topology (British VCA): 0.00
+   ├─ Comp Ratio (2:1): 1.00
+   ├─ Comp Attack (30 ms): 30.00
+   ├─ Comp Release (Auto): 0.00
+   ├─ Producer Center Vocal Trim (+2.2 dB): 2.20
+   ├─ Center Vocal Donut-Hole (Deep Cut -3.5 dB @ 2500 Hz): 2.00
+   ├─ Vocal Donut-Hole Center Frequency (2500 Hz): 2500.00
+   ├─ Dynamic De-Box Mud Gain (-2.5 dB): -2.50
+   ├─ Dynamic De-Box Frequency (160 Hz): 160.00
+   ├─ Guitar Palm-Mute Chug Guard (Fast Notch 190 Hz): 1.00
+   ├─ Play 4: Song Structure AI (Commercial Drop Slam: +0.16x Width / +1.4 dB Punch): 2.00
+   ├─ Detection Mode (Hybrid Prioritizing REAPER Regions): 0.00
+✔ RELAYING MIXING SUITE on [MASTER TRACK]
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Stereo Width Expander (1.18x): 1.18
+   ├─ Spectral Tilt Brightness Sheen (+1.8 dB): 1.80
+   ├─ Pre-Master Headroom Target (-6.0 dBTP): -6.00
+   ├─ Comp Topology (British VCA): 0.00
+   ├─ Comp Ratio (2:1): 1.00
+   ├─ Comp Attack (30 ms): 30.00
+   ├─ Comp Release (Auto): 0.00
+   ├─ Dynamic De-Box Mud Gain (-2.5 dB): -2.50
+✔ RELAYING SANKOFA ORACLE on [MASTER TRACK]
+   ├─ Library Preset (Split Chain): 2.00
+   ├─ Reference Benchmark (Split Chain): 6.00
+   ├─ Static Calibration Lock (Engaged): 1.00
+   ├─ Shootout Monitor Mode (MIX): 0.00
+✔ RELAYING VOCAL SOVEREIGN on [Track: VOX]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Master Vocal Engine (Active): 1.00
+   ├─ Center Lead Lock 100% Mono <200Hz: 1.00
+   ├─ FET Comp 8:1 Ratio: 1.00
+   ├─ LA-2A Smooth Opto Compress: 0.00
+   ├─ LA-2A Sidechain HPF Emphasis: 1.00
+   ├─ LOADES Split-Band De-Esser: 1.00
+   ├─ ReEQ 95Hz Highpass: 95.00
+   ├─ ReEQ 380Hz Chest Mud Scoop (-2.5 dB): -2.50
+   ├─ ReEQ 5.2kHz De-Harsh (-2.2 dB): -2.20
+   ├─ Maag 16kHz Air Band (+2.0 dB): 2.00
+   ├─ 1.8kHz Vocal Presence (+1.4 dB): 1.40
+   ├─ Stereo Backing Width (1.20x): 1.20
+   ├─ Hermite Soft-Clip Topology: 1.00
+   ├─ Ceiling Clamp (-0.5 dBTP): -0.50
+   ├─ Strict Ceiling Guardian Active: 1.00
+   ├─ Output Makeup Pocket Calibration (+5.2 dB): 5.20
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Play 1: Pre-Chorus Vocal Throw Delay: 1.00
+   ├─ Throw Delay Feedback (35%): 35.00
+   ├─ Play 2: Reverse Vocal Swell into Drops: 1.00
+   ├─ Reverse Swell Duration (2.0 Bars): 2.00
+   ├─ Telephone Filter Clean Lead: 0.00
+   ├─ Ear-Candy Director (Region+Energy Aware): 1.00
+   ├─ Ear-Candy Amount (35%): 35.00
+   ├─ Kel Pinchin Trick Palette (12607): 12607.00
+   ├─ Ear-Candy Palette Follows Producer: 1.00
+   ├─ Guitar Pocket Lock (Auto-Unmask vs Gtr): 1.00
+✔ RELAYING DRUM BUS ARCHITECT on [Track: DRUMS]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Cymbal Silk Master (Active): 1.00
+   ├─ Sub-Kick Boom Tamer 40Hz (-2.0 dB): -2.00
+   ├─ Room Mud Scoop 340Hz (-2.5 dB): -2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Cymbal De-Trash Resonance (-2.0 dB): -2.00
+   ├─ Cymbal Silk Air Sheen (+2.2 dB): 2.20
+   ├─ Integration Mode (Standalone All-in-One Chain): 1.00
+   ├─ Song Structure AI (Commercial Drop Slam: +0.14x Width): 2.00
+   ├─ Britson Neve Console Drive (25%): 25.00
+   ├─ BSA Drum Bus Glue & Heat (20%): 20.00
+   ├─ Devil-Slam Parallel Crush (15%): 15.00
+   ├─ BSA Comp Drive (38%): 38.00
+   ├─ BSA Heat Saturation (26%): 26.00
+   ├─ BSA Parallel Mix (85%): 85.00
+   ├─ Mix Headroom Balance Anchor (Auto-Guard): 1.00
+✔ RELAYING SYNTH BUS NEBULA on [Track: SYNTHS]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Play 2b: Dynamic Pre-Drop Silence Choke: 1.00
+   ├─ Play 7b: Devastator Suite Neural Interlock: 1.00
+   ├─ Devastator Divebomb Carve Depth (4.0 dB): 4.00
+   ├─ Drum Kick Sub-Duck Depth (3.5 dB via gmem 820): 3.50
+   ├─ Lead Vocal Mid-Carve Depth (2.5 dB via gmem 880): 2.50
+   ├─ Guitar Wall Chorus Carve (3.0 dB via gmem 840): 3.00
+   ├─ Ear-Candy Director (Region+Energy Aware): 1.00
+   ├─ Dystopian Chaos Resonator (25%): 25.00
+   ├─ Tritone Fright Comb Resonance (35%): 35.00
+✔ RELAYING SYNTH BUS NEBULA on [Track: Synth]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Play 2b: Dynamic Pre-Drop Silence Choke: 1.00
+   ├─ Play 7b: Devastator Suite Neural Interlock: 1.00
+   ├─ Devastator Divebomb Carve Depth (4.0 dB): 4.00
+   ├─ Drum Kick Sub-Duck Depth (3.5 dB via gmem 820): 3.50
+   ├─ Lead Vocal Mid-Carve Depth (2.5 dB via gmem 880): 2.50
+   ├─ Guitar Wall Chorus Carve (3.0 dB via gmem 840): 3.00
+   ├─ Ear-Candy Director (Region+Energy Aware): 1.00
+   ├─ Dystopian Chaos Resonator (25%): 25.00
+   ├─ Tritone Fright Comb Resonance (35%): 35.00
+✔ RELAYING SYNTH BUS NEBULA on [Track: SynBass]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Play 2b: Dynamic Pre-Drop Silence Choke: 1.00
+   ├─ Play 7b: Devastator Suite Neural Interlock: 1.00
+   ├─ Devastator Divebomb Carve Depth (4.0 dB): 4.00
+   ├─ Drum Kick Sub-Duck Depth (3.5 dB via gmem 820): 3.50
+   ├─ Lead Vocal Mid-Carve Depth (2.5 dB via gmem 880): 2.50
+   ├─ Guitar Wall Chorus Carve (3.0 dB via gmem 840): 3.00
+   ├─ Ear-Candy Director (Region+Energy Aware): 1.00
+   ├─ Dystopian Chaos Resonator (25%): 25.00
+   ├─ Tritone Fright Comb Resonance (35%): 35.00
+✔ RELAYING DEVASTATOR SUITE on [Track: CINEMATIC FX (Devastator // KeepForest)]
+   ├─ Producer Blueprint (Kel Pinchin): 8.00
+   ├─ Sub-Bed Trim (-13.0 dB): -13.00
+   ├─ Sub Mono Anchor <90Hz (Active): 1.00
+   ├─ M/S Spatial Widener (1.25x): 1.25
+   ├─ AI Context-Aware Auto-Trigger (Energy Delta): 1.00
+   ├─ Play 7: Slot 1 Trailer Braam (Active): 1.00
+   ├─ Play 2: Slot 2 Reversed Suck-Back (Active): 1.00
+   ├─ Pre-Drop Micro-Silence Choke (80 ms): 80.00
+   ├─ Play 7b: Slot 3 Sub Divebomb (Active): 1.00
+   ├─ Slot 4 Cyber Riser & Ambient Pad (Active): 1.00
+   ├─ Drum Bus Ducking Interlock (gmem 820): 1.00
+   ├─ Lead Vocal Pocket Protection (gmem 880): 1.00
+   ├─ Guitar Wall Low-Mid Handshake (gmem 840): 1.00
+   ├─ Producer Playbook Mode (Region+Energy Aware): 1.00
+   ├─ Trailer Playbook Intensity (Producer): 1.00
+✔ RELAYING GUITAR BUS ALCHEMIST on [Track: GUITAR]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Stereo Quad-Wall Width (1.28x): 1.28
+   ├─ Sub-Guitar Highpass Anchor (95 Hz HPF): 95.00
+   ├─ Mud Box Scoop 380Hz (-2.0 dB): -2.00
+   ├─ Dynamic Chug Clamp Strength (40% / -4.0 dB): 40.00
+   ├─ Chug Resonance Frequency (190 Hz): 190.00
+   ├─ Center Pocket Cut (-2.5 dB for Vocal): -2.50
+   ├─ Air Sheen & Cab Presence (+1.8 dB): 1.80
+   ├─ De-Fizz Master Engine (Active): 1.00
+   ├─ De-Fizz Notch 3.2kHz (-1.5 dB): -1.50
+   ├─ De-Fizz Notch 4.2kHz (-1.8 dB): -1.80
+   ├─ Integration Mode (Standalone All-in-One Chain): 1.00
+   ├─ Play 3: Pre-Drop Pick Scrape & Swell: 1.00
+   ├─ Play 3b: Pre-Drop Killswitch 1/16th Chopper: 1.00
+   ├─ Play 6b: Auto Radio Megaphone Pre-Drop: 1.00
+   ├─ Play 5: Breakdown Whammy Pitch Dive & Tape Stop: 1.00
+   ├─ Ear-Candy Wet/Dry Blend (30%): 30.00
+   ├─ Ear-Candy Director (Region+Energy Aware): 1.00
+   ├─ Ear-Candy Amount (40%): 40.00
+   ├─ Palette Follows Producer Preset: 1.00
+   ├─ Song Structure AI (Commercial Drop Slam: +0.14x Width): 2.00
+   ├─ Britson Neve Console Drive (25%): 25.00
+   ├─ Tape Saturation & Heat (20%): 20.00
+   ├─ VCA Bus Glue (DC1A3 15%): 15.00
+   ├─ Drum Bus Pocket Link (Auto-Guard -4.5dB): 1.00
+   ★ UNBYPASSED / ACTIVATED: JS: Sweeping Resonant Lowpass Filter on [Track: DottedVerse]
+   ★ UNBYPASSED / ACTIVATED: JS: Ping Pong Pan on [Track: DottedVerse]
+✔ RELAYING BASS BUS ENGINE on [Track: BASS]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Sub-Mono Elliptical Anchor (90 Hz): 90.00
+   ├─ Kick Ducking Depth (3.0 dB via Trackspacer): 3.00
+   ├─ Mud Box Scoop 250Hz (-2.5 dB): -2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Integration Mode (Standalone All-in-One Chain): 1.00
+   ├─ Smash & Grab Comp Mode (Hybrid): 2.00
+   ├─ Smash Fast Clamp (38%): 38.00
+   ├─ Grab Warm Leveler (42%): 42.00
+   ├─ Smash & Grab Parallel Mix (85%): 85.00
+   ├─ Decapitator Style (Style N Neve): 1.00
+   ├─ Decapitator Drive (28%): 28.00
+   ├─ Trackspacer Dynamic Inverse EQ (Active): 1.00
+   ├─ Trackspacer Ducking Amount (40%): 40.00
+   ├─ Kick/Guitar Pocket Interlock (Auto-Guard): 1.00
+   ★ OPTIMIZED TRACK FADER: [VOX] set to +1.2 dB (Sits inside mix pocket)
+   ★ LOCKED INSTRUMENTAL BUS: [INSTRUMENTAL//BUSS] calibrated to -4.9 dB peak
+--------------------------------------------------------------------------------
+⚡ RELAY COMPLETE: 11 Suites Synchronized | 175 Parameters Armed | 2 Bypasses Fixed
+   All 7 Producer Plays Armed across Vocal, Drums, Guitar, Bass, Synth, Devastator & Mix Bus.
+   Playback Audition: Spacebar to play. Shootout pill active on Mixing Suite & Sankofa Oracle.
+================================================================================

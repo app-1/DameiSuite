@@ -1,0 +1,89 @@
+================================================================================
+⚡ DAMEI SUITE: APPLYING SPLIT CHAIN STATIC CALIBRATION
+   Target Reference: Split Chain - 'I'm Not Dying To Be Here'
+   Calibration Mode: Static Precision Lock (Zero Dynamic Gain Hunting)
+================================================================================
+✔ FOUND MIXING SUITE on [MASTER TRACK]
+   ├─ Producer Preset (Kel Pinchin / Split Chain): 6.00
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Stereo Width Expander (1.18x): 1.18
+   ├─ Spectral Tilt Sheen (+0.8 dB): 0.80
+   ├─ Pre-Master Headroom Target (-6.0 dBTP): -6.00
+   ├─ Mix Bus Clipper (Lance Prenc Soft Clip): 1.00
+   ├─ Comp Topology (British VCA): 0.00
+   ├─ Comp Ratio (2:1): 1.00
+   ├─ Comp Attack (30 ms): 30.00
+   ├─ Comp Release (Auto): 0.00
+✔ FOUND MIXING SUITE on [MASTER TRACK]
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Stereo Width Expander (1.18x): 1.18
+   ├─ Spectral Tilt Sheen (+0.8 dB): 0.80
+   ├─ Pre-Master Headroom Target (-6.0 dBTP): -6.00
+   ├─ Comp Topology (British VCA): 0.00
+   ├─ Comp Ratio (2:1): 1.00
+   ├─ Comp Attack (30 ms): 30.00
+   ├─ Comp Release (Auto): 0.00
+✔ FOUND SANKOFA ORACLE on [MASTER TRACK]
+   ├─ Library Preset (Split Chain): 2.00
+   ├─ Reference Benchmark (Split Chain): 6.00
+   ├─ Static Calibration Lock (Engaged): 1.00
+   ├─ Shootout Monitor Mode (MIX): 0.00
+✔ FOUND VOCAL SOVEREIGN on [Track: VOX]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Master Vocal Engine (Active): 1.00
+   ├─ Center Lead Lock 100% Mono <200Hz: 1.00
+   ├─ ReEQ 380Hz Chest Mud Scoop (-2.0 dB): -2.00
+   ├─ Maag 16kHz Air Band (+1.8 dB): 1.80
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ FOUND DRUM BUS ARCHITECT on [Track: DRUMS]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Cymbal Silk Master (Active): 1.00
+   ├─ Sub-Kick Boom Tamer 40Hz (-1.5 dB): -1.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ├─ Cymbal De-Trash Resonance (-1.8 dB): -1.80
+   ├─ Cymbal Silk Air Sheen (+1.2 dB): 1.20
+✔ FOUND SYNTH BUS NEBULA on [Track: SYNTHS]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ FOUND SYNTH BUS NEBULA on [Track: Synth]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ FOUND SYNTH BUS NEBULA on [Track: SynBass]
+   ├─ Producer Blueprint (Kel Pinchin): 10.00
+   ├─ Stereo Horizon Width (1.45x): 1.45
+   ├─ Sub Mono Lock <90Hz (Active): 1.00
+   ├─ Multiband Low-Mid Scoop (-1.5 dB): -1.50
+   ├─ Multiband Glassy Air Sheen (+2.5 dB): 2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ FOUND DEVASTATOR SUITE on [Track: CINEMATIC FX (Devastator // KeepForest)]
+   ├─ Producer Blueprint (Kel Pinchin): 8.00
+   ├─ Sub-Bed Trim (-13.0 dB): -13.00
+   ├─ Sub Mono Anchor <90Hz (Active): 1.00
+   ├─ M/S Spatial Widener (1.25x): 1.25
+✔ FOUND GUITAR BUS ALCHEMIST on [Track: GUITAR]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Stereo Quad-Wall Width (1.28x): 1.28
+   ├─ Sub-Guitar Highpass Anchor (90 Hz): 90.00
+   ├─ Mud Box Scoop 380Hz (-1.0 dB): -1.00
+   ├─ De-Fizz Master Engine (Active): 1.00
+   ├─ De-Fizz Notch 3.2kHz (-1.5 dB): -1.50
+   ├─ De-Fizz Notch 4.2kHz (-1.8 dB): -1.80
+✔ FOUND BASS BUS ENGINE on [Track: BASS]
+   ├─ Producer Preset (Kel Pinchin): 5.00
+   ├─ Sub-Mono Elliptical Anchor (90 Hz): 90.00
+   ├─ Kick Ducking Depth (2.4 dB): 2.40
+   ├─ Mud Box Scoop 250Hz (-1.5 dB): -1.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+--------------------------------------------------------------------------------
+⚡ CALIBRATION APPLIED: 11 Suites Updated | 68 Parameters Modified
+   Telemetries locked in gmem:DameiMixMetering (gmem[1159] = 1).
+   Audition Mode: Use spacebar to play. Toggle A/B on Mixing Suite or Sankofa Oracle.
+================================================================================

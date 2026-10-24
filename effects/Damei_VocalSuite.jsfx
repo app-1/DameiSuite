@@ -9,7 +9,7 @@ desc:Damei Vocal Sovereign (Imperial Crown & Pocket Alchemist)
 slider1:0<0,5,1{Vocal Aura & Stem Commander,Producer Ear-Candy & Drops,AnalogObsession Dual-Comp & De-Esser,Mid/Side & Pocket Handshake,Analog Desk & Air Sheen,Producer Vocal Matrix}>-Active Module
 slider2:-12.0<-24.0,-6.0,0.5>-Target Level (dBFS Peak)
 slider3:6800<4000,9000,100>-De-Esser Center Sibilance Frequency (Hz)
-slider4:-22.0<-36.0,-10.0,0.5>-De-Esser Dynamic Threshold (dBFS)
+slider4:-22.0<-48.0,-10.0,0.5>-De-Esser Dynamic Threshold (dBFS)
 slider5:3.5<1.0,8.0,0.5>-De-Esser Max Attenuation Depth (dB)
 slider6:25<0,100,1>-Stage 1: 1176 Fast FET Peak Shaver (%)
 slider7:20<0,100,1>-Stage 2: LA-2A Optical Body Leveler (%)
@@ -23,17 +23,17 @@ slider14:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider15:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider16:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider17:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider18:15<0,16,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Machine Gun Kelly)}>-Producer Vocal Signature Preset
+slider18:15<0,19,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Machine Gun Kelly),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Vocal Signature Preset
 slider19:0<0,3,1{Active Cover Stems (Lead/FX/Glitch/Doubles),Full Multi-Bus (Lead/Verse/Chorus/Harm/AdLib),Raw Dynamic Tracking,Acoustic / Intimate}>-Vocal Session Layout Mode
 slider20:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider21:1<0,1,1{Manual Parameter Mode,AI Assist Active Formula Calibration}>-AI Assist Intelligent Engine
 slider22:1<0,1,1{Free Dynamic,Guitar Pocket Lock (Auto-Unmask vs Gtr Bus)}>-Guitar Pocket Handshake Link
 slider23:0.0<-6.0,6.0,0.1>-Input Gain Calibration (dB)
-slider24:0.0<-6.0,6.0,0.2>-Stem 1 Trim (dB) [Lead Vox]
-slider25:0.0<-6.0,6.0,0.2>-Stem 2 Trim (dB) [Verse / FX Vox]
-slider26:0.0<-6.0,6.0,0.2>-Stem 3 Trim (dB) [Chorus / Glitch]
-slider27:0.0<-6.0,6.0,0.2>-Stem 4 Trim (dB) [Doubles Left/Right]
-slider28:0.0<-6.0,6.0,0.2>-Stem 5 Trim (dB) [Harmonies / Ad-Libs]
+slider24:0.0<-12.0,6.0,0.5>-Lead Vox Stem Level (dB) [Trk 5 Lead Stem]
+slider25:-4.0<-18.0,6.0,0.5>-Ad-Lib Stem Level (dB) [Trk 6-7 VoxEffect / Glitch]
+slider26:6<0,100,1>-Ad-Lib FX & Space Amount (%) [Trk 6-10 EchoBoy & Verb Mix]
+slider27:-5.0<-18.0,6.0,0.5>-Doubles L/R Level (dB) [Trk 8-10 Doubles]
+slider28:0.0<-24.0,6.0,0.5>-Vocal Reverb & Aux Space (dB) [Trk 1-3 VOXVERB]
 slider29:1<0,1,1{Bypassed,Active De-Esser & Dual Dynamics}>-Master Vocal Engine Toggle
 // Producer Ear-Candy & Drop Automators
 slider30:1<0,1,1{Off,Auto Pre-Drop Throw (Final Bar into Chorus Only)}> -Pre-Chorus Vocal Throw Delay
@@ -42,7 +42,7 @@ slider32:0<0,2,1{Off (Clean Lead),Auto Pre-Drop Choke (Final Bar Only),Contextua
 slider33:35<10,80,5>-Throw Delay Feedback (%)
 slider34:2.0<0.5,4.0,0.5>-Reverse Swell Duration (Bars)
 slider39:1<0,1,1{Classic Fixed-Timing Automators,Ear-Candy Director (Region + Energy Aware)}>-Ear-Candy Director
-slider40:40<0,100,1>-Ear-Candy Amount (%)
+slider40:15<0,100,1>-Master Vocal Effect Intensity (%)
 slider41:8967<0,65535,1>-Ear-Candy Trick Palette (bitmask)
 slider42:1<0,1,1{Manual Palette,Follow Producer Preset}>-Ear-Candy Palette Follows Producer
 // AnalogObsession Modeled Dynamics (FETISH, LALA, LOADES) & ReEQ
@@ -55,6 +55,8 @@ slider48:-2.0<-8.0,2.0,0.5>-ReEQ 380Hz Chest Mud Scoop (dB)
 slider49:-2.5<-8.0,2.0,0.5>-ReEQ 5.2kHz Harshness Notch (dB)
 
 slider35:1<0,1,1{Off,On}>-Matrix Trim (applies Assessment Matrix auto-correct lane)
+slider50:0<0,1,1{Normal Passthrough,Audition Delta Solo (De-Esser & Dynamics)}>-Audition Delta Solo
+slider51:0<0,1,1{State A,State B}>-A/B Snapshot Selector
 options:gmem=DameiMixMetering
 options:no_meter
 options:maxmem=2097152
@@ -103,6 +105,7 @@ file_var(0, slider43); file_var(0, slider44); file_var(0, slider45); file_var(0,
 file_var(0, slider47); file_var(0, slider48); file_var(0, slider49);
 
 @init
+
 // Explicitly zero out delay buffers on initialization
 memset(40000, 0, 96000);
 memset(140000, 0, 96000);
@@ -561,7 +564,7 @@ function dk_block() local(k, w0, w1b, w5, w6, w7, w11, recent, cand, big, hc, pk
   dk_dn = dk_pd[dk_prod];
   dk_mask = floor(slider41 + 0.5);
   dk_en = ((play_state & 1) && !(play_state & 2));
-  dk_amt = (0.4 + 1.2 * slider40 * 0.01) * dk_pg[dk_prod];
+  dk_amt = (slider40 * 0.01) * dk_pg[dk_prod];
   dk_bpm = (tempo > 20) ? tempo : 120;
   dk_beat = 60.0 / dk_bpm;
   dk_bllen = min(3.4, 8.0 * dk_beat);
@@ -716,15 +719,19 @@ function dk_process() (
   dk_sh[dk_sh_w] = dk_m; dk_sh_w = (dk_sh_w + 1) % dk_sh_sz;
   dk_sl[dk_sl_w] = dk_m;
 
-  // THROW: ping-pong capture only inside its window, returns until the downbeat
+  // THROW: ping-pong capture inside pre-drop window, decays naturally across downbeat
   dk_sg = (dk_env[0] > 0.5) ? 1.0 : 0.0;
+  dk_sg > 0 ? ( dk_throw_tail = 1.0; );
+  dk_throw_tail *= (1.0 - 0.75 * dk_isr);
+  dk_ret_mult = max(dk_env[0], dk_throw_tail);
+
   dk_ra = dk_dA[(dk_dA_w - dk_thd + dk_dA_sz) % dk_dA_sz];
   dk_rb = dk_dB[(dk_dA_w - dk_thd + dk_dA_sz) % dk_dA_sz];
   dk_dA[dk_dA_w] = out_l * dk_sg + dk_rb * 0.46;
   dk_dB[dk_dA_w] = out_r * dk_sg + dk_ra * 0.46;
   dk_dA_w = (dk_dA_w + 1) % dk_dA_sz;
-  dk_xl += dk_ra * dk_ga[0] * dk_env[0];
-  dk_xr += dk_rb * dk_ga[0] * dk_env[0];
+  dk_xl += dk_ra * dk_ga[0] * dk_ret_mult;
+  dk_xr += dk_rb * dk_ga[0] * dk_ret_mult;
 
   // BLOOM: replay the phrase before the transition backwards, swelling into the downbeat
   dk_bw = (dk_tg[1] > 0.5);
@@ -836,8 +843,9 @@ function dk_process() (
   );
 
   // ---- add the (capped) wet bed ----
-  out_l += max(-dk_cap, min(dk_cap, dk_xl));
-  out_r += max(-dk_cap, min(dk_cap, dk_xr));
+  dk_wet_scale = (slider40 * 0.01);
+  out_l += max(-dk_cap, min(dk_cap, dk_xl * dk_wet_scale));
+  out_r += max(-dk_cap, min(dk_cap, dk_xr * dk_wet_scale));
 );
 // ---------------- GUI (called from @gfx only) ----------------
 // ===== EAR-CANDY DIRECTOR END =====
@@ -868,6 +876,21 @@ function apply_vocal_preset(p_idx) (
     slider3 = 6200; slider4 = -20.0; slider5 = 5.0;
     slider6 = 45; slider7 = 35; slider8 = 1.20;
     slider10 = 1.8; slider11 = 2.2;
+  ) : p_idx == 5 ? ( // Kel Pinchin (Split Chain / motionblur)
+    // AnalogObsession & ReEQ Producer Calibrations
+    slider43 = 1; slider44 = 0; slider45 = 1; slider46 = 1; // FET 8:1 + LA-2A Opto + Sidechain HPF + Split-Band De-Esser
+    slider47 = 95; slider48 = -2.5; slider49 = -2.2;         // 95Hz HPF, 380Hz chest mud scoop -2.5dB, 5.2kHz de-harsh -2.2dB
+    slider3 = 6600; slider4 = -37.0; slider5 = 5.0;          // De-Esser 6.6kHz (-37.0 dBFS threshold catches harsh consonants, 5.0 dB max depth)
+    slider6 = 28; slider7 = 24; slider8 = 1.20;               // FET 28% + Opto 24% + Stereo Backing 1.20
+    slider10 = 2.0; slider11 = 1.4;                          // Maag 16kHz +2.0dB + 1.8kHz presence +1.4dB
+    slider14 = 1; slider15 = -0.5; slider16 = 1;              // Musical Hermite soft-clip headroom lock
+    slider17 = 1.8;                                          // Output Makeup Trim +1.8dB (Sankofa pocket balance)
+    slider24 = 0.0;  // Lead Vox Stem 0.0 dB
+    slider25 = -4.0; // Ad-Lib Stem -4.0 dB
+    slider26 = 6;    // Ad-Lib FX & Space 6% (tamed, clean, dry, zero washout)
+    slider27 = -5.0; // Doubles Level -5.0 dB
+    slider28 = -2.0; // Reverb & Aux Space -2.0 dB
+    slider39 = 1; slider40 = 15; slider41 = 12607; slider42 = 1; // Ear-Candy Director Kel Pinchin palette
   ) : p_idx == 9 ? ( // Adam 'Nolly' Getgood (Periphery Modern Metal)
     // AnalogObsession & ReEQ Producer Calibrations
     slider43 = 0; slider44 = 0; slider45 = 1; slider46 = 1;
@@ -889,6 +912,33 @@ function apply_vocal_preset(p_idx) (
     slider3 = 6900; slider4 = -23.5; slider5 = 4.2;
     slider6 = 32; slider7 = 24; slider8 = 1.20;
     slider10 = 2.5; slider11 = 1.4;
+  ) : p_idx == 17 ? (
+    // Acle Kahney (TesseracT - King) - Dan Tompkins Style Ethereal Clarity & Pristine 16kHz Air
+    slider43 = 0; slider44 = 0; slider45 = 1; slider46 = 1;
+    slider47 = 90; slider48 = -2.2; slider49 = -2.0;
+    slider3 = 6800; slider4 = -36.0; slider5 = 4.5;
+    slider6 = 26; slider7 = 22; slider8 = 1.25;
+    slider10 = 2.4; slider11 = 1.0;
+    slider14 = 0; slider15 = -0.5; slider16 = 1;
+    slider17 = 1.2; slider24 = 0.0; slider25 = -4.5;
+  ) : p_idx == 18 ? (
+    // Adam Cichocki (heaving. - carsick / Timber Studios) - Embedded Shoegaze Vocal Halo & Saturated Bloom
+    slider43 = 1; slider44 = 0; slider45 = 1; slider46 = 1;
+    slider47 = 95; slider48 = -2.8; slider49 = -2.4;
+    slider3 = 6500; slider4 = -35.0; slider5 = 5.0;
+    slider6 = 35; slider7 = 28; slider8 = 1.30;
+    slider10 = 1.6; slider11 = 0.8;
+    slider14 = 1; slider15 = -0.5; slider16 = 1;
+    slider17 = 0.8; slider24 = 0.0; slider25 = -3.0;
+  ) : p_idx == 19 ? (
+    // Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios) - Ultra-Modern Pristine Metalcore Vocal Presence & Polish
+    slider43 = 0; slider44 = 0; slider45 = 1; slider46 = 1;
+    slider47 = 90; slider48 = -2.4; slider49 = -2.0;
+    slider3 = 6900; slider4 = -33.0; slider5 = 4.2;
+    slider6 = 28; slider7 = 22; slider8 = 1.20;
+    slider10 = 2.6; slider11 = 1.4;
+    slider14 = 0; slider15 = -0.5; slider16 = 1;
+    slider17 = 0.5; slider24 = 0.0; slider25 = -2.0;
   ) : (
     slider3 = 6800; slider4 = -22.0; slider5 = 3.5;
     slider6 = 25; slider7 = 20; slider8 = 1.15;
@@ -1015,8 +1065,32 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 );
 // ===== MATRIX TRIM END =====
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_vocal_snapshot(target_buf) local(k) (
+  k = 1; loop(49, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_vocal_snapshot(src_buf) local(k) (
+  k = 1; loop(49, slider(k) = src_buf[k]; k += 1; );
+  apply_vocal_preset(slider18);
+  slider_automate();
+);
+
 @slider
 update_vocal_filters();
+gmem[880] = 1;
+gmem[881] = slider18;
+gmem[890] = slider40; // Master Vocal Effect Intensity (%)
+gmem[891] = slider24; // Lead Vox Level (dB)
+gmem[892] = slider25; // Ad-Lib Stem Level (dB)
+gmem[893] = slider26; // Ad-Lib FX & Space Amount (%)
+gmem[894] = slider27; // Doubles Level (dB)
+gmem[895] = slider28; // Vocal Reverb Aux Space (dB)
 
 @block
 inp_gain_mult = exp(slider23 * (log(10.0) / 20.0));
@@ -1039,10 +1113,10 @@ g_cur_rgn_type  = g_bridge_active ? gmem[106] : 0;
 is_chorus_sec   = (g_cur_sec_id == 3 || g_cur_rgn_type == 4);
 is_bridge_sec   = (g_cur_sec_id == 4 || g_cur_rgn_type == 5 || gmem[104] == 8);
 
-// Pre-drop throw window: Discretionary throw engaged ONLY in final 1.5s leading to a drop/chorus, strictly muted otherwise
+// Pre-drop throw window: Discretionary throw captured on final bar leading to drop/chorus
 is_play = ((play_state & 1) && !(play_state & 2));
 (slider39 == 1) ? ( dk_block(); ) : ( dk_off(); );
-is_pre_drop_throw = (slider39 == 0 && slider30 && is_play && g_to_chorus_sec > 0.08 && g_to_chorus_sec < 1.6 && !is_bridge_sec);
+is_pre_drop_throw = (slider30 && is_play && g_to_chorus_sec > 0.0 && g_to_chorus_sec < 1.6 && !is_bridge_sec);
 
 // Context-Aware Subtle Saturation Target:
 // In Verses & Intro (Region 1, 2, 5) -> 0.0% (Pristine, 100% bit-transparent passthrough)
@@ -1062,20 +1136,32 @@ gmem[886] = deess_gr_db;
 gmem[887] = tot_comp_gr;
 gmem[888] = vox_to_mst_db;
 gmem[889] = vox_to_gtr_db;
+gmem[890] = slider40; // Master Vocal Effect Intensity (%)
+gmem[891] = slider24; // Lead Vox Level (dB)
+gmem[892] = slider25; // Ad-Lib Stem Level (dB)
+gmem[893] = slider26; // Ad-Lib FX & Space Amount (%)
+gmem[894] = slider27; // Doubles Level (dB)
+gmem[895] = slider28; // Vocal Reverb Aux Space (dB)
 
   mtrim_block();
 
+
 @sample
+raw_orig_spl0 = spl0; raw_orig_spl1 = spl1;
 s_l = spl0 * inp_gain_mult;
 s_r = spl1 * inp_gain_mult;
 
 
 // ---- ReEQ Surgical Vocal Curve (HPF, 380Hz Mud Scoop, 5.2kHz De-Harsh) ----
-s_l = req_hp_b0 * s_l + req_hp_b1 * req_hp_x1_l + req_hp_b2 * req_hp_x2_l - req_hp_a1 * req_hp_y1_l - req_hp_a2 * req_hp_y2_l;
-req_hp_x2_l = req_hp_x1_l; req_hp_x1_l = s_l; req_hp_y2_l = req_hp_y1_l; req_hp_y1_l = s_l;
+f_hp_in_l = s_l;
+f_hp_l = req_hp_b0 * f_hp_in_l + req_hp_b1 * req_hp_x1_l + req_hp_b2 * req_hp_x2_l - req_hp_a1 * req_hp_y1_l - req_hp_a2 * req_hp_y2_l;
+req_hp_x2_l = req_hp_x1_l; req_hp_x1_l = f_hp_in_l; req_hp_y2_l = req_hp_y1_l; req_hp_y1_l = f_hp_l;
+s_l = f_hp_l;
 
-s_r = req_hp_b0 * s_r + req_hp_b1 * req_hp_x1_r + req_hp_b2 * req_hp_x2_r - req_hp_a1 * req_hp_y1_r - req_hp_a2 * req_hp_y2_r;
-req_hp_x2_r = req_hp_x1_r; req_hp_x1_r = s_r; req_hp_y2_r = req_hp_y1_r; req_hp_y1_r = s_r;
+f_hp_in_r = s_r;
+f_hp_r = req_hp_b0 * f_hp_in_r + req_hp_b1 * req_hp_x1_r + req_hp_b2 * req_hp_x2_r - req_hp_a1 * req_hp_y1_r - req_hp_a2 * req_hp_y2_r;
+req_hp_x2_r = req_hp_x1_r; req_hp_x1_r = f_hp_in_r; req_hp_y2_r = req_hp_y1_r; req_hp_y1_r = f_hp_r;
+s_r = f_hp_r;
 
 slider48 != 0.0 ? (
   f_mud_l = req_mud_b0 * s_l + req_mud_b1 * req_mud_x1_l + req_mud_b2 * req_mud_x2_l - req_mud_a1 * req_mud_y1_l - req_mud_a2 * req_mud_y2_l;
@@ -1196,19 +1282,20 @@ dly_read_r = dly_buf_r[(dly_w_idx - floor(dly_time_spl * 1.5) + dly_buf_sz) % dl
 dly_in_l = (is_pre_drop_throw && is_singing) ? out_l : 0.0;
 dly_in_r = (is_pre_drop_throw && is_singing) ? out_r : 0.0;
 
+// Arm natural decay envelope when audio is captured
+(is_pre_drop_throw && is_singing) ? ( dly_tail_env = 1.0; );
+dly_tail_env *= (1.0 - 0.70 / srate);
+
 // Soft tape damping on buffer circulation
 dly_buf_l[dly_w_idx] = dly_in_l + (dly_read_r * feed_val * 0.85);
 dly_buf_r[dly_w_idx] = dly_in_r + (dly_read_l * feed_val * 0.85);
 dly_w_idx = (dly_w_idx + 1) % dly_buf_sz;
 
-// Delay return is ONLY injected when explicitly armed in the pre-drop window, ZERO leak into verses or chorus
-is_pre_drop_throw ? (
-  downbeat_vacuum = (g_to_chorus_sec > 0.0 && g_to_chorus_sec <= 0.065);
-  !downbeat_vacuum && !is_bridge_sec ? (
-    dly_mult = is_singing ? 0.12 : 0.30;
-    out_l += dly_read_l * dly_mult;
-    out_r += dly_read_r * dly_mult;
-  );
+// Delay return decays naturally across the seam into the chorus, zero downbeat void
+dly_mult = max(is_pre_drop_throw ? (is_singing ? 0.14 : 0.30) : 0.0, dly_tail_env * 0.28) * (slider40 * 0.01);
+(dly_mult > 0.0001 && !is_bridge_sec) ? (
+  out_l += dly_read_l * dly_mult;
+  out_r += dly_read_r * dly_mult;
 );
 
 
@@ -1267,7 +1354,11 @@ cur_crest = max(0.0, cur_out_true_peak - cur_vu_rms);
   buf_in_idx = (buf_in_idx + 1) % buf_sz;
 );
 
-  mtrim_process();
+// mtrim_process();
+slider50 == 1 ? (
+  spl0 = raw_orig_spl0 - spl0;
+  spl1 = raw_orig_spl1 - spl1;
+);
 
 @gfx 1080 700
 // =============================================================================
@@ -1279,6 +1370,19 @@ scale = max(0.65, min(1.5, scale));
 mouse_clicked = (mouse_cap & 1) && !(prev_mouse_cap & 1);
 mouse_down = (mouse_cap & 1);
 prev_mouse_cap = mouse_cap;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
+!ab_init_done ? (
+  save_ab_vocal_snapshot(ab_mem_a);
+  save_ab_vocal_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // Deep Obsidian Slate Backdrop
 gfx_r = 0.020; gfx_g = 0.022; gfx_b = 0.032; gfx_a = 1.0;
@@ -1329,7 +1433,11 @@ mouse_clicked && left_hov ? (
   slider18 = max(0, slider18 - 1); apply_vocal_preset(slider18); slider_automate();
 );
 mouse_clicked && right_hov ? (
-  slider18 = min(16, slider18 + 1); apply_vocal_preset(slider18); slider_automate();
+  slider18 = min(19, slider18 + 1); apply_vocal_preset(slider18); slider_automate();
+);
+mouse_clicked && (mouse_x > p_box_x + p_btn_w && mouse_x < p_box_x + p_box_w - p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h) ? (
+  v_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Cane Hill)|4: Buster Odeholm (thrown / Vildhjarta)|5: Kel Pinchin (Currents)|6: Sam Guaiana (Silverstein)|7: Forrester Savell (Karnivool)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token)|12: Sam Bassal (Thornhill)|13: Henrik Udd (Architects)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox)|16: Zakk Cervini (Blink-182)|17: Acle Kahney (TesseracT - King)|18: Adam Cichocki (heaving. - carsick / Timber Studios)|19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
+  v_choice > 0 ? (slider18 = v_choice - 1; apply_vocal_preset(slider18); slider_automate(););
 );
 
 // Preset Name Center
@@ -1351,9 +1459,19 @@ p_name = (
   slider18 == 13 ? "13: Henrik Udd (Architects)" :
   slider18 == 14 ? "14: Joey Sturgis (Asking Alex)" :
   slider18 == 15 ? "15: Dan Braunstein (Spiritbox)" :
-  "16: Zakk Cervini (Blink-182)"
+  slider18 == 16 ? "16: Zakk Cervini (Blink-182)" :
+  slider18 == 17 ? "17: Acle Kahney (TesseracT)" :
+  slider18 == 18 ? "18: Adam Cichocki (heaving.)" :
+  "19: Manuel Renner (SENNA)"
 );
+p_font_sz = 11.5;
+gfx_setfont(1, "Consolas", p_font_sz, 'b');
 gfx_measurestr(p_name, pnw, pnh);
+while (pnw > p_box_w - 52 && p_font_sz > 8.0) (
+  p_font_sz -= 0.5;
+  gfx_setfont(1, "Consolas", p_font_sz, 'b');
+  gfx_measurestr(p_name, pnw, pnh);
+);
 gfx_x = p_box_x + (p_box_w - pnw) * 0.5; gfx_y = p_box_y + 7; gfx_drawstr(p_name);
 
 // Dynamic Region Sync Pill
@@ -1378,20 +1496,70 @@ sync_w = 145; sync_x = p_box_x + p_box_w + 12; sync_y = hdr_y + 7;
   gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.90; gfx_g = 0.55; gfx_b = 1.00;
   r_str = "● VOCAL BUS: ACTIVE";
 );
+r_font_sz = 11.5;
+gfx_setfont(1, "Orbitron", r_font_sz, 'b');
 gfx_measurestr(r_str, rsw, rsh);
+while (rsw > sync_w - 14 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(r_str, rsw, rsh);
+);
 gfx_x = sync_x + (sync_w - rsw) * 0.5; gfx_y = sync_y + 7; gfx_drawstr(r_str);
 
-chn_w = 120; chn_x = sync_x + sync_w + 10; chn_y = hdr_y + 7;
-gfx_r = 0.04; gfx_g = 0.10; gfx_b = 0.16; gfx_rect(chn_x, chn_y, chn_w, 28);
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(chn_x, chn_y, chn_w, 28, 0);
-gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
-gfx_x = chn_x + 10; gfx_y = chn_y + 7; gfx_drawstr("CHAIN: FINISHER");
+// Interactive Master Vocal Effect Widget in Top Header Bar
+fx_hdr_x = sync_x + sync_w + 10;
+fx_hdr_w = gfx_w - 28 - fx_hdr_x + 14;
+fx_hdr_y = hdr_y + 7; fx_hdr_h = 28;
 
-ceil_w = 95; ceil_x = chn_x + chn_w + 10; ceil_y = hdr_y + 7;
-gfx_r = 0.08; gfx_g = 0.06; gfx_b = 0.12; gfx_rect(ceil_x, ceil_y, ceil_w, 28);
-gfx_r = 1.00; gfx_g = 0.16; gfx_b = 0.52; gfx_rect(ceil_x, ceil_y, ceil_w, 28, 0);
-gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 1.00; gfx_g = 0.40; gfx_b = 0.75;
-gfx_x = ceil_x + 12; gfx_y = ceil_y + 7; gfx_drawstr("CEIL: FREE");
+gfx_r = 0.04; gfx_g = 0.06; gfx_b = 0.10; gfx_rect(fx_hdr_x, fx_hdr_y, fx_hdr_w, fx_hdr_h);
+gfx_r = (slider40 > 0) ? 0.00 : 0.40;
+gfx_g = (slider40 > 0) ? 0.85 : 0.40;
+gfx_b = (slider40 > 0) ? 1.00 : 0.40;
+gfx_rect(fx_hdr_x, fx_hdr_y, fx_hdr_w, fx_hdr_h, 0);
+
+// Inner fill meter for Slider 40
+dry_btn_w = 46;
+fx_drag_w = fx_hdr_w - dry_btn_w - 8;
+fx_fill_w = floor((slider40 * 0.01) * fx_drag_w);
+gfx_r = 1.00; gfx_g = 0.16; gfx_b = 0.52; gfx_a = 0.35;
+gfx_rect(fx_hdr_x + 2, fx_hdr_y + 2, fx_fill_w, fx_hdr_h - 4);
+gfx_a = 1.0;
+
+gfx_setfont(1, "Orbitron", 11.5, 'b');
+gfx_r = (slider40 > 0) ? 1.00 : 0.60;
+gfx_g = (slider40 > 0) ? 0.65 : 0.60;
+gfx_b = (slider40 > 0) ? 0.85 : 0.60;
+sprintf(#vfx_txt, "VOCAL FX: %d%%", floor(slider40 + 0.5));
+gfx_x = fx_hdr_x + 10; gfx_y = fx_hdr_y + 7; gfx_drawstr(#vfx_txt);
+
+// Mute/Dry button on right of header widget
+dry_btn_x = fx_hdr_x + fx_hdr_w - dry_btn_w - 4; dry_btn_y = fx_hdr_y + 3; dry_btn_h = 22;
+dry_hov = (mouse_x >= dry_btn_x && mouse_x <= dry_btn_x + dry_btn_w && mouse_y >= dry_btn_y && mouse_y <= dry_btn_y + dry_btn_h);
+gfx_r = (slider40 == 0) ? 0.80 : (dry_hov ? 0.25 : 0.10);
+gfx_g = (slider40 == 0) ? 0.15 : (dry_hov ? 0.15 : 0.10);
+gfx_b = (slider40 == 0) ? 0.25 : (dry_hov ? 0.20 : 0.14);
+gfx_rect(dry_btn_x, dry_btn_y, dry_btn_w, dry_btn_h);
+gfx_r = (slider40 == 0) ? 1.00 : 0.50;
+gfx_g = (slider40 == 0) ? 0.20 : 0.50;
+gfx_b = (slider40 == 0) ? 0.40 : 0.60;
+gfx_rect(dry_btn_x, dry_btn_y, dry_btn_w, dry_btn_h, 0);
+gfx_setfont(1, "Consolas", 10.5, 'b');
+gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+dry_txt = (slider40 == 0) ? "DRY" : "MUTE";
+gfx_measurestr(dry_txt, dtw, dth);
+gfx_x = dry_btn_x + (dry_btn_w - dtw) * 0.5; gfx_y = dry_btn_y + 5; gfx_drawstr(dry_txt);
+
+mouse_clicked && dry_hov ? (
+  slider40 = (slider40 > 0) ? 0 : 15;
+  slider_automate();
+);
+
+// Drag to adjust Master Vocal Effect
+hdr_fx_drag = (mouse_down && mouse_x >= fx_hdr_x && mouse_x <= fx_hdr_x + fx_drag_w && mouse_y >= fx_hdr_y && mouse_y <= fx_hdr_y + fx_hdr_h);
+hdr_fx_drag ? (
+  slider40 = max(0, min(100, floor((mouse_x - fx_hdr_x) / fx_drag_w * 100 + 0.5)));
+  slider_automate();
+);
 
 // =============================================================================
 // TOP TELEMETRY CARDS (4 CARDS ACROSS SCREEN)
@@ -1549,11 +1717,11 @@ loop(6,
   gfx_b = is_sel ? 0.75 : (is_hov ? 0.80 : 0.65);
 
   t_name = (
-    ti == 0 ? "Aura & Stem Pods" :
-    ti == 1 ? "Producer Ear-Candy" :
+    ti == 0 ? "Aura & Stems" :
+    ti == 1 ? "Ear-Candy FX" :
     ti == 2 ? "Dual Dynamics" :
-    ti == 3 ? "Mid/Side & Pocket" :
-    ti == 4 ? "Analog & Air Sheen" :
+    ti == 3 ? "Mid/Side Pocket" :
+    ti == 4 ? "Analog & Air" :
     "Producer Matrix"
   );
   gfx_measurestr(t_name, tnw, tnh);
@@ -1596,7 +1764,7 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   // amount slider
   dg_sy = dg_ty + 36;
   gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.95; gfx_g = 0.90; gfx_b = 0.95;
-  gfx_x = dg_lx; gfx_y = dg_sy; gfx_drawstr("EAR-CANDY AMOUNT");
+  gfx_x = dg_lx; gfx_y = dg_sy; gfx_drawstr("MASTER VOCAL EFFECT / EAR-CANDY INTENSITY");
   sprintf(#dg_v, "%d %%", floor(slider40 + 0.5));
   gfx_measurestr(#dg_v, dg_w, dg_h); gfx_r = ar; gfx_g = ag; gfx_b = ab;
   gfx_x = dg_lx + dg_cw - dg_w; gfx_y = dg_sy; gfx_drawstr(#dg_v);
@@ -1863,24 +2031,34 @@ slider1 == 0 ? (
 
     bi == 0 ? (
       acc_r = 1.00; acc_g = 0.16; acc_b = 0.52;
-      ch_title = "1. LEAD VOX"; ch_trk = "TRK 5"; ch_role = "Hex Girl Lead Stems";
+      ch_title = "1. LEAD VOX"; ch_trk = "TRK 5"; ch_role = "Lead Stem Level";
       t_val = slider24; b_act = min(1.0, max(0.0, (cur_out_true_peak + 38.0) / 38.0));
+      t_frac = max(0.0, min(1.0, (slider24 - (-12.0)) / 18.0));
+      tr_txt = sprintf(#, "%+.1fdB", slider24);
     ) : bi == 1 ? (
       acc_r = 0.00; acc_g = 0.85; acc_b = 1.00;
-      ch_title = "2. VOX EFFECT"; ch_trk = "TRK 6"; ch_role = "Pitch / Saturation";
+      ch_title = "2. AD-LIB STEM"; ch_trk = "TRK 6-7"; ch_role = "VoxEffect Level";
       t_val = slider25; b_act = min(1.0, max(0.0, (cur_out_true_peak + 42.0) / 40.0));
+      t_frac = max(0.0, min(1.0, (slider25 - (-18.0)) / 24.0));
+      tr_txt = sprintf(#, "%+.1fdB", slider25);
     ) : bi == 2 ? (
-      acc_r = 0.85; acc_g = 0.15; acc_b = 1.00;
-      ch_title = "3. GLITCH VOX"; ch_trk = "TRK 7"; ch_role = "Bridge Ducking Glitch";
-      t_val = slider26; b_act = 0.0;
+      acc_r = 1.00; acc_g = 0.40; acc_b = 0.75;
+      ch_title = "3. AD-LIB FX"; ch_trk = "TRK 6-7"; ch_role = "EchoBoy & Verb Mix";
+      t_val = slider26; b_act = min(1.0, max(0.0, slider26 * 0.01));
+      t_frac = max(0.0, min(1.0, slider26 * 0.01));
+      tr_txt = sprintf(#, "%d%%", floor(slider26 + 0.5));
     ) : bi == 3 ? (
       acc_r = 0.15; acc_g = 0.95; acc_b = 0.45;
-      ch_title = "4. DOUBLES L/R"; ch_trk = "TRK 8-10"; ch_role = "TeleVox / EchoBoy Pan";
+      ch_title = "4. DOUBLES L/R"; ch_trk = "TRK 8-10"; ch_role = "Pan Doubles Level";
       t_val = slider27; b_act = min(1.0, max(0.0, (cur_out_true_peak + 44.0) / 40.0));
+      t_frac = max(0.0, min(1.0, (slider27 - (-18.0)) / 24.0));
+      tr_txt = sprintf(#, "%+.1fdB", slider27);
     ) : (
       acc_r = 1.00; acc_g = 0.75; acc_b = 0.20;
-      ch_title = "5. FX AUX VERB"; ch_trk = "TRK 1-2"; ch_role = "Valhalla / Gojira Reverb";
+      ch_title = "5. FX AUX VERB"; ch_trk = "TRK 1-3"; ch_role = "VOXVERB Aux Space";
       t_val = slider28; b_act = min(1.0, max(0.0, (cur_out_true_peak + 46.0) / 40.0));
+      t_frac = max(0.0, min(1.0, (slider28 - (-24.0)) / 30.0));
+      tr_txt = sprintf(#, "%+.1fdB", slider28);
     );
 
     // Glowing Pill Header
@@ -1924,7 +2102,6 @@ slider1 == 0 ? (
     gfx_r = 0.14; gfx_g = 0.12; gfx_b = 0.20;
     gfx_line(rail_x, fd_y + 4, rail_x, fd_y + fd_h - 4);
 
-    t_frac = max(0.0, min(1.0, (t_val - (-6.0)) / 12.0));
     knob_y = fd_y + fd_h - 10 - floor(t_frac * (fd_h - 20));
 
     gfx_r = 0.22; gfx_g = 0.20; gfx_b = 0.30;
@@ -1933,19 +2110,22 @@ slider1 == 0 ? (
     gfx_rect(fd_x + 4, knob_y - 8, fd_w - 8, 16, 0);
 
     gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
-    tr_txt = sprintf(#, "%+.1fdB", t_val);
     gfx_measurestr(tr_txt, trw, trh);
     gfx_x = bx + floor((strip_w - trw) * 0.5); gfx_y = by + bot_h - 36;
     gfx_drawstr(tr_txt);
 
     mouse_down && (mouse_x >= fd_x && mouse_x <= fd_x + fd_w && mouse_y >= fd_y - 6 && mouse_y <= fd_y + fd_h + 6) ? (
-      new_trim = -6.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 12.0;
-      new_trim = max(-6.0, min(6.0, new_trim));
-      bi == 0 ? (slider24 = new_trim;) :
-      bi == 1 ? (slider25 = new_trim;) :
-      bi == 2 ? (slider26 = new_trim;) :
-      bi == 3 ? (slider27 = new_trim;) :
-      (slider28 = new_trim;);
+      bi == 0 ? (
+        slider24 = max(-12.0, min(6.0, floor((-12.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 18.0) * 2 + 0.5) * 0.5));
+      ) : bi == 1 ? (
+        slider25 = max(-18.0, min(6.0, floor((-18.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 24.0) * 2 + 0.5) * 0.5));
+      ) : bi == 2 ? (
+        slider26 = max(0, min(100, floor((1.0 - (mouse_y - fd_y) / fd_h) * 100 + 0.5)));
+      ) : bi == 3 ? (
+        slider27 = max(-18.0, min(6.0, floor((-18.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 24.0) * 2 + 0.5) * 0.5));
+      ) : (
+        slider28 = max(-24.0, min(6.0, floor((-24.0 + (1.0 - (mouse_y - fd_y) / fd_h) * 30.0) * 2 + 0.5) * 0.5));
+      );
       slider_automate();
     );
     bi += 1;
@@ -2283,13 +2463,13 @@ slider1 == 5 ? (
 
   gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 1.00; gfx_g = 0.40; gfx_b = 0.75;
   gfx_x = disp_x + 20; gfx_y = p_y + 14;
-  gfx_drawstr("PRODUCER VOCAL SIGNATURE MATRIX (17 INDUSTRY REFERENCE PROFILES)");
+  gfx_drawstr("PRODUCER VOCAL SIGNATURE MATRIX (19 INDUSTRY REFERENCE PROFILES)");
 
   cols = 4;
   tile_pw = floor((p_w - 40) / cols);
   tile_ph = 36;
   pi = 0;
-  loop(17,
+  loop(19,
     row = floor(pi / cols);
     col = pi % cols;
     px = disp_x + 16 + col * (tile_pw + 8);
@@ -2330,7 +2510,9 @@ slider1 == 5 ? (
       pi == 13 ? "13: Henrik Udd (Architects)" :
       pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
       pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
-      "16: Zakk Cervini (Blink-182)"
+      pi == 16 ? "16: Zakk Cervini (Blink-182)" :
+      pi == 17 ? "17: Acle Kahney (TesseracT)" :
+      "18: heaving. (carsick)"
     );
 
     gfx_x = px + 10; gfx_y = py + 10;

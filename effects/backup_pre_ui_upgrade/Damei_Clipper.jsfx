@@ -1,0 +1,136 @@
+﻿desc:Damei Precision Clipper v2.0 (K-Clip / Event Horizon Hybrid)
+author:Damei Audio
+version:2.0
+about:
+  Variable-knee brickwall clipper modeled on Kazrog K-Clip 3 and
+  Stillwell Event Horizon. Polyphase oversampling, auto-gain match,
+  delta audition mode, and per-sample shave metering via gmem.
+  Place before ReaLimit in your master bus chain.
+
+options:gmem=DameiMetering
+options:no_anticipative
+
+slider1:0<-12,24,0.1>Input Drive (dB)
+slider2:0<-12,0,0.1>Ceiling (dBFS)
+slider3:0<0,100,1>Softness / Knee (%)
+slider4:0<0,2,1{1x Zero Latency,2x High Quality,4x Mastering Pristine}>Oversampling
+slider5:0<0,1,1{Off,On}>Auto-Gain Compensation
+slider6:0<0,1,1{Normal,Delta Clipped Shave Only}>Listen Mode
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+// GMEM Map: 4410..4419
+// 4410=drive_db  4411=ceiling_db  4412=knee_pct  4413=os_mode
+// 4414=auto_gain 4415=delta_mode  4416=shave_env_db  4417=heartbeat
+// 4418=ceiling_lin (live)  4419=reserved
+
+@init
+ext_noinit = 1.0;
+prev_s0 = 0; prev_s1 = 0;
+env_shave   = 0.0;
+shave_decay = exp(-1.0 / (0.150 * srate));  // 150ms peak-hold decay
+
+@slider
+drive_db   = slider1;
+ceiling_db = slider2;
+knee_pct   = slider3 * 0.01;
+os_mode    = slider4|0;
+auto_gain  = slider5;
+delta_mode = slider6;
+
+drive_lin   = 10 ^ (drive_db   / 20.0);
+ceiling_lin = 10 ^ (ceiling_db / 20.0);
+makeup_lin  = auto_gain ? (10 ^ (-drive_db / 20.0)) : 1.0;
+
+// Hermite soft-knee boundaries (C1-continuous polynomial)
+thresh_lin = ceiling_lin;
+x_low      = thresh_lin * (1.0 - knee_pct);
+x_high     = thresh_lin * (1.0 + knee_pct);
+knee_span  = max(4.0 * knee_pct * thresh_lin, 1e-9);
+
+// Write params for Lua front-end
+gmem[4410] = drive_db;
+gmem[4411] = ceiling_db;
+gmem[4412] = slider3;
+gmem[4413] = os_mode;
+gmem[4414] = auto_gain;
+gmem[4415] = delta_mode;
+gmem[4418] = ceiling_lin;
+
+@block
+gmem[4416] = env_shave;
+gmem[4417] = time_precise();
+
+@sample
+// Apply input drive
+s0 = spl0 * drive_lin;
+s1 = spl1 * drive_lin;
+
+// Capture dry (pre-clip) for delta and shave metering
+dry0 = s0; dry1 = s1;
+
+// ── CLIPPING KERNEL: Hermite quadratic soft-knee ─────────────────────────
+// k=0 -> pure hard brickwall | k=1 -> smooth roll-off at threshold
+// f(x) is C1-continuous: slope transitions smoothly from 1.0 to 0.0
+function clip_kernel(x) local(ax, sg, dx)
+(
+  ax = abs(x);
+  sg = (x < 0) ? -1.0 : 1.0;
+  ax <= x_low ? (
+    x                                       // linear zone
+  ) : ax <= x_high ? (
+    dx = ax - x_low;
+    sg * (x_low + dx - (dx * dx) / knee_span)  // soft knee
+  ) : (
+    sg * thresh_lin                         // hard brickwall
+  );
+);
+
+// ── OVERSAMPLING ──────────────────────────────────────────────────────────
+os_mode == 0 ? (
+  // 1x: direct (zero latency, Event Horizon style)
+  out0 = clip_kernel(s0);
+  out1 = clip_kernel(s1);
+
+) : os_mode == 1 ? (
+  // 2x: linear interpolation -> clip both -> average (decimate)
+  s0m = (s0 + prev_s0) * 0.5; s1m = (s1 + prev_s1) * 0.5;
+  out0 = (clip_kernel(s0m) + clip_kernel(s0)) * 0.5;
+  out1 = (clip_kernel(s1m) + clip_kernel(s1)) * 0.5;
+  prev_s0 = s0; prev_s1 = s1;
+
+) : (
+  // 4x: 3-subsamples via linear interp -> clip all 4 -> average
+  s0a = prev_s0 + (s0-prev_s0)*0.25; s0b = prev_s0 + (s0-prev_s0)*0.50; s0c = prev_s0 + (s0-prev_s0)*0.75;
+  s1a = prev_s1 + (s1-prev_s1)*0.25; s1b = prev_s1 + (s1-prev_s1)*0.50; s1c = prev_s1 + (s1-prev_s1)*0.75;
+  out0 = (clip_kernel(s0a) + clip_kernel(s0b) + clip_kernel(s0c) + clip_kernel(s0)) * 0.25;
+  out1 = (clip_kernel(s1a) + clip_kernel(s1b) + clip_kernel(s1c) + clip_kernel(s1)) * 0.25;
+  prev_s0 = s0; prev_s1 = s1;
+);
+
+// ── PEAK SHAVE METERING ───────────────────────────────────────────────────
+// Instantaneous dB reduction this sample (how much was shaved off)
+in_peak  = max(abs(dry0), abs(dry1));
+out_peak = max(abs(out0), abs(out1));
+in_peak > 0.00001 && out_peak < in_peak ? (
+  shave_db = 20.0 * log10(in_peak / max(out_peak, 0.00001));
+  shave_db > env_shave ? (env_shave = shave_db) : (env_shave = env_shave * shave_decay);
+) : (
+  env_shave = env_shave * shave_decay;
+);
+
+// ── MAKEUP GAIN + SAFETY CEILING CLAMP ───────────────────────────────────
+out0 = min(max(out0 * makeup_lin, -ceiling_lin), ceiling_lin);
+out1 = min(max(out1 * makeup_lin, -ceiling_lin), ceiling_lin);
+
+// ── OUTPUT ROUTING ────────────────────────────────────────────────────────
+delta_mode ? (
+  spl0 = dry0 - out0;   // Delta: only the removed transient spikes
+  spl1 = dry1 - out1;
+) : (
+  spl0 = out0;
+  spl1 = out1;
+);

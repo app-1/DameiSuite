@@ -12,7 +12,8 @@ slider3:0<-10,10,0.1>-Body (Low-Mid & Weight Shaper)
 slider4:0<-24,24,0.1>-Output Level (dB)
 slider5:0<0,1,1{Clean Transparent (0 THD),Subtle Transformer Glue}>-Analog Circuit Character
 slider6:1<0,2,1{Manual Standalone,Tandem Sync (Follow Sankofa / Ozone),Split Chain Master Lock}>-Tandem Integration Mode
-slider7:6<0,21,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic)}>-Mastering Engineer Signature Preset
+slider7:6<0,24,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Mastering Engineer Signature Preset
+slider8:0<0,1,1{Analog Tone & Body Shaper,Mastering Engineer Matrix}>-Suite Tab View
 
 options:gmem=DameiMixMetering
 options:maxmem=65536
@@ -99,7 +100,67 @@ function get_toneshaper_engineer_name(p_idx) (
   p_idx == 18 ? "Dan Braunstein (Spiritbox)" :
   p_idx == 19 ? "Zakk Cervini & Erik Ron" :
   p_idx == 20 ? "Jens Bogren (Fascination St.)" :
-  "Nolly (Periphery / GGD)";
+  p_idx == 21 ? "Nolly (Periphery / GGD)" :
+  p_idx == 22 ? "Acle Kahney (TesseracT)" :
+  p_idx == 23 ? "Adam Cichocki (heaving.)" :
+  "Manuel Renner (SENNA)";
+);
+
+
+function get_toneshaper_short_name(p_idx) (
+  p_idx == 0  ? "0: DEFAULT" :
+  p_idx == 1  ? "1: PRENC" :
+  p_idx == 2  ? "2: SEIGEL" :
+  p_idx == 3  ? "3: DOLESE" :
+  p_idx == 4  ? "4: ODEHOLM" :
+  p_idx == 5  ? "5: BERRY" :
+  p_idx == 6  ? "6: SPLITCHAIN" :
+  p_idx == 7  ? "7: JENSEN" :
+  p_idx == 8  ? "8: SCHMIDT" :
+  p_idx == 9  ? "9: KALAJIAN" :
+  p_idx == 10 ? "10: TOWNSEND" :
+  p_idx == 11 ? "11: MERRILL" :
+  p_idx == 12 ? "12: DONALDSON" :
+  p_idx == 13 ? "13: HAMIDOVIC" :
+  p_idx == 14 ? "14: PUTNEY" :
+  p_idx == 15 ? "15: LEVER" :
+  p_idx == 16 ? "16: BASSAL" :
+  p_idx == 17 ? "17: UDD" :
+  p_idx == 18 ? "18: BRAUNSTEIN" :
+  p_idx == 19 ? "19: CERVINI" :
+  p_idx == 20 ? "20: BOGREN" :
+  p_idx == 21 ? "21: NOLLY" :
+  p_idx == 22 ? "22: ACLE" :
+  p_idx == 23 ? "23: CICHOCKI" :
+  "24: RENNER";
+);
+
+function get_toneshaper_preset_notes(p_idx) (
+  p_idx == 0  ? "Pristine transparent passive balance. 0dB tone tilt, 0dB body weight. Linear phase clarity." :
+  p_idx == 1  ? "Aggressive modern metal bite: +2.2dB tone tilt, -1.0dB body clean scoop. Transformer warmth." :
+  p_idx == 2  ? "Heavy industrial grit: +1.4dB tone, +1.8dB low-mid body thickness. Transformer glue." :
+  p_idx == 3  ? "Konkrete modern polish: +2.4dB tone sheen, +0.6dB punch body. Pure transparent circuit." :
+  p_idx == 4  ? "Extreme thall clarity: +1.8dB tone sheen, -1.4dB mud clamp. Punchy passive curve." :
+  p_idx == 5  ? "Fader mastering UK alternative: +1.5dB tone air, +1.2dB lush body bloom." :
+  p_idx == 6  ? "Split Chain signature: +1.6dB 10k air sheen, +1.0dB 260Hz weight, subtle transformer glue." :
+  p_idx == 7  ? "Sterling Sound arena gloss: +2.6dB high sheen, +0.8dB low-end punch. High headroom." :
+  p_idx == 8  ? "24-96 post-hardcore raw punch: +1.2dB tone, +2.0dB midrange body thrust." :
+  p_idx == 9  ? "Rogue Planet upfront punch: +2.0dB presence sheen, -0.8dB low-mid scoop." :
+  p_idx == 10 ? "Townsend warm analog shoegaze: +0.8dB high air, +2.2dB warm body bloom." :
+  p_idx == 11 ? "City of Souls audiophile polish: +1.8dB silk sheen, +0.5dB transparent weight." :
+  p_idx == 12 ? "Hyper-modern metal balance: +2.5dB high sheen, -1.2dB clean pocket scoop." :
+  p_idx == 13 ? "Systematic Mastering Guide benchmark: +1.0dB subtle sheen, +0.0dB flat body. Reference flat." :
+  p_idx == 14 ? "Putney signature slam: +1.6dB high bite, +1.5dB low-mid density. Transformer on." :
+  p_idx == 15 ? "Loathe / Sleep Token atmospheric depth: +1.2dB silk air, +2.0dB chest warmth." :
+  p_idx == 16 ? "Thornhill modern alternative: +1.8dB presence, +1.2dB tape weight." :
+  p_idx == 17 ? "Architects massive UK arena: +2.2dB air sheen, +1.0dB sub-low weight." :
+  p_idx == 18 ? "Spiritbox modern pop-metal: +2.4dB pristine sheen, -0.6dB vocal pocket scoop." :
+  p_idx == 19 ? "Bad Omens radio sheen: +2.6dB radio top, -1.0dB surgical mud scoop." :
+  p_idx == 20 ? "Fascination Street Nordic metal: +1.5dB presence, +1.8dB low-mid body thrust." :
+  p_idx == 21 ? "GGD / Nolly clean djent: +2.0dB tone sheen, -1.5dB surgical 280Hz scoop." :
+  p_idx == 22 ? "TesseracT progressive transparency: +1.6dB high air, +0.4dB dynamic low end." :
+  p_idx == 23 ? "Timber Studios grungegaze fuzz bloom: +2.8dB high air sheen, +1.2dB warm body bloom. Transformer on." :
+  "Uberlarm hyper-modern metalcore: +2.4dB pick attack bite, -1.2dB mud scoop, laser center punch.";
 );
 
 function update_circuit() (
@@ -175,6 +236,12 @@ function apply_toneshaper_master_preset(p_idx) (
     slider2 = 1.4; slider3 = 0.6; slider4 = 0.0; slider5 = 1;
   ) : p_idx == 21 ? ( // Nolly (Periphery / GGD): systematic definition & surgical body
     slider2 = 2.2; slider3 = -1.0; slider4 = 0.0; slider5 = 0;
+  ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King): clean precision, scooped body, ultra clear
+    slider2 = 2.5; slider3 = -1.5; slider4 = 0.1; slider5 = 0;
+  ) : p_idx == 23 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios): intense tone tilt, thick body, transformer glue
+    slider2 = 2.8; slider3 = 1.2; slider4 = 0.3; slider5 = 1;
+  ) : p_idx == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios): ultra-modern pristine high sheen tilt & punchy body
+    slider2 = 3.0; slider3 = -0.8; slider4 = 0.2; slider5 = 0;
   ) : ( // Default Modern Metal Clean
     slider2 = 1.2; slider3 = -0.4; slider4 = 0.0; slider5 = 0;
   );
@@ -346,7 +413,7 @@ scope_count >= 6 ? (
   scope_wptr = (scope_wptr + 1) % 128;
 );
 
-@gfx 760 380
+@gfx 780 430
 disp_w = gfx_w; disp_h = gfx_h;
 
 !fonts_initialized ? (
@@ -419,8 +486,44 @@ slider6 == 2 ? gfx_drawstr("SPLIT CHAIN") : (slider6 == 1 ? gfx_drawstr("TANDEM 
   slider_automate(32);
 );
 
+
+// Tab Bar Navigation (Overview & Active Shaper vs Mastering Engineer Matrix)
+tab_y = 52;
+tab_h = 24;
+tab_w = floor((disp_w - 24) / 2);
+ti = 0;
+loop(2,
+  tx = 12 + ti * tab_w;
+  sel = (slider8 == ti);
+  sel ? (
+    gfx_r = 0.09; gfx_g = 0.14; gfx_b = 0.20;
+  ) : (
+    gfx_r = 0.035; gfx_g = 0.045; gfx_b = 0.060;
+  );
+  gfx_rect(tx, tab_y, tab_w - 4, tab_h);
+  sel ? (
+    gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
+    gfx_rect(tx, tab_y + tab_h - 2, tab_w - 4, 2);
+    gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  ) : (
+    gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75;
+  );
+  gfx_setfont(2);
+  t_lbl = (ti == 0 ? "ANALOG TONE & BODY SHAPER" : "MASTERING ENGINEER MATRIX");
+  gfx_measurestr(t_lbl, tlw, tlh);
+  gfx_x = floor(tx + (tab_w - 4 - tlw) * 0.5); gfx_y = tab_y + 5;
+  gfx_drawstr(t_lbl);
+  (mouse_cap & 1) && !prev_mouse_cap && (mouse_x >= tx && mouse_x <= tx + tab_w - 4 && mouse_y >= tab_y && mouse_y <= tab_y + tab_h) ? (
+    slider8 = ti;
+    slider_automate(128);
+  );
+  ti += 1;
+);
+
+slider8 == 0 ? (
+
 // Graph Display Area
-gp_x = 8; gp_y = 54; gp_w = disp_w - 16; gp_h = 160;
+gp_x = 8; gp_y = 80; gp_w = disp_w - 16; gp_h = 155;
 gp_cy = gp_y + gp_h * 0.50;
 
 gfx_r = 0.012; gfx_g = 0.016; gfx_b = 0.022;
@@ -620,21 +723,21 @@ gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ts_next_x, ts_sel_y, ts_next_
 gfx_setfont(3); gfx_x = ts_next_x + 7; gfx_y = ts_sel_y + 4; gfx_drawstr(">");
 
 (mouse_cap & 1) && !prev_mouse_cap && hov_ts_prev ? (
-  slider7 = (slider7 - 1 + 22) % 22;
+  slider7 = (slider7 - 1 + 25) % 25;
   slider6 = 0;
   prev_ts_preset = slider7;
   apply_toneshaper_master_preset(slider7);
   slider_automate(64 | 32);
 );
 (mouse_cap & 1) && !prev_mouse_cap && hov_ts_next ? (
-  slider7 = (slider7 + 1) % 22;
+  slider7 = (slider7 + 1) % 25;
   slider6 = 0;
   prev_ts_preset = slider7;
   apply_toneshaper_master_preset(slider7);
   slider_automate(64 | 32);
 );
 (mouse_cap & 1) && !prev_mouse_cap && hov_ts_menu ? (
-  ts_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)");
+  ts_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)|22: Acle Kahney (TesseracT - King)|23: Adam Cichocki (heaving. - carsick / Timber Studios)|24: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
   ts_choice > 0 ? (
     slider7 = ts_choice - 1;
     slider6 = 0;
@@ -680,6 +783,81 @@ slider5 ? gfx_drawstr("CIRCUIT: TRANSFORMER GLUE (ON)") : gfx_drawstr("CIRCUIT: 
 (mouse_cap & 1) && !prev_mouse_cap && tr_hov ? (
   slider5 = !slider5;
   slider_automate(16);
+);
+
+
+) : (
+  // =============================================================================
+  // TAB 1: MASTERING ENGINEER SIGNATURE MATRIX (25 COMMERCIAL BENCHMARKS)
+  // =============================================================================
+  mat_y = 84;
+  gfx_r = 0.95; gfx_g = 0.85; gfx_b = 0.40; gfx_setfont(1, "Orbitron", 14, 'b');
+  gfx_x = 14; gfx_y = mat_y;
+  gfx_drawstr("MASTERING ENGINEER SIGNATURE MATRIX // 25 REFERENCE BENCHMARKS");
+
+  // 25 Pills arranged in 4 rows (7 per row for rows 0..2, 4 in row 3)
+  pi = 0;
+  pill_w = floor((disp_w - 32 - 36) / 7);
+  pill_h = 30;
+  loop(25,
+    p_row = floor(pi / 7); p_col = pi % 7;
+    px = 12 + p_col * (pill_w + 6);
+    py = mat_y + 26 + p_row * (pill_h + 6);
+    is_sel = (slider7 == pi);
+    p_hov = (mouse_x >= px && mouse_x <= px + pill_w && mouse_y >= py && mouse_y <= py + pill_h);
+
+    gfx_r = is_sel ? 0.16 : (p_hov ? 0.08 : 0.035);
+    gfx_g = is_sel ? 0.26 : (p_hov ? 0.12 : 0.045);
+    gfx_b = is_sel ? 0.36 : (p_hov ? 0.18 : 0.060);
+    gfx_rect(px, py, pill_w, pill_h);
+
+    gfx_r = is_sel ? 0.00 : (p_hov ? 0.40 : 0.18);
+    gfx_g = is_sel ? 0.95 : (p_hov ? 0.50 : 0.24);
+    gfx_b = is_sel ? 0.65 : (p_hov ? 0.65 : 0.32);
+    gfx_rect(px, py, pill_w, pill_h, 0);
+
+    gfx_setfont(3);
+    is_sel ? (gfx_r = 0.00; gfx_g = 1.00; gfx_b = 0.70;) : (gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;);
+    p_sname = get_toneshaper_short_name(pi);
+    gfx_measurestr(p_sname, psw, psh);
+    gfx_x = floor(px + (pill_w - psw) * 0.5); gfx_y = py + 7;
+    gfx_drawstr(p_sname);
+
+    (mouse_cap & 1) && !prev_mouse_cap && p_hov ? (
+      slider7 = pi;
+      slider6 = 0; // Manual select clears tandem lock
+      prev_ts_preset = slider7;
+      apply_toneshaper_master_preset(slider7);
+      slider_automate(64 | 32);
+    );
+    pi += 1;
+  );
+
+  // Active Engineer Profile Plaque
+  plaque_y = mat_y + 174;
+  plaque_w = disp_w - 24;
+  plaque_h = disp_h - plaque_y - 12;
+
+  gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044;
+  gfx_rect(12, plaque_y, plaque_w, plaque_h);
+  gfx_r = 0.14; gfx_g = 0.22; gfx_b = 0.32;
+  gfx_rect(12, plaque_y, plaque_w, plaque_h, 0);
+
+  gfx_setfont(1, "Orbitron", 12, 'b');
+  gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
+  gfx_x = 24; gfx_y = plaque_y + 10;
+  gfx_printf("ACTIVE SIGNATURE: %02d - %s", slider7, get_toneshaper_engineer_name(slider7));
+
+  gfx_setfont(3);
+  gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98;
+  gfx_x = 24; gfx_y = plaque_y + 32;
+  gfx_printf("SETTINGS: Tone: %+4.1fdB (High Sheen) | Body: %+4.1fdB (Low-Mid Weight) | Trim: %+4.1fdB | Circuit: %s",
+    slider2, slider3, slider4, slider5 ? "Transformer Glue (ON)" : "Pure Transparent (0 THD)");
+
+  gfx_setfont(4);
+  gfx_r = 0.55; gfx_g = 0.70; gfx_b = 0.85;
+  gfx_x = 24; gfx_y = plaque_y + 54;
+  gfx_drawstr(get_toneshaper_preset_notes(slider7));
 );
 
 prev_mouse_cap = mouse_cap;

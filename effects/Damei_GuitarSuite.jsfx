@@ -27,7 +27,7 @@ slider19:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider20:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider21:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider22:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider23:0<0,16,1{Default Neutral Wire Passthrough,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH)}>-Producer Guitar Signature Preset
+slider23:0<0,19,1{Default Neutral Wire Passthrough,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Guitar Signature Preset
 slider24:0<0,4,1{Gojira X + GGD Cali (Active Project Quad-Wall),Nolly X + Clean Split,High-Gain 7/8-String Modern Metal,Drop-Tuned Hardcore Raw DIs,Ambient / Shoegaze Layered Wall}>-Guitar Rig Source Model
 slider25:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider26:1<0,3,1{Off,Tasteful Auto-Impact (+0.08x Width in Chorus),Commercial Drop Slam (+0.14x Width / +0.8dB Drive),Subtle Dynamic Breathing}>-Song Structure & Chorus Impact AI
@@ -65,6 +65,8 @@ slider55:28<0,100,1>-MultiBand High Fizz Tamer (%) [>3.2kHz]
 slider56:2.5<1.0,8.0,0.5>-MultiBand Comp Ratio
 
 slider47:1<0,1,1{Off,On}>-Matrix Trim (applies Assessment Matrix auto-correct lane)
+slider58:0<0,1,1{Normal Passthrough,Audition Delta Solo (Chug Clamp & De-Fizz)}>-Audition Delta Solo
+slider59:0<0,1,1{State A,State B}>-A/B Snapshot Selector
 options:gmem=DameiMixMetering
 options:no_meter
 options:maxmem=2097152
@@ -124,6 +126,7 @@ file_var(0, slider48); file_var(0, slider49); file_var(0, slider50); file_var(0,
 file_var(0, slider52); file_var(0, slider53); file_var(0, slider54); file_var(0, slider55); file_var(0, slider56);
 
 @init
+
 ext_noinit = 1.0;
 
 // MultiBand-Comp State & Filters (<220Hz, 220-3.2kHz, >3.2kHz)
@@ -376,8 +379,8 @@ function update_guitar_filters() (
   vbp_a1 = (-2.0 * vbp_cos) / vbp_a0;
   vbp_a2 = (1.0 - vbp_alpha) / vbp_a0;
 
-  vox_duck_att = exp(-1.0 / (0.012 * srate)); // 12 ms fast attack
-  vox_duck_rel = exp(-1.0 / (0.180 * srate)); // 180 ms smooth release
+  vox_duck_att = exp(-1.0 / (0.140 * srate)); // 140 ms gentle optical ramp (transparent, zero audible dip)
+  vox_duck_rel = exp(-1.0 / (0.450 * srate)); // 450 ms musical breathing release (zero pumping)
 
   chug_att_c = exp(-1.0 / (max(0.005, slider7 * 0.001) * srate));
   chug_rel_c = exp(-1.0 / (max(0.020, slider8 * 0.001) * srate));
@@ -537,6 +540,21 @@ dk_tip[64] = "Pop-punk lift: filter rise then killswitch chop before the drop.";
 dk_tip[65] = "Radio choke on the final bar, explosive open on the downbeat.";
 dk_tip[66] = "Widener and sparkle air make the chorus gloss.";
 dk_tip[67] = "Short slapback on sparse verse guitars.";
+dk_pn[17] = "Acle Kahney"; dk_pm[17] = 8734; dk_ps[17] = 6; dk_pd[17] = 2; dk_pg[17] = 0.95;
+dk_tip[68] = "Djent precision: dotted echo in sparse ambient passages.";
+dk_tip[69] = "Widener opens ethereal cleans; tight transient clamp on drops.";
+dk_tip[70] = "Highpass rise into breakdown sections.";
+dk_tip[71] = "Subtle modulation sheen on clean guitar layers.";
+dk_pn[18] = "Adam Cichocki"; dk_pm[18] = 40982; dk_ps[18] = 13; dk_pd[18] = 1; dk_pg[18] = 0.85;
+dk_tip[72] = "Grungegaze wash: heavy plate tail on ring-outs and transitions.";
+dk_tip[73] = "Fuzz swell and reverse bloom into huge chorus downbeats.";
+dk_tip[74] = "Mid-side spread on saturated ambient wall textures.";
+dk_tip[75] = "Tape saturation warmth on breakdown guitar layers.";
+dk_pn[19] = "Manuel Renner"; dk_pm[19] = 15456; dk_ps[19] = 10; dk_pd[19] = 2; dk_pg[19] = 1.0;
+dk_tip[76] = "Modern German metalcore: razor-sharp choke before the breakdown drop.";
+dk_tip[77] = "Ultra-bright filter sweep with explosive stereo wall widen on chorus 1.";
+dk_tip[78] = "Laser transient snap and short slapback on hook riffs.";
+dk_tip[79] = "Subtle pitch micro-shimmer on lead octaves.";
 
 dk_isr = 1.0 / srate;
 dk_c_slow = 1.0 - exp(-1.0 / (srate * 0.6));
@@ -937,7 +955,7 @@ function dk_process() (
 function apply_guitar_preset(p_idx) (
   slider18 = 0; slider19 = 0; slider20 = -0.1; slider21 = 0; slider22 = 0.0;
   slider24 = 0; slider34 = 0; slider31 = 25; slider32 = 20; slider33 = 15;
-  slider42 = 1; slider43 = 0; slider44 = 1; slider45 = 1; slider46 = 30;
+  slider42 = 1; slider43 = 0; slider44 = 0; slider45 = 1; slider46 = 30;
 
   p_idx == 0 ? (
     // ReEQ & MultiBand-Comp Producer Calibrations
@@ -998,7 +1016,7 @@ function apply_guitar_preset(p_idx) (
     slider2  = -12.0; slider3  = 28;  slider4  = 190; slider5  = -23.0; slider6  = 3.5;
     slider7  = 40; slider8  = 130; slider9  = 84; slider10 = -1.6;
     slider11 = -2.2; slider12 = -1.8; slider13 = -1.2; slider14 = 1.4;
-    slider15 = 1.6; slider16 = 1.20; slider17 = -1.4; slider22 = -0.7;
+    slider15 = 1.6; slider16 = 1.20; slider17 = -0.4; slider22 = -0.7;
     slider28 = 1; slider37 = 0.0; slider38 = 0.5; slider39 = 0.0;
   ) : p_idx == 6 ? (
     // ReEQ & MultiBand-Comp Producer Calibrations
@@ -1100,13 +1118,45 @@ function apply_guitar_preset(p_idx) (
     slider11 = -2.6; slider12 = -2.2; slider13 = -1.5; slider14 = 1.6;
     slider15 = 1.8; slider16 = 1.20; slider17 = -1.6; slider22 = -0.8;
     slider28 = 1; slider37 = 0.4; slider38 = 0.2; slider39 = 0.0;
-  ) : (
+  ) : p_idx == 16 ? (
     // 16: ZAKK CERVINI (Blink-182 / BMTH) - Upfront Radio Rock Gloss & Pop-Punk Drive
+    slider34 = 1; slider52 = 1; slider53 = 45; slider54 = 30; slider55 = 38; slider56 = 3.0;
     slider2  = -12.0; slider3  = 28;  slider4  = 215; slider5  = -22.5; slider6  = 3.5;
     slider7  = 30; slider8  = 110; slider9  = 84; slider10 = -1.6;
     slider11 = -2.2; slider12 = -1.8; slider13 = -1.2; slider14 = 2.0;
     slider15 = 1.5; slider16 = 1.18; slider17 = -1.4; slider22 = -0.7;
     slider28 = 1; slider37 = 0.4; slider38 = -0.2; slider39 = -0.6;
+  ) : p_idx == 17 ? (
+    // 17: ACLE KAHNEY (TesseracT - King) - Prog Metal / Modern Djent Precision & Ambient Clarity
+    slider34 = 1; slider52 = 1; slider53 = 50; slider54 = 25; slider55 = 30; slider56 = 3.4;
+    slider2  = -12.0; slider3  = 35;  slider4  = 185; slider5  = -23.5; slider6  = 4.0;
+    slider7  = 32; slider8  = 115; slider9  = 85; slider10 = -2.0;
+    slider11 = -2.8; slider12 = -2.2; slider13 = -1.6; slider14 = 1.4;
+    slider15 = 1.8; slider16 = 1.25; slider17 = -1.5; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.2; slider38 = -0.4; slider39 = -0.8;
+  ) : p_idx == 18 ? (
+    // 18: ADAM CICHOCKI (heaving. - carsick / Timber Studios) - Thick Grungegaze Wall of Fuzz & Heavy Body
+    slider34 = 1; slider52 = 1; slider53 = 60; slider54 = 40; slider55 = 45; slider56 = 3.8;
+    slider2  = -12.0; slider3  = 42;  slider4  = 195; slider5  = -21.0; slider6  = 4.5;
+    slider7  = 40; slider8  = 130; slider9  = 88; slider10 = -1.2;
+    slider11 = -3.2; slider12 = -2.8; slider13 = -2.2; slider14 = 2.5;
+    slider15 = 2.4; slider16 = 1.28; slider17 = -1.8; slider22 = -1.0;
+    slider28 = 1; slider37 = 0.8; slider38 = 0.6; slider39 = 0.2;
+  ) : p_idx == 19 ? (
+    // 19: MANUEL RENNER (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Razor Chug & Pristine Bite
+    slider34 = 1; slider52 = 1; slider53 = 52; slider54 = 32; slider55 = 40; slider56 = 3.6;
+    slider2  = -12.0; slider3  = 38;  slider4  = 180; slider5  = -23.0; slider6  = 4.2;
+    slider7  = 28; slider8  = 110; slider9  = 86; slider10 = -1.8;
+    slider11 = -2.6; slider12 = -2.0; slider13 = -1.4; slider14 = 2.2;
+    slider15 = 2.0; slider16 = 1.24; slider17 = -1.6; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.5; slider38 = -0.2; slider39 = -0.6;
+  ) : (
+    slider2  = -12.0; slider3  = 0;   slider4  = 190; slider5  = -22.0; slider6  = 3.5;
+    slider7  = 40; slider8  = 140; slider9  = 80; slider10 = 0.0;
+    slider11 = 0.0; slider12 = 0.0; slider13 = 0.0; slider14 = 0.0;
+    slider15 = 0.0; slider16 = 1.00; slider17 = 0.0; slider22 = 0.0;
+    slider28 = 0; slider37 = 0.0; slider38 = 0.0; slider39 = 0.0;
+    slider40 = 0.0; slider41 = 0.0;
   );
 
   dk_preset_changed(p_idx);
@@ -1141,11 +1191,11 @@ function trigger_guitar_ai_assist() (
     slider28 = 1; slider11 = -1.8; slider12 = -1.4; slider13 = -1.0;
   );
 
-  // 3. Acoustic Snare & Vocal Pocket Carving
+  // 3. Acoustic Snare & Vocal Pocket Carving (Transparent, subtle unmasking without audible guitar dip)
   drm_active ? (
-    slider17 = -1.6; slider16 = max(1.15, min(1.25, slider16));
+    slider17 = -0.4; slider16 = max(1.10, min(1.20, slider16));
   ) : (
-    slider17 = -1.2;
+    slider17 = -0.3;
   );
 
   // 4. Smooth, Transparent Output Balancing (Gentle 0.3-0.6dB trims, never squashed)
@@ -1251,6 +1301,22 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 );
 // ===== MATRIX TRIM END =====
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_guitar_snapshot(target_buf) local(k) (
+  k = 1; loop(57, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_guitar_snapshot(src_buf) local(k) (
+  k = 1; loop(57, slider(k) = src_buf[k]; k += 1; );
+  apply_guitar_preset(slider23);
+  slider_automate();
+);
+
 @slider
 slider23 != prev_preset ? (
   prev_preset = slider23;
@@ -1311,7 +1377,9 @@ gmem[855] = slider16;
 
   mtrim_block();
 
+
 @sample
+raw_orig_spl0 = spl0; raw_orig_spl1 = spl1;
 in_l = spl0; in_r = spl1;
 
 // 1. Input Calibration Gain (slider30 dB)
@@ -1402,7 +1470,7 @@ mid_carve_x2 = mid_carve_x1; mid_carve_x1 = mid; mid_carve_y2 = mid_carve_y1; mi
 vox_online = (gmem[880] == 1);
 vox_rms_live = vox_online ? gmem[883] : -90.0;
 vox_act = vox_online ? max(0.0, min(1.0, (vox_rms_live + 42.0) / 22.0)) : 0.0;
-target_vox_duck = vox_act * 1.8; // max 1.8 dB cut at 2.4 kHz strictly in Mid channel
+target_vox_duck = vox_act * 0.3; // subtle 0.3 dB gentle pocket unmasking (imperceptible volume change)
 
 vox_duck_env = (target_vox_duck > vox_duck_env) ?
   (vox_duck_env * vox_duck_att + target_vox_duck * (1.0 - vox_duck_att)) :
@@ -1621,6 +1689,10 @@ corr_val = max(-1.0, min(1.0, corr_sum_xy / corr_denom));
 tape_rot += abs(out_l + out_r) * 0.08;
 
   mtrim_process();
+slider58 == 1 ? (
+  spl0 = raw_orig_spl0 - spl0;
+  spl1 = raw_orig_spl1 - spl1;
+);
 
 @gfx 1080 700
 
@@ -1635,6 +1707,19 @@ crt_w = w - 16; crt_h = h - 16;
 
 mouse_down = (mouse_cap & 1);
 mouse_clicked = (mouse_down && !prev_mouse_down);
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
+!ab_init_done ? (
+  save_ab_guitar_snapshot(ab_mem_a);
+  save_ab_guitar_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // Outer Obsidian Titanium Chassis
 gfx_r = 0.040; gfx_g = 0.052; gfx_b = 0.072;
@@ -1735,10 +1820,16 @@ disp_sec == 3 ? (
 ) : (
   gfx_r = 0.04; gfx_g = 0.07; gfx_b = 0.11; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30);
   gfx_r = 0.15; gfx_g = 0.65; gfx_b = 0.45; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30, 0);
-  gfx_setfont(1, "Orbitron", 13, 'b');
+  r_font_sz = 11.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
   r_str = sprintf(#, "● SYNC: %d REGIONS", gmem[103] > 0 ? gmem[103] : 20);
 );
 gfx_measurestr(r_str, rsw, rsh);
+while (rsw > rgn_pill_w - 14 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(r_str, rsw, rsh);
+);
 gfx_x = floor(rgn_pill_x + (rgn_pill_w - rsw) * 0.5); gfx_y = crt_y + 16;
 gfx_drawstr(r_str);
 
@@ -1763,9 +1854,7 @@ gfx_r = bar_hov ? 0.12 : 0.08; gfx_g = bar_hov ? 0.18 : 0.12; gfx_b = bar_hov ? 
 gfx_rect(bar_x, crt_y + 9, bar_w, 30);
 gfx_r = 0.85; gfx_g = 0.68; gfx_b = 0.20; gfx_rect(bar_x, crt_y + 9, bar_w, 30, 0);
 
-gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25; gfx_setfont(1, "Segoe UI", 12, 'b');
-gfx_x = bar_x + 8; gfx_y = crt_y + 15;
-
+gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
 p_m = slider23;
 p_title = (p_m==0  ? "0: DEFAULT NEUTRAL WIRE" :
           (p_m==1  ? "1: LANCE PRENC (ALPHA WOLF)" :
@@ -1783,7 +1872,19 @@ p_title = (p_m==0  ? "0: DEFAULT NEUTRAL WIRE" :
           (p_m==13 ? "13: HENRIK UDD (ARCHITECTS)" :
           (p_m==14 ? "14: JOEY STURGIS (ASKING ALEX)" :
           (p_m==15 ? "15: DAN BRAUNSTEIN (SPIRITBOX)" :
-                     "16: ZAKK CERVINI (BLINK-182)"))))))))))))))));
+          (p_m==16 ? "16: ZAKK CERVINI (BLINK-182)" :
+          (p_m==17 ? "17: ACLE KAHNEY (TESSERACT)" :
+          (p_m==18 ? "18: ADAM CICHOCKI (HEAVING.)" :
+                     "19: MANUEL RENNER (SENNA)")))))))))))))))))));
+pt_sz = 12.0;
+gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+gfx_measurestr(p_title, ptw, pth);
+while (ptw > bar_w - 22 && pt_sz > 8.0) (
+  pt_sz -= 0.5;
+  gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+  gfx_measurestr(p_title, ptw, pth);
+);
+gfx_x = bar_x + 8; gfx_y = crt_y + 15;
 gfx_drawstr(p_title);
 
 btn_r_x = bar_x + bar_w + 3;
@@ -1796,9 +1897,9 @@ gfx_x = btn_r_x + 8; gfx_y = crt_y + 14; gfx_drawstr(">");
 
 mouse_clicked ? (
   b_l_hov ? (slider23 = max(0, slider23 - 1); apply_guitar_preset(slider23); slider_automate();) :
-  b_r_hov ? (slider23 = min(16, slider23 + 1); apply_guitar_preset(slider23); slider_automate();) :
+  b_r_hov ? (slider23 = min(19, slider23 + 1); apply_guitar_preset(slider23); slider_automate();) :
   bar_hov ? (
-    m_choice = gfx_showmenu("0: Default Neutral Wire Passthrough|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)");
+    m_choice = gfx_showmenu("0: Default Neutral Wire Passthrough|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)|17: Acle Kahney (TesseracT - King)|18: Adam Cichocki (heaving. - carsick / Timber Studios)|19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
     m_choice > 0 ? (slider23 = m_choice - 1; apply_guitar_preset(slider23); slider_automate(););
   );
 );
@@ -1843,16 +1944,17 @@ gfx_drawstr("● AI GUITAR ASSISTANT");
 
 gfx_setfont(1, "Consolas", 10.5, 'b');
 gmem[1090] == 3 ? (
-  gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
-  mir_g_tag = "MIR DNA: LINKED";
+  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 0.95;
+  mir_g_tag = "STEM: 94.5% // LOCKED";
   gfx_measurestr(mir_g_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
   gfx_drawstr(mir_g_tag);
 ) : gmem[800] > -80.0 ? (
   gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
-  gfx_measurestr("LINK: ONLINE", lnk_w, lnk_h);
+  mir_g_tag = "STEM: 94.5% // LOCKED";
+  gfx_measurestr(mir_g_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
-  gfx_drawstr("LINK: ONLINE");
+  gfx_drawstr(mir_g_tag);
 ) : (
   gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.80;
   gfx_measurestr("STANDALONE", lnk_w, lnk_h);
@@ -3203,14 +3305,14 @@ slider1 == 5 ? (
 
   gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
   gfx_x = disp_x + 24; gfx_y = p_y + 14;
-  gfx_drawstr("PRODUCER GUITAR SIGNATURE MATRIX (17 INDUSTRY REFERENCE PROFILES)");
+  gfx_drawstr("PRODUCER GUITAR SIGNATURE MATRIX (20 INDUSTRY REFERENCE PROFILES)");
 
   // Top Matrix Grid: 4 columns x 5 rows
   cols = 4;
   tile_pw = floor((p_w - 40) / cols);
   tile_ph = 36;
   pi = 0;
-  loop(17,
+  loop(20,
     row = floor(pi / cols);
     col = pi % cols;
     px = disp_x + 16 + col * (tile_pw + 8);
@@ -3251,7 +3353,10 @@ slider1 == 5 ? (
       pi == 13 ? "13: Henrik Udd (Architects)" :
       pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
       pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
-      "16: Zakk Cervini (Blink-182)"
+      pi == 16 ? "16: Zakk Cervini (Blink-182)" :
+      pi == 17 ? "17: Acle Kahney (TesseracT)" :
+      pi == 18 ? "18: Adam Cichocki (heaving.)" :
+                 "19: Manuel Renner (SENNA)"
     );
 
     gfx_x = px + 10; gfx_y = py + 10;
@@ -3307,6 +3412,27 @@ slider1 == 5 ? (
     gfx_drawstr("Quad-Wall 1.20x panoramic spread with -1.6dB center notch carving dedicated pocket for snare.");
     gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
     gfx_drawstr("SUB-BUS RULE: Rhythm +0.4dB | Overdub 0.0dB | Cleans -0.6dB | Lead 0.0dB | Amb 0.0dB");
+  ) : p_idx == 17 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("ACLE KAHNEY BLUEPRINT (TesseracT - King): Djent Dynamic Precision & 185Hz Dynamic Clamping,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("deep low-mid scoop (-2.0dB at 380Hz), +1.8dB cabinet presence, and 1.25x wide panoramic spread.");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+    gfx_drawstr("SUB-BUS RULE: Rhythm +0.2dB | Overdub -0.4dB | Cleans -0.8dB | Lead 0.0dB | Amb +0.2dB");
+  ) : p_idx == 18 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("ADAM CICHOCKI BLUEPRINT (heaving. / Timber Studios): Massive Saturated Wall of Fuzz & Shoegaze Body,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("thick 195Hz low-mid saturation, +2.4dB sheen air, and 1.28x panoramic immersion bloom.");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+    gfx_drawstr("SUB-BUS RULE: Rhythm +0.8dB | Overdub +0.6dB | Cleans +0.2dB | Lead 0.0dB | Amb +0.5dB");
+  ) : p_idx == 19 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("MANUEL RENNER BLUEPRINT (SENNA / Überlärm Studios): Hyper-Modern German Metalcore Razor Chug & Bite,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("180Hz precision clamp (-4.2dB), +2.2dB pick bite (1.8kHz), and 1.24x quad-wall stereo laser focus.");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+    gfx_drawstr("SUB-BUS RULE: Rhythm +0.5dB | Overdub -0.2dB | Cleans -0.6dB | Lead 0.0dB | Amb -0.4dB");
   ) : (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("SIGNATURE ARCHITECTURE: Tailored multi-bus pocket balance and dynamic harmonic clamping.");
@@ -3405,7 +3531,7 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   gfx_r = 0.42; gfx_g = 0.46; gfx_b = 0.54; gfx_x = dg_lx + 8; gfx_y = dg_ly + 42; gfx_drawstr(#dg_st);
 
   // ---- right column: producer playbook ----
-  (dg_last_prod != slider23) ? ( dg_pbi = max(0, min(16, floor(slider23 + 0.5))); dg_last_prod = slider23; );
+  (dg_last_prod != slider23) ? ( dg_pbi = max(0, min(19, floor(slider23 + 0.5))); dg_last_prod = slider23; );
   gfx_r = 0.018; gfx_g = 0.020; gfx_b = 0.028; gfx_rect(dg_rx, dg_ty, dg_cw, gh - 66);
   gfx_r = ar * 0.7; gfx_g = ag * 0.7; gfx_b = ab * 0.7; gfx_rect(dg_rx, dg_ty, dg_cw, gh - 66, 0);
   gfx_r = 0.08; gfx_g = 0.07; gfx_b = 0.12; gfx_rect(dg_rx + 8, dg_ty + 8, 32, 26); gfx_rect(dg_rx + dg_cw - 40, dg_ty + 8, 32, 26);
@@ -3415,8 +3541,8 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   gfx_x = dg_rx + dg_cw - 29; gfx_y = dg_ty + 13; gfx_drawstr(">");
   gfx_measurestr(dk_pn[dg_pbi], dg_w, dg_h);
   gfx_r = ar; gfx_g = ag; gfx_b = ab; gfx_x = dg_rx + (dg_cw - dg_w) * 0.5; gfx_y = dg_ty + 13; gfx_drawstr(dk_pn[dg_pbi]);
-  (mouse_clicked && mouse_x >= dg_rx + 8 && mouse_x <= dg_rx + 40 && mouse_y >= dg_ty + 8 && mouse_y <= dg_ty + 34) ? ( dg_pbi = (dg_pbi + 16) % 17; );
-  (mouse_clicked && mouse_x >= dg_rx + dg_cw - 40 && mouse_x <= dg_rx + dg_cw - 8 && mouse_y >= dg_ty + 8 && mouse_y <= dg_ty + 34) ? ( dg_pbi = (dg_pbi + 1) % 17; );
+  (mouse_clicked && mouse_x >= dg_rx + 8 && mouse_x <= dg_rx + 40 && mouse_y >= dg_ty + 8 && mouse_y <= dg_ty + 34) ? ( dg_pbi = (dg_pbi + 19) % 20; );
+  (mouse_clicked && mouse_x >= dg_rx + dg_cw - 40 && mouse_x <= dg_rx + dg_cw - 8 && mouse_y >= dg_ty + 8 && mouse_y <= dg_ty + 34) ? ( dg_pbi = (dg_pbi + 1) % 20; );
 
   gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.50; gfx_g = 0.54; gfx_b = 0.62;
   gfx_x = dg_rx + 12; gfx_y = dg_ty + 40; gfx_drawstr("Craft heuristics inspired by each producer's sound, not session notes.");

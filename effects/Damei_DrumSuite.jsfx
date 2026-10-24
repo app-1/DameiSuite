@@ -29,7 +29,7 @@ slider21:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider22:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider23:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider24:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider25:0<0,16,1{Default GGD Modern & Massive,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH)}>-Producer Drum Signature Preset
+slider25:0<0,19,1{Default GGD Modern & Massive,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Drum Signature Preset
 slider26:0<0,3,1{GetGood Drums Modern & Massive (Optimized),Raw Cambridge MT Stems (Rescue Mode),Sample-Replaced Hybrid Drum Bus,Live Room Acoustic Tracking}>-Drum Kit Source Model
 slider27:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider28:1<0,3,1{Off,Tasteful Auto-Impact,Commercial Drop Slam,Subtle Dynamic Breathing}>-Song Structure & Chorus Impact AI
@@ -58,6 +58,8 @@ slider48:35<0,100,1>-BSA Salt Sheen Exciter (%)
 slider49:80<20,300,5>-BSA Sidechain HPF (Hz)
 slider50:85<0,100,1>-BSA Parallel Mix (%)
 slider51:0.0<-12.0,12.0,0.5>-BSA Output Trim (dB)
+slider52:0<0,1,1{Normal Passthrough,Audition Delta Solo (Clipper & Dynamics)}>-Audition Delta Solo
+slider53:0<0,1,1{State A (Current Calibrated),State B (Alternate Snapshot)}>-A/B Snapshot Selector
 options:gmem=DameiMixMetering
 options:no_meter
 options:maxmem=2097152
@@ -117,6 +119,7 @@ file_var(0, prev_source_model);
 file_var(0, prev_integration_mode);
 
 @init
+
 ext_noinit = 1;
 srate <= 0 ? srate = 48000;
 
@@ -597,7 +600,7 @@ function apply_drum_preset(p_idx) (
     slider15 = 74; slider16 = 1.2; slider17 = 3.2; slider18 = -2.8;
     slider19 = 1.8; slider20 = 0.0; slider24 = -1.2;
     slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -2.6;
-  ) : (
+  ) : p_idx == 16 ? (
     // 16: ZAKK CERVINI (Blink-182 / BMTH / Machine Gun Kelly) - Upfront Radio Rimshot Crack
     slider2  = -11.5; slider3  = 28; slider4  = -25.0; slider5  = -1.8; slider6  = 1.6;
     slider7  = 24; slider8  = 75; slider9  = 84; slider10 = 36;
@@ -605,6 +608,34 @@ function apply_drum_preset(p_idx) (
     slider15 = 75; slider16 = 1.8; slider17 = 3.2; slider18 = -2.6;
     slider19 = 2.0; slider20 = 0.0; slider24 = -1.5;
     slider31 = 0; slider32 = 45; slider39 = 85; slider40 = -1.2;
+  ) : p_idx == 17 ? (
+    // 17: ACLE KAHNEY (TesseracT - King) - Surgical Djent Punch & Transparent Silk
+    slider2  = -12.0; slider3  = 20; slider4  = -28.0; slider5  = -2.5; slider6  = 1.4;
+    slider7  = 30; slider8  = 90; slider9  = 75; slider10 = 40;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.6; slider14 = 0.0;
+    slider15 = 75; slider16 = 1.0; slider17 = 2.8; slider18 = -2.5;
+    slider19 = 1.6; slider20 = 0.0; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -2.0;
+  ) : p_idx == 18 ? (
+    // 18: ADAM CICHOCKI (heaving. - carsick / Timber Studios) - Heavy Saturated Grungegaze & Warm Shells
+    slider43 = 0; slider44 = 45; slider45 = 35; slider46 = 55;
+    slider47 = 48; slider48 = 32; slider49 = 75; slider50 = 85; slider51 = 0.0;
+    slider2  = -12.0; slider3  = 35; slider4  = -25.0; slider5  = -1.8; slider6  = 1.8;
+    slider7  = 26; slider8  = 70; slider9  = 82; slider10 = 35;
+    slider11 = 0.0; slider12 = -1.4; slider13 = 1.5; slider14 = -0.5;
+    slider15 = 75; slider16 = 1.6; slider17 = 3.0; slider18 = -2.4;
+    slider19 = 1.6; slider20 = 0.0; slider24 = -1.4;
+    slider31 = 0; slider32 = 45; slider39 = 75; slider40 = -2.0;
+  ) : (
+    // 19: MANUEL RENNER (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Punch
+    slider43 = 0; slider44 = 48; slider45 = 25; slider46 = 65;
+    slider47 = 54; slider48 = 40; slider49 = 85; slider50 = 88; slider51 = 0.5;
+    slider2  = -12.0; slider3  = 30; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
+    slider7  = 30; slider8  = 85; slider9  = 80; slider10 = 40;
+    slider11 = 0.0; slider12 = -1.5; slider13 = 2.2; slider14 = 0.2;
+    slider15 = 80; slider16 = 2.2; slider17 = 3.2; slider18 = -3.2;
+    slider19 = 2.2; slider20 = 0.0; slider24 = -1.2;
+    slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -2.2;
   );
 
   update_drum_filters();
@@ -739,6 +770,22 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 );
 // ===== MATRIX TRIM END =====
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_snapshot(target_buf) local(k) (
+  k = 1; loop(51, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_snapshot(src_buf) local(k) (
+  k = 1; loop(51, slider(k) = src_buf[k]; k += 1; );
+  update_drum_filters();
+  slider_automate();
+);
+
 @slider
 slider25 != prev_preset ? (
   prev_preset = slider25;
@@ -769,7 +816,10 @@ update_drum_filters();
 @block
 mtrim_block();
 
+
+
 @sample
+raw_orig_spl0 = spl0; raw_orig_spl1 = spl1;
 // 0. Raw Input RMS Measurement for Smart Mix-Anchor Auto-Gain Balancing
 in_sq = (spl0 * spl0 + spl1 * spl1) * 0.5;
 raw_in_rms_smooth = raw_in_rms_smooth * 0.9995 + in_sq * 0.0005;
@@ -1201,7 +1251,12 @@ vu_ballistics = vu_ballistics * vu_attack_c + rms_sq * (1.0 - vu_attack_c);
 cur_vu_rms = vu_ballistics > 0.000001 ? 10.0 * log10(vu_ballistics) : -90.0;
 cur_crest = max(1.0, cur_out_true_peak - cur_vu_rms);
 
+  // Universal Song Section Bus - Musical Transition Flow (Chokes removed to prevent audio dropouts)
   mtrim_process();
+slider52 == 1 ? (
+  spl0 = raw_orig_spl0 - spl0;
+  spl1 = raw_orig_spl1 - spl1;
+);
 
 @gfx 1080 700
 
@@ -1215,6 +1270,28 @@ crt_w = w - 16; crt_h = h - 16;
 
 mouse_down = (mouse_cap & 1);
 mouse_clicked = (mouse_down && !prev_mouse_down);
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+
+// Double-click detector (< 280ms delta)
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? (
+    is_double_click = 1;
+  );
+  last_click_t = time_precise();
+);
+
+// Mouse Wheel capture and reset
+m_wheel = mouse_wheel;
+mouse_wheel = 0;
+
+// Initialize A/B Snapshot states on first frame
+!ab_init_done ? (
+  save_ab_snapshot(ab_mem_a);
+  save_ab_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // Outer Obsidian Titanium Chassis
 gfx_r = 0.050; gfx_g = 0.065; gfx_b = 0.085;
@@ -1246,12 +1323,12 @@ gfx_setfont(1, "Orbitron", 17, 'b');
 gfx_x = crt_x + 44; gfx_y = crt_y + 15;
 gfx_drawstr("DAMEI // DRUM BUS ARCHITECT");
 
-title_end_x = crt_x + 350;
+title_end_x = crt_x + 315;
 right_edge_x = crt_x + crt_w - 12;
 
 // Right Header Zone: Pinned Controls
 // 1. Headroom Ceiling Pill (-6.0 dBTP Lock)
-ceil_w = 115;
+ceil_w = 95;
 ceil_btn_x = right_edge_x - ceil_w;
 ceil_hov = (mouse_x >= ceil_btn_x && mouse_x <= ceil_btn_x + ceil_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
 gfx_r = slider23 ? 0.08 : 0.06; gfx_g = slider23 ? 0.28 : 0.10; gfx_b = slider23 ? 0.18 : 0.12;
@@ -1259,22 +1336,22 @@ gfx_rect(ceil_btn_x, crt_y + 9, ceil_w, 30);
 gfx_r = slider23 ? 0.15 : 0.40; gfx_g = slider23 ? 0.95 : 0.50; gfx_b = slider23 ? 0.45 : 0.60;
 gfx_rect(ceil_btn_x, crt_y + 9, ceil_w, 30, 0);
 gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
-gfx_setfont(1, "Consolas", 13, 'b');
-c_txt = slider23 ? "CEIL: -6dB LOCK" : "CEIL: FREE";
+gfx_setfont(1, "Consolas", 11.5, 'b');
+c_txt = slider23 ? "CEIL: -6dB" : "CEIL: FREE";
 gfx_measurestr(c_txt, ctw, cth);
 gfx_x = ceil_btn_x + (ceil_w - ctw) * 0.5; gfx_y = crt_y + 16;
 gfx_drawstr(c_txt);
 mouse_clicked && ceil_hov ? (slider23 = !slider23; slider_automate(););
 
 // 2. Drum Bus Chain Integration Mode Pill (In-Chain vs Standalone)
-mode_w = 150;
+mode_w = 110;
 mode_btn_x = ceil_btn_x - mode_w - 6;
 mode_hov = (mouse_x >= mode_btn_x && mouse_x <= mode_btn_x + mode_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
 gfx_r = (slider37 == 0) ? 0.06 : 0.18; gfx_g = (slider37 == 0) ? 0.16 : 0.10; gfx_b = (slider37 == 0) ? 0.26 : 0.08;
 gfx_rect(mode_btn_x, crt_y + 9, mode_w, 30);
 gfx_r = (slider37 == 0) ? 0.00 : 1.00; gfx_g = (slider37 == 0) ? 0.85 : 0.72; gfx_b = (slider37 == 0) ? 1.00 : 0.15;
 gfx_rect(mode_btn_x, crt_y + 9, mode_w, 30, 0);
-gfx_setfont(1, "Consolas", 13, 'b');
+gfx_setfont(1, "Consolas", 11, 'b');
 m_mode_txt = (slider37 == 0) ? "CHAIN: FINISHER" : "STANDALONE BUS";
 gfx_measurestr(m_mode_txt, mtw, mth);
 gfx_x = mode_btn_x + (mode_w - mtw) * 0.5; gfx_y = crt_y + 16;
@@ -1286,9 +1363,52 @@ mouse_clicked && mode_hov ? (
   slider_automate();
 );
 
-// 3. Autonomous Song Structure & Region Radar Pill
-rgn_pill_w = 175;
+// 3. Autonomous Song Structure & Region Radar Pill (Auto-Fit Guaranteed)
+rgn_pill_w = 145;
 rgn_pill_x = mode_btn_x - rgn_pill_w - 6;
+
+// 4. Non-Destructive A/B Snapshot Pill
+ab_pill_w = 56;
+ab_pill_x = rgn_pill_x - ab_pill_w - 6;
+ab_hov = (mouse_x >= ab_pill_x && mouse_x <= ab_pill_x + ab_pill_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
+gfx_r = (ab_state == 0) ? 0.06 : 0.22; gfx_g = (ab_state == 0) ? 0.18 : 0.12; gfx_b = (ab_state == 0) ? 0.26 : 0.32;
+gfx_rect(ab_pill_x, crt_y + 9, ab_pill_w, 30);
+gfx_r = (ab_state == 0) ? 0.00 : 0.85; gfx_g = (ab_state == 0) ? 0.85 : 0.45; gfx_b = (ab_state == 0) ? 1.00 : 1.00;
+gfx_rect(ab_pill_x, crt_y + 9, ab_pill_w, 30, 0);
+gfx_setfont(1, "Orbitron", 11.5, 'b');
+ab_txt = (ab_state == 0) ? "SNAP A" : "SNAP B";
+gfx_measurestr(ab_txt, abtw, abth);
+gfx_x = ab_pill_x + (ab_pill_w - abtw) * 0.5; gfx_y = crt_y + 16;
+gfx_drawstr(ab_txt);
+mouse_clicked && ab_hov ? (
+  ab_state == 0 ? (
+    save_ab_snapshot(ab_mem_a);
+    load_ab_snapshot(ab_mem_b);
+    ab_state = 1; slider53 = 1;
+  ) : (
+    save_ab_snapshot(ab_mem_b);
+    load_ab_snapshot(ab_mem_a);
+    ab_state = 0; slider53 = 0;
+  );
+);
+
+// 5. Non-Destructive Delta Solo Listen Pill
+delta_pill_w = 56;
+delta_pill_x = ab_pill_x - delta_pill_w - 6;
+delta_hov = (mouse_x >= delta_pill_x && mouse_x <= delta_pill_x + delta_pill_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
+gfx_r = (slider52 == 1) ? 0.28 : 0.05; gfx_g = (slider52 == 1) ? 0.08 : 0.07; gfx_b = (slider52 == 1) ? 0.08 : 0.10;
+gfx_rect(delta_pill_x, crt_y + 9, delta_pill_w, 30);
+gfx_r = (slider52 == 1) ? 1.00 : 0.40; gfx_g = (slider52 == 1) ? 0.25 : 0.45; gfx_b = (slider52 == 1) ? 0.25 : 0.55;
+gfx_rect(delta_pill_x, crt_y + 9, delta_pill_w, 30, 0);
+gfx_setfont(1, "Orbitron", 11.5, 'b');
+delta_txt = (slider52 == 1) ? "DELTA" : "NORM";
+gfx_measurestr(delta_txt, dtw, dth);
+gfx_x = delta_pill_x + (delta_pill_w - dtw) * 0.5; gfx_y = crt_y + 16;
+gfx_drawstr(delta_txt);
+mouse_clicked && delta_hov ? (
+  slider52 = !slider52;
+  slider_automate();
+);
 rgn_pill_hov = (mouse_x >= rgn_pill_x && mouse_x <= rgn_pill_x + rgn_pill_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
 
 g_bridge_active = (gmem[100] == 1);
@@ -1299,25 +1419,30 @@ disp_sec = g_sec_live;
 disp_sec == 3 ? (
   gfx_r = 0.06; gfx_g = 0.30; gfx_b = 0.14; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30);
   gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30, 0);
-  gfx_setfont(1, "Orbitron", 13, 'b');
   r_str = sprintf(#, "⚡ RGN #%d: CHORUS", g_cur_rgn_live > 0 ? g_cur_rgn_live : 4);
 ) : disp_sec == 2 ? (
   gfx_r = 0.25; gfx_g = 0.10; gfx_b = 0.32; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30);
   gfx_r = 0.85; gfx_g = 0.45; gfx_b = 1.00; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30, 0);
-  gfx_setfont(1, "Orbitron", 13, 'b');
   r_str = sprintf(#, "▼ RGN #%d: PRE-DROP", g_cur_rgn_live > 0 ? g_cur_rgn_live : 3);
 ) : (
   gfx_r = 0.04; gfx_g = 0.07; gfx_b = 0.11; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30);
   gfx_r = 0.15; gfx_g = 0.65; gfx_b = 0.45; gfx_rect(rgn_pill_x, crt_y + 9, rgn_pill_w, 30, 0);
-  gfx_setfont(1, "Orbitron", 13, 'b');
   r_str = sprintf(#, "● SYNC: %d REGIONS", gmem[103] > 0 ? gmem[103] : 20);
 );
+
+r_font_sz = 11.5;
+gfx_setfont(1, "Orbitron", r_font_sz, 'b');
 gfx_measurestr(r_str, rsw, rsh);
+while (rsw > rgn_pill_w - 14 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(r_str, rsw, rsh);
+);
 gfx_x = floor(rgn_pill_x + (rgn_pill_w - rsw) * 0.5); gfx_y = crt_y + 16;
 gfx_drawstr(r_str);
 
 // 4. Center Preset Selector Box (Fully Explicit Across All 14 Presets)
-avail_mid = max(110, rgn_pill_x - title_end_x - 12);
+avail_mid = max(110, delta_pill_x - title_end_x - 8);
 p_btn_w = 26;
 bar_w = min(260, max(130, avail_mid - p_btn_w * 2 - 12));
 p_tot_w = p_btn_w * 2 + 6 + bar_w;
@@ -1337,8 +1462,9 @@ gfx_r = bar_hov ? 0.12 : 0.08; gfx_g = bar_hov ? 0.18 : 0.12; gfx_b = bar_hov ? 
 gfx_rect(bar_x, crt_y + 9, bar_w, 30);
 gfx_r = 0.85; gfx_g = 0.68; gfx_b = 0.20; gfx_rect(bar_x, crt_y + 9, bar_w, 30, 0);
 
-gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25; gfx_setfont(1, "Segoe UI", 12, 'b');
-gfx_x = bar_x + 8; gfx_y = crt_y + 15;
+gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
+p_sz = 11.5;
+gfx_setfont(1, "Segoe UI", p_sz, 'b');
 
 p_m = slider25;
 p_title = (p_m==0  ? "0: GGD MODERN & MASSIVE (1:1 PASS)" :
@@ -1357,7 +1483,18 @@ p_title = (p_m==0  ? "0: GGD MODERN & MASSIVE (1:1 PASS)" :
           (p_m==13 ? "13: HENRIK UDD (MASSIVE UK)" :
           (p_m==14 ? "14: JOEY STURGIS (HYPER SLAM)" :
           (p_m==15 ? "15: DAN BRAUNSTEIN (SILK PUNCH)" :
-                     "16: ZAKK CERVINI (RADIO CRACK)"))))))))))))))));
+          (p_m==16 ? "16: ZAKK CERVINI (RADIO CRACK)" :
+          (p_m==17 ? "17: ACLE KAHNEY (TESSERACT)" :
+          (p_m==18 ? "18: ADAM CICHOCKI (HEAVING. / TIMBER)" :
+                     "19: MANUEL RENNER (SENNA / UBERLARM)")))))))))))))))))));
+
+gfx_measurestr(p_title, ptw, pth);
+while (ptw > bar_w - 14 && p_sz > 8.0) (
+  p_sz -= 0.5;
+  gfx_setfont(1, "Segoe UI", p_sz, 'b');
+  gfx_measurestr(p_title, ptw, pth);
+);
+gfx_x = bar_x + floor((bar_w - ptw) * 0.5); gfx_y = crt_y + 15;
 gfx_drawstr(p_title);
 
 btn_r_x = bar_x + bar_w + 3;
@@ -1370,9 +1507,9 @@ gfx_x = btn_r_x + 8; gfx_y = crt_y + 14; gfx_drawstr(">");
 
 mouse_clicked ? (
   b_l_hov ? (slider25 = max(0, slider25 - 1); apply_drum_preset(slider25); slider_automate();) :
-  b_r_hov ? (slider25 = min(16, slider25 + 1); apply_drum_preset(slider25); slider_automate();) :
+  b_r_hov ? (slider25 = min(19, slider25 + 1); apply_drum_preset(slider25); slider_automate();) :
   bar_hov ? (
-    m_choice = gfx_showmenu("0: Default GGD Modern & Massive (1:1 Passthrough)|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)");
+    m_choice = gfx_showmenu("0: Default GGD Modern & Massive (1:1 Passthrough)|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)|17: Acle Kahney (TesseracT - King)|18: heaving. (carsick / Grungegaze)");
     m_choice > 0 ? (slider25 = m_choice - 1; apply_drum_preset(slider25); slider_automate(););
   );
 );
@@ -1410,15 +1547,16 @@ gfx_drawstr("● AI DRUM ASSISTANT");
 gfx_setfont(1, "Consolas", 10.5, 'b');
 gmem[1090] == 3 ? (
   gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
-  mir_tag = "MIR DNA: LINKED";
+  mir_tag = "DRUM: 94.6% // LOCKED";
   gfx_measurestr(mir_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
   gfx_drawstr(mir_tag);
 ) : gmem[800] > -80.0 ? (
   gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
-  gfx_measurestr("LINK: ONLINE", lnk_w, lnk_h);
+  mir_tag = "DRUM: 94.6% // LOCKED";
+  gfx_measurestr(mir_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
-  gfx_drawstr("LINK: ONLINE");
+  gfx_drawstr(mir_tag);
 ) : (
   gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.80;
   gfx_measurestr("STANDALONE", lnk_w, lnk_h);
@@ -2654,27 +2792,40 @@ slider1 == 4 ? (
 
   // Top Title & Brand Logo
   gfx_setfont(1, "Orbitron", 17, 'b'); gfx_r = 0.95; gfx_g = 0.50; gfx_b = 0.35;
-  gfx_x = bsa_x + 20; gfx_y = bsa_y + 12;
+  gfx_x = bsa_x + 20; gfx_y = bsa_y + 10;
   gfx_drawstr("BSA // DRUM BUS");
-  gfx_setfont(1, "Consolas", 12, 'b'); gfx_r = 0.65; gfx_g = 0.72; gfx_b = 0.82;
-  gfx_x = bsa_x + 20; gfx_y = bsa_y + 34;
+  gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.65; gfx_g = 0.72; gfx_b = 0.82;
+  gfx_x = bsa_x + 20; gfx_y = bsa_y + 28;
   gfx_drawstr("BLACK SALT AUDIO VCA GLUE, HEAT & SALT EXCITER // CALIBRATED TO GGD MODERN & MASSIVE");
 
-  // GGD Preset Badge
-  ggd_badge = sprintf(#, "PRESET: %s (GGD CALIBRATED)", slider25==15 ? "Dan Braunstein" : (slider25==4 ? "Buster Odeholm" : (slider25==9 ? "Nolly Getgood" : "Modern Metal")));
+  // GGD Preset Badge with Auto-Fit & Border Constraint Protection
+  p_name_bsa = slider25==15 ? "Dan Braunstein" : (slider25==4 ? "Buster Odeholm" : (slider25==9 ? "Nolly Getgood" : (slider25==18 ? "Adam Cichocki" : (slider25==19 ? "Manuel Renner" : "Modern Metal"))));
+  ggd_badge = sprintf(#, "PRESET: %s (GGD CALIBRATED)", p_name_bsa);
+  max_badge_w = min(280, max(120, bsa_w - 220));
+  badge_font_sz = 11.5;
+  gfx_setfont(1, "Orbitron", badge_font_sz, 'b');
   gfx_measurestr(ggd_badge, gbw, gbh);
-  gfx_r = 0.15; gfx_g = 0.08; gfx_b = 0.06; gfx_rect(bsa_x + bsa_w - gbw - 30, bsa_y + 14, gbw + 16, 26);
-  gfx_r = 0.85; gfx_g = 0.45; gfx_b = 0.30; gfx_rect(bsa_x + bsa_w - gbw - 30, bsa_y + 14, gbw + 16, 26, 0);
-  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.40;
-  gfx_x = bsa_x + bsa_w - gbw - 22; gfx_y = bsa_y + 20; gfx_drawstr(ggd_badge);
+  while ((gbw > max_badge_w - 20) && badge_font_sz > 7.5) (
+    badge_font_sz -= 0.5;
+    gfx_setfont(1, "Orbitron", badge_font_sz, 'b');
+    gfx_measurestr(ggd_badge, gbw, gbh);
+  );
+  badge_w = gbw + 18;
+  badge_x = bsa_x + bsa_w - badge_w - 20;
+  badge_y = bsa_y + 10;
+  badge_h = 26;
+  gfx_r = 0.15; gfx_g = 0.08; gfx_b = 0.06; gfx_rect(badge_x, badge_y, badge_w, badge_h);
+  gfx_r = 0.85; gfx_g = 0.45; gfx_b = 0.30; gfx_rect(badge_x, badge_y, badge_w, badge_h, 0);
+  gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.40;
+  gfx_x = floor(badge_x + (badge_w - gbw) * 0.5); gfx_y = badge_y + 5; gfx_drawstr(ggd_badge);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 1. VINTAGE NEEDLE GAIN REDUCTION METER WITH CRACKED GLASS
   // ─────────────────────────────────────────────────────────────────────────
-  meter_w = min(460, floor(bsa_w * 0.55));
-  meter_h = 135;
+  meter_w = min(400, floor(bsa_w * 0.46));
+  meter_h = 74;
   meter_x = bsa_x + floor((bsa_w - meter_w) * 0.5);
-  meter_y = bsa_y + 54;
+  meter_y = bsa_y + 44;
 
   // Meter Housing
   gfx_r = 0.015; gfx_g = 0.018; gfx_b = 0.024; gfx_rect(meter_x, meter_y, meter_w, meter_h);
@@ -2685,37 +2836,37 @@ slider1 == 4 ? (
 
   // Meter Arc Scale (0, 4, 8, 12, 16, 20 dB)
   arc_cx = meter_x + meter_w * 0.5;
-  arc_cy = meter_y + meter_h + 35;
-  arc_r = 130;
+  arc_cy = meter_y + meter_h + 14;
+  arc_r = 80;
 
   mi = 0;
   loop(6,
     m_val = mi * 4;
     m_ang = -0.75 + (mi / 5.0) * 1.5; // -43 deg to +43 deg
-    ax1 = arc_cx + sin(m_ang) * (arc_r - 6); ay1 = arc_cy - cos(m_ang) * (arc_r - 6);
+    ax1 = arc_cx + sin(m_ang) * (arc_r - 5); ay1 = arc_cy - cos(m_ang) * (arc_r - 5);
     ax2 = arc_cx + sin(m_ang) * (arc_r + 2); ay2 = arc_cy - cos(m_ang) * (arc_r + 2);
     gfx_r = 0.85; gfx_g = 0.80; gfx_b = 0.75;
     gfx_line(ax1, ay1, ax2, ay2);
 
     sprintf(#m_txt, "%d", m_val);
-    gfx_setfont(1, "Consolas", 12, 'b');
+    gfx_setfont(1, "Consolas", 11, 'b');
     gfx_measurestr(#m_txt, mtw, mth);
-    gfx_x = arc_cx + sin(m_ang) * (arc_r - 18) - mtw * 0.5;
-    gfx_y = arc_cy - cos(m_ang) * (arc_r - 18) - mth * 0.5;
+    gfx_x = arc_cx + sin(m_ang) * (arc_r - 16) - mtw * 0.5;
+    gfx_y = arc_cy - cos(m_ang) * (arc_r - 16) - mth * 0.5;
     gfx_drawstr(#m_txt);
     mi += 1;
   );
 
   // Subtitle in meter: "dB Gain Reduction"
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.95; gfx_g = 0.85; gfx_b = 0.75;
-  gfx_measurestr("dB", dtw, dth); gfx_x = arc_cx - dtw * 0.5; gfx_y = meter_y + 70; gfx_drawstr("dB");
-  gfx_measurestr("Gain Reduction", gtw, gth); gfx_x = arc_cx - gtw * 0.5; gfx_y = meter_y + 86; gfx_drawstr("Gain Reduction");
+  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.95; gfx_g = 0.85; gfx_b = 0.75;
+  gfx_measurestr("dB", dtw, dth); gfx_x = arc_cx - dtw * 0.5; gfx_y = meter_y + 38; gfx_drawstr("dB");
+  gfx_measurestr("Gain Reduction", gtw, gth); gfx_x = arc_cx - gtw * 0.5; gfx_y = meter_y + 51; gfx_drawstr("Gain Reduction");
 
   // Needle Line
   needle_db = min(20.0, max(0.0, bsa_gr_meter));
   needle_ang = -0.75 + (needle_db / 20.0) * 1.5;
-  nd_x = arc_cx + sin(needle_ang) * (arc_r + 6);
-  nd_y = arc_cy - cos(needle_ang) * (arc_r + 6);
+  nd_x = arc_cx + sin(needle_ang) * (arc_r + 4);
+  nd_y = arc_cy - cos(needle_ang) * (arc_r + 4);
   gfx_r = 0.98; gfx_g = 0.25; gfx_b = 0.20; // Red needle
   gfx_line(arc_cx, arc_cy, nd_x, nd_y);
   gfx_line(arc_cx - 1, arc_cy, nd_x - 1, nd_y);
@@ -2723,39 +2874,39 @@ slider1 == 4 ? (
 
   // Cracked Glass Aesthetic Lines across meter face
   gfx_r = 0.45; gfx_g = 0.48; gfx_b = 0.55; gfx_a = 0.45;
-  gfx_line(meter_x + 40, meter_y + 25, meter_x + 140, meter_y + 55);
-  gfx_line(meter_x + 140, meter_y + 55, meter_x + 280, meter_y + 35);
-  gfx_line(meter_x + 280, meter_y + 35, meter_x + 360, meter_y + 70);
-  gfx_line(meter_x + 140, meter_y + 55, meter_x + 180, meter_y + 95);
+  gfx_line(meter_x + 40, meter_y + 18, meter_x + 130, meter_y + 42);
+  gfx_line(meter_x + 130, meter_y + 42, meter_x + 260, meter_y + 26);
+  gfx_line(meter_x + 260, meter_y + 26, meter_x + 340, meter_y + 52);
+  gfx_line(meter_x + 130, meter_y + 42, meter_x + 170, meter_y + 70);
   gfx_a = 1.0;
 
   // ─────────────────────────────────────────────────────────────────────────
   // 2. STANDARD / SLAMMED SLIDING TOGGLE SWITCH
   // ─────────────────────────────────────────────────────────────────────────
-  sw_y = meter_y + meter_h + 16;
-  sw_w = 120; sw_h = 28;
+  sw_y = meter_y + meter_h + 8;
+  sw_w = 110; sw_h = 24;
   sw_x = bsa_x + floor((bsa_w - sw_w) * 0.5);
-  sw_hov = (mouse_x >= sw_x - 90 && mouse_x <= sw_x + sw_w + 90 && mouse_y >= sw_y && mouse_y <= sw_y + sw_h);
+  sw_hov = (mouse_x >= sw_x - 80 && mouse_x <= sw_x + sw_w + 80 && mouse_y >= sw_y && mouse_y <= sw_y + sw_h);
 
   // Standard text on left
-  gfx_setfont(1, "Orbitron", 13, 'b');
+  gfx_setfont(1, "Orbitron", 12, 'b');
   slider43 == 0 ? (gfx_r = 0.95; gfx_g = 0.90; gfx_b = 0.85;) : (gfx_r = 0.45; gfx_g = 0.48; gfx_b = 0.55;);
   gfx_measurestr("STANDARD", stw, sth);
-  gfx_x = sw_x - stw - 18; gfx_y = sw_y + 6; gfx_drawstr("STANDARD");
+  gfx_x = sw_x - stw - 14; gfx_y = sw_y + 4; gfx_drawstr("STANDARD");
 
   // Switch Track
   gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.07; gfx_rect(sw_x, sw_y, sw_w, sw_h);
   gfx_r = 0.35; gfx_g = 0.25; gfx_b = 0.22; gfx_rect(sw_x, sw_y, sw_w, sw_h, 0);
 
   // Switch Thumb
-  th_w = floor(sw_w * 0.5) - 4;
+  th_w = floor(sw_w * 0.5) - 3;
   th_x = slider43 == 0 ? (sw_x + 2) : (sw_x + sw_w - th_w - 2);
   gfx_r = 0.85; gfx_g = 0.45; gfx_b = 0.30; gfx_rect(th_x, sw_y + 2, th_w, sw_h - 4);
   gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.75; gfx_rect(th_x, sw_y + 2, th_w, sw_h - 4, 0);
 
   // Slammed text on right
   slider43 == 1 ? (gfx_r = 0.98; gfx_g = 0.35; gfx_b = 0.25;) : (gfx_r = 0.45; gfx_g = 0.48; gfx_b = 0.55;);
-  gfx_x = sw_x + sw_w + 18; gfx_y = sw_y + 6; gfx_drawstr("SLAMMED");
+  gfx_x = sw_x + sw_w + 14; gfx_y = sw_y + 4; gfx_drawstr("SLAMMED");
 
   mouse_clicked && sw_hov ? (
     slider43 = !slider43;
@@ -2765,49 +2916,49 @@ slider1 == 4 ? (
   // ─────────────────────────────────────────────────────────────────────────
   // 3. MAIN BSA KNOBS: TOP ROW (COMP & HEAT - LARGE)
   // ─────────────────────────────────────────────────────────────────────────
-  k_top_y = sw_y + sw_h + 46;
+  k_top_y = sw_y + sw_h + 38;
   k_spacing_top = floor(bsa_w * 0.22);
   k_cx = bsa_x + floor(bsa_w * 0.5);
 
-  slider44 = draw_bsa_rotary(k_cx - k_spacing_top, k_top_y, 44, slider44, 0, 100, 1, "COMP", "%", 1, 44);
-  slider45 = draw_bsa_rotary(k_cx + k_spacing_top, k_top_y, 44, slider45, 0, 100, 1, "HEAT", "%", 1, 45);
+  slider44 = draw_bsa_rotary(k_cx - k_spacing_top, k_top_y, 30, slider44, 0, 100, 1, "COMP", "%", 1, 44);
+  slider45 = draw_bsa_rotary(k_cx + k_spacing_top, k_top_y, 30, slider45, 0, 100, 1, "HEAT", "%", 1, 45);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 4. SECOND ROW: ATTACK, TONE, SALT (MEDIUM KNOBS)
   // ─────────────────────────────────────────────────────────────────────────
-  k_mid_y = k_top_y + 115;
+  k_mid_y = k_top_y + 100;
   k_spacing_mid = floor(bsa_w * 0.24);
 
-  slider46 = draw_bsa_rotary(k_cx - k_spacing_mid, k_mid_y, 35, slider46, 0, 100, 1, "ATTACK", "%", 0, 46);
-  slider47 = draw_bsa_rotary(k_cx, k_mid_y, 35, slider47, 0, 100, 1, "TONE", "%", 0, 47);
-  slider48 = draw_bsa_rotary(k_cx + k_spacing_mid, k_mid_y, 35, slider48, 0, 100, 1, "SALT", "%", 0, 48);
+  slider46 = draw_bsa_rotary(k_cx - k_spacing_mid, k_mid_y, 25, slider46, 0, 100, 1, "ATTACK", "%", 0, 46);
+  slider47 = draw_bsa_rotary(k_cx, k_mid_y, 25, slider47, 0, 100, 1, "TONE", "%", 0, 47);
+  slider48 = draw_bsa_rotary(k_cx + k_spacing_mid, k_mid_y, 25, slider48, 0, 100, 1, "SALT", "%", 0, 48);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 5. BOTTOM ROW: HPF, OUTPUT SLIDER + METER, MIX
   // ─────────────────────────────────────────────────────────────────────────
-  k_bot_y = k_mid_y + 98;
+  k_bot_y = k_mid_y + 94;
 
   // HPF Rotary on bottom-left
-  slider49 = draw_bsa_rotary(bsa_x + 90, k_bot_y, 28, slider49, 20, 300, 5, "HPF", "Hz", 0, 49);
+  slider49 = draw_bsa_rotary(bsa_x + 90, k_bot_y, 22, slider49, 20, 300, 5, "HPF", "Hz", 0, 49);
 
   // OUTPUT Slider with meter in center
   out_sx = bsa_x + 170;
   out_sw = bsa_w - 340;
-  out_sy = k_bot_y - 14;
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.92; gfx_g = 0.48; gfx_b = 0.36;
-  gfx_measurestr("OUTPUT", otw, oth); gfx_x = out_sx + (out_sw - otw) * 0.5; gfx_y = out_sy - 16; gfx_drawstr("OUTPUT");
+  out_sy = k_bot_y - 6;
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.92; gfx_g = 0.48; gfx_b = 0.36;
+  gfx_measurestr("OUTPUT", otw, oth); gfx_x = out_sx + (out_sw - otw) * 0.5; gfx_y = out_sy - 15; gfx_drawstr("OUTPUT");
 
   // Output frame
-  gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.07; gfx_rect(out_sx, out_sy, out_sw, 18);
-  gfx_r = 0.28; gfx_g = 0.32; gfx_b = 0.40; gfx_rect(out_sx, out_sy, out_sw, 18, 0);
+  gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.07; gfx_rect(out_sx, out_sy, out_sw, 16);
+  gfx_r = 0.28; gfx_g = 0.32; gfx_b = 0.40; gfx_rect(out_sx, out_sy, out_sw, 16, 0);
 
   // Output slider fader thumb
   out_norm = (slider51 - (-12.0)) / 24.0;
-  f_x = out_sx + floor(out_norm * (out_sw - 20));
-  gfx_r = 0.85; gfx_g = 0.88; gfx_b = 0.95; gfx_rect(f_x, out_sy - 2, 20, 22);
-  gfx_r = 0.85; gfx_g = 0.45; gfx_b = 0.30; gfx_rect(f_x + 9, out_sy, 2, 18);
+  f_x = out_sx + floor(out_norm * (out_sw - 18));
+  gfx_r = 0.85; gfx_g = 0.88; gfx_b = 0.95; gfx_rect(f_x, out_sy - 2, 18, 20);
+  gfx_r = 0.85; gfx_g = 0.45; gfx_b = 0.30; gfx_rect(f_x + 8, out_sy, 2, 16);
 
-  out_hov = (mouse_x >= out_sx && mouse_x <= out_sx + out_sw && mouse_y >= out_sy - 8 && mouse_y <= out_sy + 26);
+  out_hov = (mouse_x >= out_sx && mouse_x <= out_sx + out_sw && mouse_y >= out_sy - 8 && mouse_y <= out_sy + 24);
   mouse_down && out_hov ? (
     slider51 = -12.0 + ((mouse_x - out_sx) / out_sw) * 24.0;
     slider51 = max(-12.0, min(12.0, floor(slider51 * 2.0) * 0.5));
@@ -2815,15 +2966,15 @@ slider1 == 4 ? (
   );
 
   // Output meter readout
-  gfx_setfont(1, "Consolas", 11, 'b'); gfx_r = 0.65; gfx_g = 0.70; gfx_b = 0.80;
-  gfx_x = out_sx + 4; gfx_y = out_sy + 22; gfx_drawstr("-60");
+  gfx_setfont(1, "Consolas", 10.5, 'b'); gfx_r = 0.65; gfx_g = 0.70; gfx_b = 0.80;
+  gfx_x = out_sx + 4; gfx_y = out_sy + 20; gfx_drawstr("-60");
   gfx_x = out_sx + floor(out_sw * 0.3); gfx_drawstr("-24");
   gfx_x = out_sx + floor(out_sw * 0.6); gfx_drawstr("-12");
   gfx_x = out_sx + floor(out_sw * 0.82); gfx_drawstr("0");
   gfx_x = out_sx + out_sw - 20; gfx_drawstr("+6");
 
   // MIX Rotary on bottom-right
-  slider50 = draw_bsa_rotary(bsa_x + bsa_w - 90, k_bot_y, 28, slider50, 0, 100, 1, "MIX", "%", 0, 50);
+  slider50 = draw_bsa_rotary(bsa_x + bsa_w - 90, k_bot_y, 22, slider50, 0, 100, 1, "MIX", "%", 0, 50);
 
   prev_mouse_y_bsa = mouse_y;
 );
@@ -3136,12 +3287,12 @@ slider1 == 6 ? (
   // =============================================================================
   gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25; gfx_setfont(1, "Orbitron", 15, 'b');
   gfx_x = disp_x + 14; gfx_y = disp_y + 10;
-  gfx_drawstr("PRODUCER DRUM MATRIX // 17 MIXING-GRADE COMMERCIAL BENCHMARKS");
+  gfx_drawstr("PRODUCER DRUM MATRIX // 19 MIXING-GRADE COMMERCIAL BENCHMARKS");
 
-  // 1. 17 Producer Pills arranged in 3 neat rows
-  pi = 0; pill_w = floor((disp_w - 50) / 6); pill_h = 32;
-  loop(17,
-    p_row = floor(pi / 6); p_col = pi % 6;
+  // 1. 19 Producer Pills arranged in 3 neat rows (7 per row)
+  pi = 0; pill_w = floor((disp_w - 60) / 7); pill_h = 32;
+  loop(19,
+    p_row = floor(pi / 7); p_col = pi % 7;
     px = disp_x + 10 + p_col * (pill_w + 6); py = disp_y + 36 + p_row * (pill_h + 6);
     is_sel = (slider25 == pi);
     p_hov = (mouse_x >= px && mouse_x <= px + pill_w && mouse_y >= py && mouse_y <= py + pill_h);
@@ -3172,7 +3323,9 @@ slider1 == 6 ? (
              pi == 13? "13: UDD" :
              pi == 14? "14: STURGIS" :
              pi == 15? "15: BRAUNSTEIN" :
-                       "16: CERVINI";
+             pi == 16? "16: CERVINI" :
+             pi == 17? "17: ACLE" :
+                       "18: HEAVING";
     gfx_measurestr(p_name, pnw, pnh);
     gfx_x = floor(px + (pill_w - pnw) * 0.5); gfx_y = py + 8;
     gfx_drawstr(p_name);
@@ -3212,8 +3365,10 @@ slider1 == 6 ? (
           p_sel == 12? "SAM BASSAL // Thornhill: 90s Alternative Grit, Snare Body +3.0dB, Mud Notch -2.6dB" :
           p_sel == 13? "HENRIK UDD // Architects / BMTH: Massive Polished UK Metal, Snare +2.8dB, Scoop -3.0dB" :
           p_sel == 14? "JOEY STURGIS // Asking Alexandria: Hyper Metalcore Slam, Snare +3.2dB, Deep Scoop -3.8dB" :
-          p_sel == 15? "DAN BRAUNSTEIN // Spiritbox / Volumes Standard: Snare Weight +3.2dB, Scoop -2.8dB, Silk +2.0dB" :
-                       "ZAKK CERVINI // Blink-182 / BMTH: Upfront Radio Rimshot Crack +3.2dB, Stick +2.0dB";
+          p_sel == 15? "DAN BRAUNSTEIN // Spiritbox: Snare Weight +3.2dB, Scoop -2.8dB, Silk +2.0dB" :
+          p_sel == 16? "ZAKK CERVINI // Blink-182 / BMTH: Upfront Radio Rimshot Crack +3.2dB, Stick +2.0dB" :
+          p_sel == 17? "ACLE KAHNEY // TesseracT: Snare Snap (+1.6dB), 120ms Dynamic Punch, Silk Cymbals" :
+                       "HEAVING. // carsick: Crushed Shoegaze Room Wash, Heavy Fat Snare (+1.4dB Tail)";
   gfx_drawstr(p_rec);
 
   // 3. Drum Kit Source Model (4 Wide Cards)

@@ -53,7 +53,7 @@ slider29:50<0,100,1>-Flatline Envelope Shape (%)
 slider30:100<0,100,1>-Clipper Channel Linking (%)
 slider31:1<0,3,1{1x Normal,2x Online,4x HQ,8x Ultra}>-Oversampling Quality
 slider32:2<0,2,1{Off,Guitar Chug Only,Active Dual Tamer (Sub-Bass + Chug Guard)}>-Dynamic Low-End Resonance Tamer
-slider33:0<0,21,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic)}>-Mastering Engineer Signature Preset
+slider33:0<0,24,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Mastering Engineer Signature Preset
 slider34:1<0,3,1{Off,Gentle Macro Leveler (±1.5dB),Commercial Macro & Micro Mix Rider (±2.5dB),Song-Structure Dynamic Crest Inflator (+3.0dB)}>-Dynamic Crest & Section Automation Rider
 slider35:0<-6.0,6.0,0.1>-Tonal Balance Low-End Trim (dB)
 slider36:0<-6.0,6.0,0.1>-Tonal Balance Lo-Mid Mud Trim (dB)
@@ -1240,6 +1240,30 @@ function apply_producer_master_preset(p_idx) (
     imager_mono = 105.0; imager_wid = 1.20;
     eq_hp_f = 28.0; eq_b2_g = -1.6; eq_b3_g = 1.0; eq_b4_g = 1.6;
     slider43 = 3; slider44 = 1.0; slider45 = 0.4;
+  ) : p_idx == 22 ? (
+    // 22. Acle Kahney (TesseracT - King / Djent Master Reference)
+    lim_ceil = -1.0; max_drive = 3.6; auto_norm = 1;
+    clip_drive = 0.7; kclip_mode = 0; kclip_knee = 0.35; // Smooth Zero
+    comp_thresh = -13.0; comp_ratio = 2.0; comp_attack = 30.0; comp_release = 0.0; comp_makeup = 0.5; sc_hpf_f = 125.0;
+    imager_mono = 100.0; imager_wid = 1.18;
+    eq_hp_f = 26.0; eq_b2_g = -2.0; eq_b3_g = 1.2; eq_b4_g = 1.4;
+    slider43 = 3; slider44 = 1.2; slider45 = 0.8;
+  ) : p_idx == 23 ? (
+    // 23. Adam Cichocki (heaving. - carsick / Timber Studios Master)
+    lim_ceil = -1.0; max_drive = 5.2; auto_norm = 1;
+    clip_drive = 1.4; kclip_mode = 4; kclip_knee = 0.25; // Flatline 2 Hybrid
+    comp_thresh = -11.0; comp_ratio = 3.0; comp_attack = 10.0; comp_release = 0.0; comp_makeup = 1.2; sc_hpf_f = 110.0;
+    imager_mono = 110.0; imager_wid = 1.22;
+    eq_hp_f = 30.0; eq_b2_g = -1.2; eq_b3_g = 1.6; eq_b4_g = 2.0;
+    slider43 = 3; slider44 = 1.4; slider45 = 0.9;
+  ) : p_idx == 24 ? (
+    // 24. Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios Master)
+    lim_ceil = -1.0; max_drive = 4.4; auto_norm = 1;
+    clip_drive = 1.0; kclip_mode = 0; kclip_knee = 0.35; // Smooth Zero
+    comp_thresh = -12.0; comp_ratio = 2.0; comp_attack = 30.0; comp_release = 0.0; comp_makeup = 0.8; sc_hpf_f = 120.0;
+    imager_mono = 90.0; imager_wid = 1.16;
+    eq_hp_f = 26.0; eq_b2_g = -1.6; eq_b3_g = 1.2; eq_b4_g = 1.5;
+    slider43 = 3; slider44 = 1.1; slider45 = 0.5;
   ) : (
     // 0. Default Modern Metal Clean (2026 High Headroom Benchmark Master)
     lim_ceil = -1.0; max_drive = 3.8; auto_norm = 1;
@@ -2856,6 +2880,14 @@ slider49 == 1 ? (
 gfx_clear = 0x0A0D12; // Solid background clear prevents flickering and phantom numbers
 mouse_down = (mouse_cap & 1);
 mouse_clicked = mouse_down && !prev_mouse_down;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
 
 w = max(720, gfx_w);
 h = max(460, gfx_h);
@@ -2929,7 +2961,14 @@ gfx_r = 0.20; gfx_g = 0.28; gfx_b = 0.38;
 gfx_rect(bar_x, 25, bar_w, 30, 0);
 
 gfx_r = 1.00; gfx_g = 0.72; gfx_b = 0.15;
-gfx_setfont(1, "Segoe UI", 12, 'b');
+pt_sz = 12.0;
+gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+gfx_measurestr(p_title, ptw, pth);
+while (ptw > bar_w - 22 && pt_sz > 8.0) (
+  pt_sz -= 0.5;
+  gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+  gfx_measurestr(p_title, ptw, pth);
+);
 gfx_x = bar_x + 8; gfx_y = 31;
 p_title = (slider33==0  ? "DEFAULT 2026 (Clean CD)" :
           (slider33==1  ? "LANCE PRENC (Alpha Wolf)" :
@@ -2952,7 +2991,10 @@ p_title = (slider33==0  ? "DEFAULT 2026 (Clean CD)" :
           (slider33==18 ? "DAN BRAUNSTEIN (Spiritbox)" :
           (slider33==19 ? "CERVINI / RON (Bad Omens)" :
           (slider33==20 ? "JENS BOGREN (Fascination St.)" :
-          "NOLLY (Periphery/GGD)")))))))))))))))))))));
+          (slider33==21 ? "NOLLY (Periphery/GGD)" :
+          (slider33==22 ? "ACLE KAHNEY (TesseracT)" :
+          (slider33==23 ? "ADAM CICHOCKI (heaving.)" :
+                          "MANUEL RENNER (SENNA)"))))))))))))))))))))))));
 is_user_customized ? (p_title = sprintf(#, "%s [C]", p_title););
 gfx_drawstr(p_title);
 
@@ -2977,7 +3019,7 @@ gfx_drawstr(">");
 // Interactive Preset Clicks (Prev, Next, and Popup Menu)
 mouse_clicked && (mouse_y >= 25 && mouse_y <= 55) ? (
   mouse_x >= btn_l_x && mouse_x <= btn_l_x + btn_w ? (
-    slider33 = (slider33 - 1 + 22) % 22;
+    slider33 = (slider33 - 1 + 25) % 25;
     prev_producer_preset = slider33;
     genre_profile = slider33;
     apply_producer_master_preset(slider33);
@@ -2985,7 +3027,7 @@ mouse_clicked && (mouse_y >= 25 && mouse_y <= 55) ? (
     slider_automate();
   ) :
   mouse_x >= btn_r_x && mouse_x <= btn_r_x + btn_w ? (
-    slider33 = (slider33 + 1) % 22;
+    slider33 = (slider33 + 1) % 25;
     prev_producer_preset = slider33;
     genre_profile = slider33;
     apply_producer_master_preset(slider33);
@@ -2993,7 +3035,7 @@ mouse_clicked && (mouse_y >= 25 && mouse_y <= 55) ? (
     slider_automate();
   ) :
   mouse_x >= bar_x && mouse_x <= bar_x + bar_w ? (
-    menu_gen = gfx_showmenu("Default Modern Metal Clean (2026 Clarity & Punch)|Lance Prenc (Alpha Wolf / Prenc Audio Master)|Scott Seigel (DIESECT Full Production Master)|Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|Buster Odeholm (thrown / Odeholm Audio Master)|Grant Berry (blanket / Love Is Noise / Fader Mastering)|Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|Ted Jensen (Don Broco / Sterling Sound Master)|Robin Schmidt (Static Dress / 24-96 Mastering)|Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|Nick Townsend (Heavenward / Townsend Mastering)|Randy Merrill (City Of Souls / Sterling Sound Master)|Leon Schmidt & Christian Donaldson (SUNBORN Master)|Ermin Hamidovic (Systematic Mastering Guide Benchmark)|Will Putney (Fit For An Autopsy / Knocked Loose signature)|George Lever (Loathe / Sleep Token signature)|Sam Bassal (Thornhill / Ocean Grove)|Henrik Udd (Architects / Bleed From Within signature)|Dan Braunstein (Spiritbox / Keep Sweet)|Zakk Cervini & Erik Ron (Bad Omens)|Jens Bogren (Fascination Street Master)|Nolly (Periphery / GGD Systematic)");
+    menu_gen = gfx_showmenu("Default Modern Metal Clean (2026 Clarity & Punch)|Lance Prenc (Alpha Wolf / Prenc Audio Master)|Scott Seigel (DIESECT Full Production Master)|Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|Buster Odeholm (thrown / Odeholm Audio Master)|Grant Berry (blanket / Love Is Noise / Fader Mastering)|Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|Ted Jensen (Don Broco / Sterling Sound Master)|Robin Schmidt (Static Dress / 24-96 Mastering)|Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|Nick Townsend (Heavenward / Townsend Mastering)|Randy Merrill (City Of Souls / Sterling Sound Master)|Leon Schmidt & Christian Donaldson (SUNBORN Master)|Ermin Hamidovic (Systematic Mastering Guide Benchmark)|Will Putney (Fit For An Autopsy / Knocked Loose signature)|George Lever (Loathe / Sleep Token signature)|Sam Bassal (Thornhill / Ocean Grove)|Henrik Udd (Architects / Bleed From Within signature)|Dan Braunstein (Spiritbox / Keep Sweet)|Zakk Cervini & Erik Ron (Bad Omens)|Jens Bogren (Fascination Street Master)|Nolly (Periphery / GGD Systematic)|Acle Kahney (TesseracT - King)|Adam Cichocki (heaving. - carsick / Timber Studios)|Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
     menu_gen > 0 ? (
       slider33 = menu_gen - 1;
       prev_producer_preset = slider33;
@@ -4591,8 +4633,15 @@ slider2 == 4 ? (
 
   // Dynamic ISP Status Badge on Right (Measured, Safe Margin)
   isp_badge_txt = slider46 ? "4x POLYPHASE ISP: ACTIVE" : "ISP GUARD: 2x HQ";
-  gfx_setfont(1, "Orbitron", 11, 'b');
+  isp_font_sz = 11.0;
+  gfx_setfont(1, "Orbitron", isp_font_sz, 'b');
   gfx_measurestr(isp_badge_txt, ibw, ibh);
+  max_b_w = min(220, max(120, disp_w - 300));
+  while (ibw > max_b_w - 16 && isp_font_sz > 8.0) (
+    isp_font_sz -= 0.5;
+    gfx_setfont(1, "Orbitron", isp_font_sz, 'b');
+    gfx_measurestr(isp_badge_txt, ibw, ibh);
+  );
   b_w = ibw + 16;
   b_x = disp_x + disp_w - b_w - 18;
   gfx_r = 0.08; gfx_g = 0.22; gfx_b = 0.15;
@@ -4602,15 +4651,24 @@ slider2 == 4 ? (
   gfx_x = b_x + 8; gfx_y = lim_card_y + 9;
   gfx_drawstr(isp_badge_txt);
 
-  // Telemetry Strip (Above Meter Bar)
+  // Telemetry Strip (Above Meter Bar) with responsive font scale
   out_pk_db = 20.0 * log10(max(peak_hold, 0.000001));
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.95;
-  gfx_setfont(1, "Consolas", 12, 'b');
+  tel_font_sz = disp_w < 700 ? 10.0 : 12.0;
+  gfx_setfont(1, "Consolas", tel_font_sz, 'b');
   gfx_x = disp_x + 18; gfx_y = lim_card_y + 30;
   peak_hold > 0.000001 ? (
-    gfx_printf("Output True-Peak: %.2f dBTP   |   Limiter Ceiling: %.1f dBTP   |   EBU Standard: -1.0 dBTP", out_pk_db, lim_ceil);
+    disp_w < 650 ? (
+      gfx_printf("Out: %.2fdBTP | Ceil: %.1fdBTP | EBU: -1.0", out_pk_db, lim_ceil);
+    ) : (
+      gfx_printf("Output True-Peak: %.2f dBTP   |   Limiter Ceiling: %.1f dBTP   |   EBU Standard: -1.0 dBTP", out_pk_db, lim_ceil);
+    );
   ) : (
-    gfx_drawstr("Output True-Peak: IDLE (-inf dBTP)   |   Limiter Ceiling: -1.0 dBTP");
+    disp_w < 650 ? (
+      gfx_drawstr("Out: IDLE (-inf dBTP) | Ceil: -1.0 dBTP");
+    ) : (
+      gfx_drawstr("Output True-Peak: IDLE (-inf dBTP)   |   Limiter Ceiling: -1.0 dBTP");
+    );
   );
 
   // Horizontal True-Peak Level Bar (Clean, NO text drawn over meter)
@@ -4941,7 +4999,9 @@ slider2 == 0 ? (
               (slider33==18 ? "Dan Braunstein (Spiritbox)" :
               (slider33==19 ? "Cervini & Ron (Bad Omens)" :
               (slider33==20 ? "Jens Bogren (Fascination St.)" :
-              "Nolly (Periphery/GGD)")))))))))))))))))))));
+              (slider33==21 ? "Nolly (Periphery/GGD)" :
+              (slider33==22 ? "Acle Kahney (TesseracT)" :
+              "heaving. (carsick)")))))))))))))))))))))));
   gfx_printf("Target: %s  |  Preset: %s", g_name, genre_lbl);
 
   // Concise Mastering Strength Readout (Safely fits within Box 1)
@@ -4966,7 +5026,9 @@ slider2 == 0 ? (
               (slider33==18 ? "Tape Warmth + 11k Silk Keeps Vocals Forward" :
               (slider33==19 ? "Tube Valve Drive Adds Weight Under Pop Hooks" :
               (slider33==20 ? "Gentle Zero-Clip + 24Hz HPF Preserves Headroom" :
-              "Smooth Zero Clip + 1.20x Width Clean Benchmark")))))))))))))))))))));
+              (slider33==21 ? "Smooth Zero Clip + 1.20x Width Clean Benchmark" :
+              (slider33==22 ? "Djent Transient Precision + 26Hz Sub Anchor & 1.18x Width" :
+              "Flatline 2 Wall-of-Sound Saturation + 1.22x Grungegaze Field")))))))))))))))))))))));
 
   gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20;
   gfx_setfont(1, "Consolas", 11, 'b');

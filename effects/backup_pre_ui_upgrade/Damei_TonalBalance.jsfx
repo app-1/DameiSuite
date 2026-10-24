@@ -1,0 +1,930 @@
+﻿desc:Damei Tonal Balance â€” 256-bin FFT / Width / Dynamics / Vocal / Hybrid EQ
+author:Damei
+version:1.0
+about:
+  TBC3-class tonal balance engine for the Damei Mix Console.
+  - 4096-point FFT â†’ 256 log-spaced display bins (20Hzâ€“20kHz)
+  - Stereo Width (M/S energy ratio)
+  - Dynamics / Crest Factor (peak vs RMS)
+  - Low-End Crest Factor (sub-100Hz)
+  - Vocal Balance via sidechain channels 3/4
+  - 5-band Hybrid EQ (bell / low shelf / high shelf)
+  - All data shared via gmem for Lua GUI
+
+// â”€â”€â”€ SHARED GMEM NAMESPACE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// All Damei JSFX share this namespace. Index ranges are partitioned:
+//   200-455:  FFT bins (written by TonalBalance only)
+//   456-499:  Metering state (TonalBalance)
+//   700-795:  EQ/ballistics (bidirectional with Lua)
+//   1000-4099: Reserved for per-track metering (Metering.jsfx)
+//   4100-4499: Satellite plugins (SatelliteEQ/Comp/Sat)
+//   4300-4599: SpectralUnmask
+options:gmem=DameiMetering
+options:no_meter
+options:maxmem=1048576
+
+// â”€â”€â”€ PINS (4-in for sidechain vocal routing) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+in_pin:left input
+in_pin:right input
+in_pin:vocal sidechain L
+in_pin:vocal sidechain R
+out_pin:left output
+out_pin:right output
+
+// â”€â”€â”€ SLIDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+slider1:0<0,1,1>Capture (0=off, 1=recording)
+slider2:0<0,1,1>EQ Bypass
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// @INIT â€” Pre-compute window, bin map, filter coefficients
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+@init
+
+// â”€â”€â”€ CONSTANTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+FFT_SZ    = 4096;
+DISP_BINS = 256;
+GMEM_BINS = 200;    // gmem[200..455] = 256 FFT display bins
+GMEM_HB   = 456;    // FFT heartbeat
+GMEM_CAPT = 457;    // capture state
+GMEM_CAPN = 458;    // capture frame count
+GMEM_SR   = 459;    // sample rate
+GMEM_WID  = 460;    // width
+GMEM_CREST= 461;    // crest factor
+GMEM_LCRE = 462;    // low-end crest
+GMEM_VOC  = 463;    // vocal balance
+GMEM_VACT = 464;    // vocal sidechain active
+GMEM_CSTATE=465;    // capture state echo
+GMEM_CCNT = 466;    // capture count
+GMEM_CCURV= 467;    // captured curve start (256 bins)
+GMEM_EQ   = 700;    // EQ params start (5 bands Ã— 7 = 35)
+GMEM_EQBP = 735;    // EQ bypass from UI
+GMEM_CTRIG= 740;    // capture trigger from UI
+GMEM_VER  = 741;    // version identifier
+
+// Phase 5A: LUFS + Phase correlation
+GMEM_LUFS  = 790;    // momentary LUFS
+GMEM_LE_CORR = 791;  // low-end correlation (-1..+1)
+GMEM_LE_SIDE = 792;  // low-end side energy ratio (0..1)
+GMEM_MONO_WARN = 793; // mono-maker warning flag
+GMEM_BALLISTIC = 794; // ballistics time constant (seconds) from UI
+
+// Phase 2: Dynamic EQ â€” per-band params at GMEM_EQ + band*7 + 5 (threshold) + 6 (ratio)
+// Dynamic attack/release read from gmem[750 + band*7], gmem[751 + band*7]
+// GR output written to gmem[760 + band] (0..5 bands)
+GMEM_DYN_EQ = 750;    // dynamic EQ params base
+GMEM_DYN_GR = 760;    // gain reduction output (5 bands)
+
+gmem[GMEM_VER] = 100; // v1.0
+
+// â”€â”€â”€ MEMORY MAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+MEM_WIN    = 0;          // Hann window: 4096
+MEM_FFT    = 4096;       // FFT buffer: 8192 (4096 complex)
+MEM_RING   = 12288;      // Input ring: 4096
+MEM_BIN_LO = 16384;      // Bin map low: 256
+MEM_BIN_HI = 16640;      // Bin map high: 256
+MEM_RAW    = 16896;      // Raw magnitudes: 256
+MEM_SM     = 17152;      // Smoothed magnitudes: 256
+MEM_CAPT   = 17408;      // Capture accumulator: 256
+MEM_MS_M   = 17664;      // Feature B: Mid ring buffer: 4096
+MEM_MS_S   = 21760;      // Feature B: Side ring buffer: 4096
+MEM_MS_FFT = 25856;      // Feature B: M/S FFT work buffer: 8192
+MEM_CORR   = 34048;      // Feature B: 256-bin M/S correlation result
+MEM_EQC    = 17664;      // EQ coefficients: 5 bands Ã— 6 = 30
+MEM_EQS    = 17700;      // EQ state: 5 bands Ã— 4 vars Ã— 2ch = 40
+MEM_LPFS   = 17750;      // LPF state for low-end crest: 6
+MEM_PREV_EQ= 17760;      // Previous EQ params (detect changes): 35
+MEM_LUFS   = 17800;      // LUFS K-weight filter state: 12
+MEM_LE_MS  = 17820;      // Low-end M/S filter state: 12
+MEM_DYN_ENV= 17840;      // Dynamic EQ envelope state: 5 bands Ã— 2 (env, gr) = 10
+MEM_DYN_BPF= 17860;      // Dynamic EQ bandpass state: 5 bands Ã— 4 = 20
+
+// â”€â”€â”€ HANN WINDOW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+i = 0;
+loop(FFT_SZ,
+  MEM_WIN[i] = 0.5 * (1.0 - cos(2.0 * $pi * i / (FFT_SZ - 1)));
+  i += 1;
+);
+
+// â”€â”€â”€ LOG-FREQUENCY BIN MAP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Map 256 display bins logarithmically from 20Hz to 20kHz
+i = 0;
+loop(DISP_BINS,
+  f_lo = 20.0 * pow(1000.0, i / (DISP_BINS - 1));
+  f_hi = 20.0 * pow(1000.0, (i + 1) / (DISP_BINS - 1));
+  // Clamp to valid FFT bin range
+  k_lo = max(1, floor(f_lo * FFT_SZ / srate));
+  k_hi = min(FFT_SZ / 2 - 1, floor(f_hi * FFT_SZ / srate));
+  k_hi < k_lo ? k_hi = k_lo;
+  MEM_BIN_LO[i] = k_lo;
+  MEM_BIN_HI[i] = k_hi;
+  i += 1;
+);
+
+// â”€â”€â”€ INIT SMOOTHED BINS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+memset(MEM_SM, 0, DISP_BINS);
+i = 0;
+loop(DISP_BINS, MEM_SM[i] = -100; i += 1;);
+
+// â”€â”€â”€ RING BUFFER STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ring_pos = 0;
+fft_count = 0;
+fft_heartbeat = 0;
+
+// â”€â”€â”€ METERING ACCUMULATORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Width (M/S)
+mid_rms_acc = 0; side_rms_acc = 0; width_n = 0;
+width_val = 0.5;
+width_block = (srate * 0.1)|0;  // 100ms blocks
+
+// Crest factor
+crest_peak = 0; crest_rms_acc = 0; crest_n = 0;
+crest_val = 12;
+
+// Low-end crest
+le_peak = 0; le_rms_acc = 0; le_n = 0;
+le_crest_val = 8;
+
+// Vocal balance
+voc_mix_acc = 0; voc_vox_acc = 0; voc_n = 0;
+voc_val = 0; voc_active = 0;
+voc_block = (srate * 0.2)|0;  // 200ms blocks
+
+// â”€â”€â”€ LOW-PASS FILTER FOR LOW-END CREST (100Hz Butterworth) â”€â”€â”€â”€â”€â”€â”€
+// Pre-compute 2nd order Butterworth LPF coefficients at 100Hz
+lpf_fc = 100.0;
+lpf_w0 = 2.0 * $pi * lpf_fc / srate;
+lpf_cosw = cos(lpf_w0);
+lpf_sinw = sin(lpf_w0);
+lpf_alpha = lpf_sinw / (2.0 * 0.7071);  // Q = sqrt(2)/2
+lpf_b0 = (1.0 - lpf_cosw) / 2.0;
+lpf_b1 = 1.0 - lpf_cosw;
+lpf_b2 = (1.0 - lpf_cosw) / 2.0;
+lpf_a0 = 1.0 + lpf_alpha;
+lpf_a1 = -2.0 * lpf_cosw;
+lpf_a2 = 1.0 - lpf_alpha;
+// Normalize
+lpf_b0 /= lpf_a0; lpf_b1 /= lpf_a0; lpf_b2 /= lpf_a0;
+lpf_a1 /= lpf_a0; lpf_a2 /= lpf_a0;
+// State: MEM_LPFS[0..5] = x1,x2,y1,y2 (initialized to 0)
+memset(MEM_LPFS, 0, 6);
+
+// â”€â”€â”€ EQ STATE INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+memset(MEM_EQS, 0, 40);
+memset(MEM_EQC, 0, 30);
+memset(MEM_PREV_EQ, 0, 35);
+
+// â”€â”€â”€ CAPTURE STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+capt_state = 0;  // 0=off, 1=capturing
+capt_frames = 0;
+memset(MEM_CAPT, 0, DISP_BINS);
+
+// â”€â”€â”€ LUFS MEASUREMENT STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+lufs_rms_acc = 0;
+lufs_n = 0;
+lufs_block = (srate * 0.4)|0;  // 400ms momentary window
+lufs_val = -100;
+
+// K-weighting pre-filter (simplified 2nd order high-shelf + HPF)
+// Stage 1: High shelf (+4dB at 1681Hz) for perceptual weighting
+kw_hs_fc = 1681.0;
+kw_hs_w0 = 2.0 * $pi * kw_hs_fc / srate;
+kw_hs_cosw = cos(kw_hs_w0);
+kw_hs_sinw = sin(kw_hs_w0);
+kw_hs_A = pow(10, 4.0/40.0);  // +4dB shelf
+kw_hs_alpha = kw_hs_sinw / (2.0 * 0.7071);
+kw_sq_A = 2.0 * sqrt(kw_hs_A) * kw_hs_alpha;
+kw_b0 = kw_hs_A * ((kw_hs_A+1) + (kw_hs_A-1)*kw_hs_cosw + kw_sq_A);
+kw_b1 = -2*kw_hs_A * ((kw_hs_A-1) + (kw_hs_A+1)*kw_hs_cosw);
+kw_b2 = kw_hs_A * ((kw_hs_A+1) + (kw_hs_A-1)*kw_hs_cosw - kw_sq_A);
+kw_a0 = (kw_hs_A+1) - (kw_hs_A-1)*kw_hs_cosw + kw_sq_A;
+kw_a1n = 2 * ((kw_hs_A-1) - (kw_hs_A+1)*kw_hs_cosw);
+kw_a2n = (kw_hs_A+1) - (kw_hs_A-1)*kw_hs_cosw - kw_sq_A;
+// Normalize
+kw_b0 /= kw_a0; kw_b1 /= kw_a0; kw_b2 /= kw_a0;
+kw_a1n /= kw_a0; kw_a2n /= kw_a0;
+// K-weight filter state in MEM_LUFS[0..3] (L), MEM_LUFS[4..7] (R)
+memset(MEM_LUFS, 0, 12);
+
+// â”€â”€â”€ LOW-END PHASE CORRELATION STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Uses the existing 100Hz LPF on mid/side separately
+le_mid_acc = 0; le_side_acc = 0; le_cross_acc = 0;
+le_corr_n = 0;
+le_corr_val = 1.0;  // default: perfectly correlated
+le_side_ratio = 0;
+memset(MEM_LE_MS, 0, 12);
+
+// Write sample rate to gmem
+gmem[GMEM_SR] = srate;
+
+// Feature B: Phase correlation ribbon init
+memset(MEM_CORR, 0, DISP_BINS);
+ring_ms_pos = 0;   // shared ring position for M/S buffers
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// @SLIDER
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+@slider
+// Capture toggle
+slider1 > 0.5 && capt_state == 0 ? (
+  capt_state = 1;
+  capt_frames = 0;
+  memset(MEM_CAPT, 0, DISP_BINS);
+) : slider1 < 0.5 && capt_state == 1 ? (
+  capt_state = 0;
+  // Finalize: divide accumulator by frame count
+  capt_frames > 0 ? (
+    i = 0;
+    loop(DISP_BINS,
+      MEM_CAPT[i] /= capt_frames;
+      gmem[GMEM_CCURV + i] = MEM_CAPT[i];
+      i += 1;
+    );
+    gmem[GMEM_CCNT] = capt_frames;
+    gmem[GMEM_CSTATE] = 2;  // done
+  );
+);
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// @SAMPLE â€” All DSP processing
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+@sample
+
+// â”€â”€â”€ READ INPUTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+in_l = spl0;
+in_r = spl1;
+sc_l = spl2;  // vocal sidechain
+sc_r = spl3;
+
+// â”€â”€â”€ STORE MONO IN RING BUFFER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+mono = (in_l + in_r) * 0.5;
+MEM_RING[ring_pos] = mono;
+ring_pos = (ring_pos + 1) % FFT_SZ;
+// Feature B: store M/S samples for phase correlation FFT
+ms_mid  = (in_l + in_r) * 0.7071;
+ms_side = (in_l - in_r) * 0.7071;
+MEM_MS_M[ring_ms_pos] = ms_mid;
+MEM_MS_S[ring_ms_pos] = ms_side;
+ring_ms_pos = (ring_ms_pos + 1) % FFT_SZ;
+fft_count += 1;
+
+// â”€â”€â”€ FFT ANALYSIS (every FFT_SZ samples) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+fft_count >= FFT_SZ ? (
+  fft_count = 0;
+  fft_heartbeat += 1;
+
+  // Copy ring buffer to FFT buffer with Hann window (complex format)
+  j = 0;
+  loop(FFT_SZ,
+    src_idx = (ring_pos + j) % FFT_SZ;
+    MEM_FFT[2*j]     = MEM_RING[src_idx] * MEM_WIN[j];
+    MEM_FFT[2*j + 1] = 0;
+    j += 1;
+  );
+
+  // Forward FFT
+  fft(MEM_FFT, FFT_SZ);
+  fft_permute(MEM_FFT, FFT_SZ);
+
+  // â”€â”€ Extract 256 display bins (log-frequency mapped) â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  i = 0;
+  loop(DISP_BINS,
+    k_lo = MEM_BIN_LO[i];
+    k_hi = MEM_BIN_HI[i];
+    bin_sum = 0;
+    bin_cnt = 0;
+    k = k_lo;
+    while(k <= k_hi) (
+      re = MEM_FFT[2*k];
+      im = MEM_FFT[2*k + 1];
+      mag = sqrt(re*re + im*im);
+      bin_sum += mag;
+      bin_cnt += 1;
+      k += 1;
+    );
+    bin_cnt > 0 ? (
+      avg_mag = bin_sum / bin_cnt;
+      // Normalize and convert to dB
+      avg_mag > 0.000001 ? (
+        MEM_RAW[i] = 20.0 * log10(avg_mag * 2.0 / FFT_SZ);
+      ) : (
+        MEM_RAW[i] = -120;
+      );
+    ) : (
+      MEM_RAW[i] = -120;
+    );
+    i += 1;
+  );
+
+  // â”€â”€ Smooth and write to gmem â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Read ballistics time constant from UI (via gmem)
+  // Default: 3.0 seconds (mixing mode). Range: 0.5-30s
+  ballistic_tc = gmem[GMEM_BALLISTIC];
+  ballistic_tc <= 0.1 ? ballistic_tc = 3.0;  // default if not set
+  ballistic_tc = min(30.0, max(0.5, ballistic_tc));
+
+  // Calculate leaky integrator coefficient from time constant
+  // fft_rate = srate / (FFT_SZ/2)  (FFT frames per second with 50% overlap)
+  fft_rate = srate / (FFT_SZ * 0.5);
+  smooth_coef = 1.0 - exp(-1.0 / (ballistic_tc * fft_rate));
+
+  i = 0;
+  loop(DISP_BINS,
+    MEM_SM[i] = MEM_SM[i] + smooth_coef * (MEM_RAW[i] - MEM_SM[i]);
+    gmem[GMEM_BINS + i] = MEM_SM[i];
+    i += 1;
+  );
+  gmem[GMEM_HB] = fft_heartbeat;
+
+  // Feature B: Per-bin M/S phase correlation  ----------------------------
+  // Run Mid FFT into MEM_MS_FFT
+  ms_j = 0;
+  loop(FFT_SZ,
+    ms_src = (ring_ms_pos + ms_j) % FFT_SZ;
+    MEM_MS_FFT[2*ms_j]     = MEM_MS_M[ms_src] * MEM_WIN[ms_j];
+    MEM_MS_FFT[2*ms_j + 1] = 0;
+    ms_j += 1;
+  );
+  fft(MEM_MS_FFT, FFT_SZ);
+  fft_permute(MEM_MS_FFT, FFT_SZ);
+
+  // Accumulate mid energy per display bin (reuse MEM_BIN_LO/HI map)
+  ms_i = 0;
+  loop(DISP_BINS,
+    ms_klo = MEM_BIN_LO[ms_i];
+    ms_khi = MEM_BIN_HI[ms_i];
+    ms_mid_e = 0; ms_cnt = 0;
+    ms_k = ms_klo;
+    while(ms_k <= ms_khi) (
+      ms_re = MEM_MS_FFT[2*ms_k]; ms_im = MEM_MS_FFT[2*ms_k+1];
+      ms_mid_e += ms_re*ms_re + ms_im*ms_im;
+      ms_cnt += 1; ms_k += 1;
+    );
+    ms_cnt > 0 ? ms_mid_e /= ms_cnt;
+
+    // Now run Side FFT for same bin
+    ms_j2 = 0;
+    loop(FFT_SZ,
+      ms_src2 = (ring_ms_pos + ms_j2) % FFT_SZ;
+      MEM_MS_FFT[2*ms_j2]     = MEM_MS_S[ms_src2] * MEM_WIN[ms_j2];
+      MEM_MS_FFT[2*ms_j2 + 1] = 0;
+      ms_j2 += 1;
+    );
+    // (fft already reuses same work buffer; run per outer loop is expensive)
+    // Optimization: we pre-accumulate mid_e above, side FFT done in batch below
+    ms_i += 1;
+  );
+
+  // Run Side FFT once (batch)
+  ms_j = 0;
+  loop(FFT_SZ,
+    ms_src = (ring_ms_pos + ms_j) % FFT_SZ;
+    MEM_MS_FFT[2*ms_j]     = MEM_MS_S[ms_src] * MEM_WIN[ms_j];
+    MEM_MS_FFT[2*ms_j + 1] = 0;
+    ms_j += 1;
+  );
+  fft(MEM_MS_FFT, FFT_SZ);
+  fft_permute(MEM_MS_FFT, FFT_SZ);
+
+  // Compute per-bin correlation: r(i) = (E_mid - E_side) / (E_mid + E_side + eps)
+  // Simultaneously re-compute mid energy and compare with side energy
+  ms_i = 0;
+  loop(DISP_BINS,
+    ms_klo = MEM_BIN_LO[ms_i];
+    ms_khi = MEM_BIN_HI[ms_i];
+    ms_side_e = 0; ms_cnt = 0;
+    ms_k = ms_klo;
+    while(ms_k <= ms_khi) (
+      ms_re = MEM_MS_FFT[2*ms_k]; ms_im = MEM_MS_FFT[2*ms_k+1];
+      ms_side_e += ms_re*ms_re + ms_im*ms_im;
+      ms_cnt += 1; ms_k += 1;
+    );
+    ms_cnt > 0 ? ms_side_e /= ms_cnt;
+
+    // Simple correlation approximation from energy ratio
+    ms_denom = ms_mid_e + ms_side_e + 1e-12;
+    ms_r = (ms_mid_e - ms_side_e) / ms_denom;
+    // Clamp and apply one-pole smoother (0.9 alpha = ~10 FFT frame time constant)
+    ms_r < -1 ? ms_r = -1;
+    ms_r >  1 ? ms_r =  1;
+    MEM_CORR[ms_i] = 0.9 * MEM_CORR[ms_i] + 0.1 * ms_r;
+    gmem[1060 + ms_i] = MEM_CORR[ms_i];
+    ms_i += 1;
+  );
+  gmem[1059] = 1;  // correlation ribbon alive flag
+  // -----------------------------------------------------------------------
+
+  // â”€â”€ Capture accumulation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  capt_state == 1 ? (
+    i = 0;
+    loop(DISP_BINS,
+      MEM_CAPT[i] += MEM_SM[i];
+      i += 1;
+    );
+    capt_frames += 1;
+    gmem[GMEM_CSTATE] = 1;  // capturing
+  );
+);
+
+// â”€â”€â”€ STEREO WIDTH (M/S) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+mid_sig  = (in_l + in_r) * 0.5;
+side_sig = (in_l - in_r) * 0.5;
+mid_rms_acc  += mid_sig * mid_sig;
+side_rms_acc += side_sig * side_sig;
+width_n += 1;
+
+width_n >= width_block ? (
+  mid_e  = sqrt(mid_rms_acc / width_n);
+  side_e = sqrt(side_rms_acc / width_n);
+  total_e = mid_e + side_e;
+  total_e > 0.00001 ? (
+    width_val = side_e / total_e;
+  ) : (
+    width_val = 0;
+  );
+  gmem[GMEM_WID] = width_val;
+  mid_rms_acc = 0; side_rms_acc = 0; width_n = 0;
+);
+
+// â”€â”€â”€ DYNAMICS / CREST FACTOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+abs_mono = abs(mono);
+abs_mono > crest_peak ? crest_peak = abs_mono;
+crest_rms_acc += mono * mono;
+crest_n += 1;
+
+crest_n >= width_block ? (
+  crest_rms = sqrt(crest_rms_acc / crest_n);
+  crest_peak > 0.00001 && crest_rms > 0.00001 ? (
+    crest_val = 20.0 * log10(crest_peak) - 20.0 * log10(crest_rms);
+  ) : (
+    crest_val = 0;
+  );
+  gmem[GMEM_CREST] = crest_val;
+  crest_peak = 0; crest_rms_acc = 0; crest_n = 0;
+);
+
+// â”€â”€â”€ LOW-END CREST FACTOR (100Hz LPF) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+lpf_out = lpf_b0 * mono + lpf_b1 * MEM_LPFS[0] + lpf_b2 * MEM_LPFS[1]
+          - lpf_a1 * MEM_LPFS[2] - lpf_a2 * MEM_LPFS[3];
+MEM_LPFS[1] = MEM_LPFS[0]; MEM_LPFS[0] = mono;
+MEM_LPFS[3] = MEM_LPFS[2]; MEM_LPFS[2] = lpf_out;
+
+abs_lpf = abs(lpf_out);
+abs_lpf > le_peak ? le_peak = abs_lpf;
+le_rms_acc += lpf_out * lpf_out;
+le_n += 1;
+
+le_n >= width_block ? (
+  le_rms = sqrt(le_rms_acc / le_n);
+  le_peak > 0.00001 && le_rms > 0.00001 ? (
+    le_crest_val = 20.0 * log10(le_peak) - 20.0 * log10(le_rms);
+  ) : (
+    le_crest_val = 0;
+  );
+  gmem[GMEM_LCRE] = le_crest_val;
+  le_peak = 0; le_rms_acc = 0; le_n = 0;
+);
+
+// â”€â”€â”€ VOCAL BALANCE (sidechain ch 3/4) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+sc_mono = (sc_l + sc_r) * 0.5;
+voc_mix_acc += mono * mono;
+voc_vox_acc += sc_mono * sc_mono;
+voc_n += 1;
+
+voc_n >= voc_block ? (
+  mix_rms = sqrt(voc_mix_acc / voc_n);
+  vox_rms = sqrt(voc_vox_acc / voc_n);
+
+  // Detect if sidechain has signal
+  vox_rms > 0.0001 ? (
+    voc_active = 1;
+    mix_rms > 0.00001 ? (
+      voc_val = 20.0 * log10(vox_rms) - 20.0 * log10(mix_rms);
+    ) : (
+      voc_val = 0;
+    );
+  ) : (
+    voc_active = 0;
+    voc_val = 0;
+  );
+  gmem[GMEM_VOC]  = voc_val;
+  gmem[GMEM_VACT] = voc_active;
+  voc_mix_acc = 0; voc_vox_acc = 0; voc_n = 0;
+);
+
+// â”€â”€â”€ CHECK FOR CAPTURE TRIGGER FROM UI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+gmem[GMEM_CTRIG] == 1 ? (
+  capt_state = 1;
+  capt_frames = 0;
+  memset(MEM_CAPT, 0, DISP_BINS);
+  slider1 = 1;
+  gmem[GMEM_CTRIG] = 0;
+);
+gmem[GMEM_CTRIG] == 2 ? (
+  // Stop capture
+  capt_state = 0;
+  capt_frames > 0 ? (
+    i = 0;
+    loop(DISP_BINS,
+      MEM_CAPT[i] /= capt_frames;
+      gmem[GMEM_CCURV + i] = MEM_CAPT[i];
+      i += 1;
+    );
+    gmem[GMEM_CCNT] = capt_frames;
+    gmem[GMEM_CSTATE] = 2;
+  );
+  slider1 = 0;
+  gmem[GMEM_CTRIG] = 0;
+);
+
+// â”€â”€â”€ HYBRID EQ (5-band biquad) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Read EQ bypass state
+eq_bypass = slider2 > 0.5 || gmem[GMEM_EQBP] > 0.5;
+
+eq_bypass == 0 ? (
+  // Process 5 EQ bands in series
+  eq_l = in_l;
+  eq_r = in_r;
+
+  band = 0;
+  loop(5,
+    gm_base = GMEM_EQ + band * 7;
+    eq_freq    = gmem[gm_base + 0];
+    eq_gain_db = gmem[gm_base + 1];
+    eq_q       = gmem[gm_base + 2];
+    eq_type    = gmem[gm_base + 3];  // 0=off, 1=bell, 2=loshelf, 3=hishelf
+    eq_enabled = gmem[gm_base + 4];
+
+    eq_enabled > 0.5 && eq_freq > 10 && eq_freq < 22000 && eq_type > 0 ? (
+      // Check if params changed (recompute coefficients)
+      prv_base = band * 7;
+      params_changed = 0;
+      eq_freq != MEM_PREV_EQ[prv_base] ? params_changed = 1;
+      eq_gain_db != MEM_PREV_EQ[prv_base+1] ? params_changed = 1;
+      eq_q != MEM_PREV_EQ[prv_base+2] ? params_changed = 1;
+      eq_type != MEM_PREV_EQ[prv_base+3] ? params_changed = 1;
+
+      params_changed ? (
+        MEM_PREV_EQ[prv_base]   = eq_freq;
+        MEM_PREV_EQ[prv_base+1] = eq_gain_db;
+        MEM_PREV_EQ[prv_base+2] = eq_q;
+        MEM_PREV_EQ[prv_base+3] = eq_type;
+
+        // Compute biquad coefficients
+        eq_A = pow(10, eq_gain_db / 40.0);
+        eq_w0 = 2.0 * $pi * eq_freq / srate;
+        eq_cosw = cos(eq_w0);
+        eq_sinw = sin(eq_w0);
+        eq_q < 0.1 ? eq_q = 0.1;
+        eq_alpha = eq_sinw / (2.0 * eq_q);
+
+        coef_base = band * 6;
+
+        eq_type == 1 ? (  // Bell / Peaking
+          cb0 = 1.0 + eq_alpha * eq_A;
+          cb1 = -2.0 * eq_cosw;
+          cb2 = 1.0 - eq_alpha * eq_A;
+          ca0 = 1.0 + eq_alpha / eq_A;
+          ca1 = -2.0 * eq_cosw;
+          ca2 = 1.0 - eq_alpha / eq_A;
+        ) : eq_type == 2 ? (  // Low Shelf
+          sq_A = 2.0 * sqrt(eq_A) * eq_alpha;
+          cb0 = eq_A * ((eq_A + 1) - (eq_A - 1) * eq_cosw + sq_A);
+          cb1 = 2 * eq_A * ((eq_A - 1) - (eq_A + 1) * eq_cosw);
+          cb2 = eq_A * ((eq_A + 1) - (eq_A - 1) * eq_cosw - sq_A);
+          ca0 = (eq_A + 1) + (eq_A - 1) * eq_cosw + sq_A;
+          ca1 = -2 * ((eq_A - 1) + (eq_A + 1) * eq_cosw);
+          ca2 = (eq_A + 1) + (eq_A - 1) * eq_cosw - sq_A;
+        ) : eq_type == 3 ? (  // High Shelf
+          sq_A = 2.0 * sqrt(eq_A) * eq_alpha;
+          cb0 = eq_A * ((eq_A + 1) + (eq_A - 1) * eq_cosw + sq_A);
+          cb1 = -2 * eq_A * ((eq_A - 1) + (eq_A + 1) * eq_cosw);
+          cb2 = eq_A * ((eq_A + 1) + (eq_A - 1) * eq_cosw - sq_A);
+          ca0 = (eq_A + 1) - (eq_A - 1) * eq_cosw + sq_A;
+          ca1 = 2 * ((eq_A - 1) - (eq_A + 1) * eq_cosw);
+          ca2 = (eq_A + 1) - (eq_A - 1) * eq_cosw - sq_A;
+        );
+
+        // Normalize by a0
+        MEM_EQC[coef_base + 0] = cb0 / ca0;  // b0
+        MEM_EQC[coef_base + 1] = cb1 / ca0;  // b1
+        MEM_EQC[coef_base + 2] = cb2 / ca0;  // b2
+        MEM_EQC[coef_base + 3] = ca1 / ca0;  // a1
+        MEM_EQC[coef_base + 4] = ca2 / ca0;  // a2
+      );
+
+      // Apply biquad filter (Direct Form II Transposed)
+      coef_base = band * 6;
+      st_base   = band * 8;  // 4 state vars Ã— 2 channels
+
+      eb0 = MEM_EQC[coef_base + 0];
+      eb1 = MEM_EQC[coef_base + 1];
+      eb2 = MEM_EQC[coef_base + 2];
+      ea1 = MEM_EQC[coef_base + 3];
+      ea2 = MEM_EQC[coef_base + 4];
+
+      // Left channel
+      tmp_l = eb0 * eq_l + MEM_EQS[st_base + 0];
+      MEM_EQS[st_base + 0] = eb1 * eq_l - ea1 * tmp_l + MEM_EQS[st_base + 1];
+      MEM_EQS[st_base + 1] = eb2 * eq_l - ea2 * tmp_l;
+      eq_l = tmp_l;
+
+      // Right channel
+      tmp_r = eb0 * eq_r + MEM_EQS[st_base + 4];
+      MEM_EQS[st_base + 4] = eb1 * eq_r - ea1 * tmp_r + MEM_EQS[st_base + 5];
+      MEM_EQS[st_base + 5] = eb2 * eq_r - ea2 * tmp_r;
+      eq_r = tmp_r;
+
+      // â”€â”€ DYNAMIC EQ: Envelope Follower + Gain Reduction â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Read dynamic params: threshold (dB), ratio, attack (ms), release (ms), dyn_enabled
+      dyn_thresh = gmem[GMEM_DYN_EQ + band * 7 + 0];  // threshold dBFS
+      dyn_ratio  = gmem[GMEM_DYN_EQ + band * 7 + 1];  // ratio (2:1 to inf)
+      dyn_att_ms = gmem[GMEM_DYN_EQ + band * 7 + 2];  // attack ms
+      dyn_rel_ms = gmem[GMEM_DYN_EQ + band * 7 + 3];  // release ms
+      dyn_enabled= gmem[GMEM_DYN_EQ + band * 7 + 4];  // 0 or 1
+
+      dyn_enabled > 0.5 ? (
+        // Compute envelope from band-filtered signal
+        dyn_sig = (abs(tmp_l) + abs(tmp_r)) * 0.5;
+        dyn_sig_db = dyn_sig > 0.00001 ? 20.0 * log10(dyn_sig) : -100;
+
+        // Envelope follower (1-pole)
+        dyn_att_ms < 0.1 ? dyn_att_ms = 1;
+        dyn_rel_ms < 0.1 ? dyn_rel_ms = 50;
+        dyn_att_coeff = exp(-1.0 / (dyn_att_ms * 0.001 * srate));
+        dyn_rel_coeff = exp(-1.0 / (dyn_rel_ms * 0.001 * srate));
+
+        env_idx = band * 2;
+        prev_env = MEM_DYN_ENV[env_idx];
+        dyn_sig_db > prev_env ? (
+          // Attack
+          MEM_DYN_ENV[env_idx] = dyn_att_coeff * prev_env + (1.0 - dyn_att_coeff) * dyn_sig_db;
+        ) : (
+          // Release
+          MEM_DYN_ENV[env_idx] = dyn_rel_coeff * prev_env + (1.0 - dyn_rel_coeff) * dyn_sig_db;
+        );
+        cur_env = MEM_DYN_ENV[env_idx];
+
+        // Gain reduction
+        dyn_ratio < 1.01 ? dyn_ratio = 1.01;
+        excess = cur_env - dyn_thresh;
+        excess > 0 ? (
+          gr_db = excess * (1.0 - 1.0 / dyn_ratio);
+          gr_lin = pow(10, -gr_db / 20.0);
+          eq_l *= gr_lin;
+          eq_r *= gr_lin;
+          MEM_DYN_ENV[env_idx + 1] = gr_db;
+        ) : (
+          MEM_DYN_ENV[env_idx + 1] = 0;
+        );
+
+        // Write GR to gmem for UI metering
+        gmem[GMEM_DYN_GR + band] = MEM_DYN_ENV[env_idx + 1];
+      ) : (
+        // Dynamic disabled â€” zero GR
+        gmem[GMEM_DYN_GR + band] = 0;
+      );
+    );
+
+    band += 1;
+  );
+
+  // Write EQ output
+  spl0 = eq_l;
+  spl1 = eq_r;
+);
+
+// â”€â”€â”€ LUFS MEASUREMENT (K-weighted RMS) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Apply K-weight high-shelf to left channel
+kw_in_l = in_l;
+kw_out_l = kw_b0 * kw_in_l + MEM_LUFS[0];
+MEM_LUFS[0] = kw_b1 * kw_in_l - kw_a1n * kw_out_l + MEM_LUFS[1];
+MEM_LUFS[1] = kw_b2 * kw_in_l - kw_a2n * kw_out_l;
+
+// Apply K-weight to right channel
+kw_in_r = in_r;
+kw_out_r = kw_b0 * kw_in_r + MEM_LUFS[4];
+MEM_LUFS[4] = kw_b1 * kw_in_r - kw_a1n * kw_out_r + MEM_LUFS[5];
+MEM_LUFS[5] = kw_b2 * kw_in_r - kw_a2n * kw_out_r;
+
+lufs_rms_acc += (kw_out_l * kw_out_l + kw_out_r * kw_out_r) * 0.5;
+lufs_n += 1;
+
+lufs_n >= lufs_block ? (
+  lufs_mean_sq = lufs_rms_acc / lufs_n;
+  lufs_mean_sq > 0.0000001 ? (
+    // LUFS = -0.691 + 10*log10(mean_square)
+    lufs_val = -0.691 + 10.0 * log10(lufs_mean_sq);
+  ) : (
+    lufs_val = -100;
+  );
+  gmem[GMEM_LUFS] = lufs_val;
+  lufs_rms_acc = 0; lufs_n = 0;
+);
+
+// â”€â”€â”€ LOW-END PHASE CORRELATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// LPF the mid and side channels separately at 100Hz
+le_mid_in = (in_l + in_r) * 0.5;
+le_side_in = (in_l - in_r) * 0.5;
+
+// LPF on mid (reuse same coefficients as existing 100Hz LPF)
+le_mid_out = lpf_b0 * le_mid_in + lpf_b1 * MEM_LE_MS[0] + lpf_b2 * MEM_LE_MS[1]
+           - lpf_a1 * MEM_LE_MS[2] - lpf_a2 * MEM_LE_MS[3];
+MEM_LE_MS[1] = MEM_LE_MS[0]; MEM_LE_MS[0] = le_mid_in;
+MEM_LE_MS[3] = MEM_LE_MS[2]; MEM_LE_MS[2] = le_mid_out;
+
+// LPF on side
+le_side_out = lpf_b0 * le_side_in + lpf_b1 * MEM_LE_MS[4] + lpf_b2 * MEM_LE_MS[5]
+            - lpf_a1 * MEM_LE_MS[6] - lpf_a2 * MEM_LE_MS[7];
+MEM_LE_MS[5] = MEM_LE_MS[4]; MEM_LE_MS[4] = le_side_in;
+MEM_LE_MS[7] = MEM_LE_MS[6]; MEM_LE_MS[6] = le_side_out;
+
+le_mid_acc += le_mid_out * le_mid_out;
+le_side_acc += le_side_out * le_side_out;
+le_cross_acc += le_mid_out * le_side_out;
+le_corr_n += 1;
+
+le_corr_n >= width_block ? (
+  le_mid_e = sqrt(le_mid_acc / le_corr_n);
+  le_side_e = sqrt(le_side_acc / le_corr_n);
+  le_total = le_mid_e + le_side_e;
+  
+  // Phase correlation: cross / (mid_rms * side_rms) normalized to -1..+1
+  le_total > 0.00001 ? (
+    le_side_ratio = le_side_e / le_total;
+    // Simplified correlation: 1 = mono, 0 = uncorrelated, <0 = out of phase
+    le_corr_val = 1.0 - 2.0 * le_side_ratio;
+  ) : (
+    le_side_ratio = 0;
+    le_corr_val = 1.0;
+  );
+  
+  gmem[GMEM_LE_CORR] = le_corr_val;
+  gmem[GMEM_LE_SIDE] = le_side_ratio;
+  
+  // Mono-maker warning: flag if side energy > 15% of total below 100Hz
+  le_side_ratio > 0.15 ? (
+    gmem[GMEM_MONO_WARN] = 1;
+  ) : (
+    gmem[GMEM_MONO_WARN] = 0;
+  );
+  
+  le_mid_acc = 0; le_side_acc = 0; le_cross_acc = 0; le_corr_n = 0;
+);
+
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ─── SOLO CROSSOVER — PURE PASSTHROUGH GUARANTEE ─────────────────────────────
+// FIX: Coefficients and filter STATES are ALWAYS updated every sample so that
+// (a) no pop/click occurs on solo engage (states are pre-warmed), and
+// (b) when active_solo == 0, spl0/spl1 are NEVER touched — ZERO phase penalty
+//     on the Master bus. Output routing only occurs inside active_solo > 0.
+//
+// Crossover: 1-pole LP cascade (two stages = LR2) at 60 Hz, 250 Hz, 2000 Hz.
+// Coefficients: α = exp(-2π×fc/srate)  (constant for fixed srate)
+
+// Pre-compute coefficients once per sample block rate (values are constant)
+solo_a1 = exp(-2.0 * $pi * 60.0   / srate);  solo_b1 = 1.0 - solo_a1;
+solo_a2 = exp(-2.0 * $pi * 250.0  / srate);  solo_b2 = 1.0 - solo_a2;
+solo_a3 = exp(-2.0 * $pi * 2000.0 / srate);  solo_b3 = 1.0 - solo_a3;
+
+// ── ALWAYS update filter states (keeps them warm, no pop on solo engage) ──────
+slp1_l = solo_a1 * slp1_l + solo_b1 * spl0;
+slp1_r = solo_a1 * slp1_r + solo_b1 * spl1;
+slp2_l = solo_a2 * slp2_l + solo_b2 * spl0;
+slp2_r = solo_a2 * slp2_r + solo_b2 * spl1;
+slp3_l = solo_a3 * slp3_l + solo_b3 * spl0;
+slp3_r = solo_a3 * slp3_r + solo_b3 * spl1;
+
+// ── ONLY route output through crossover when solo is engaged ──────────────────
+// When active_solo == 0: this block is skipped entirely — spl0/spl1 untouched.
+active_solo > 0 ? (
+  active_solo == 1 ? (
+    // Sub: LP @ 60 Hz
+    spl0 = slp1_l; spl1 = slp1_r;
+  ) : active_solo == 2 ? (
+    // Bass: HP @ 60 Hz, LP @ 250 Hz
+    spl0 = slp2_l - slp1_l; spl1 = slp2_r - slp1_r;
+  ) : active_solo == 3 ? (
+    // Low Mid: HP @ 250 Hz, LP @ 2 kHz
+    spl0 = slp3_l - slp2_l; spl1 = slp3_r - slp2_r;
+  ) : active_solo == 4 ? (
+    // High: HP @ 2 kHz
+    spl0 = spl0 - slp3_l; spl1 = spl1 - slp3_r;
+  );
+);
+
+// â”€â”€â”€ 4-BAND BROAD RMS ACCUMULATORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Uses EXISTING in_l / in_r and mono signals from @sample context.
+// Each band uses a 2nd-order Butterworth BPF (pre-computed @init).
+// For simplicity: use the existing ring buffer mono signal.
+//
+// Simplified per-sample energy accumulation with frequency-selective
+// running sums. We derive band power from the FFT output that already
+// exists in MEM_SM[0..255] â€” computed every fft_count block.
+//
+// STRATEGY: After each FFT block, average MEM_SM bins over each band's
+// frequency range. We piggyback on the existing FFT processing.
+// (This runs in-sync with the FFT heartbeat â€” not every sample.)
+//
+// Band bin ranges for 256 bins, 20â€“20kHz log-spaced:
+//   Sub    20â€“60 Hz  â†’ bins 0..24  (log(60/20)/log(1000)*255 â‰ˆ 24)
+//   Bass   60â€“250 Hz â†’ bins 24..71 (log(250/20)/log(1000)*255 â‰ˆ 71)
+//   LowMid 250â€“2kHz  â†’ bins 71..167
+//   High   2kâ€“20kHz  â†’ bins 167..255
+
+// These are updated in the FFT block (fft_count == 0 path).
+// We use accumulator variables: broad_acc_S, broad_n_S etc.
+// (These must be declared in @init â€” but since we cannot edit @init
+// after build, we use spare local vars. EEL2 creates vars on first use.)
+
+// Only update broad bands when we have fresh FFT data:
+fft_count_chk = fft_count;  // fft_count resets to 0 after FFT block
+
+fft_count_chk == 0 ? (
+  // Average MEM_SM bins over each Broad band range
+  // Sub: bins 0..24
+  bb_sum = 0; bb_n = 0; bb_i = 0;
+  loop(25,  bb_sum += MEM_SM[bb_i]; bb_n += 1; bb_i += 1;);
+  bb_sub_db = bb_n > 0 ? bb_sum / bb_n : -70;
+
+  // Bass: bins 24..71
+  bb_sum = 0; bb_n = 0; bb_i = 24;
+  loop(48,  bb_sum += MEM_SM[bb_i]; bb_n += 1; bb_i += 1;);
+  bb_bass_db = bb_n > 0 ? bb_sum / bb_n : -70;
+
+  // LowMid: bins 71..167
+  bb_sum = 0; bb_n = 0; bb_i = 71;
+  loop(97,  bb_sum += MEM_SM[bb_i]; bb_n += 1; bb_i += 1;);
+  bb_lowmid_db = bb_n > 0 ? bb_sum / bb_n : -70;
+
+  // High: bins 167..255
+  bb_sum = 0; bb_n = 0; bb_i = 167;
+  loop(89,  bb_sum += MEM_SM[bb_i]; bb_n += 1; bb_i += 1;);
+  bb_high_db = bb_n > 0 ? bb_sum / bb_n : -70;
+
+  // Normalize: subtract mid-band reference so values are relative
+  // Mid-band ref: LowMid center (~600Hz, bins ~110..130)
+  bb_sum_mid = 0; bb_i = 100; bb_n = 0;
+  loop(56,  bb_sum_mid += MEM_SM[bb_i]; bb_n += 1; bb_i += 1;);
+  bb_ref = bb_n > 0 ? bb_sum_mid / bb_n : 0;
+
+  // Smooth with leaky integrator (Ï„ â‰ˆ 0.2s at typical FFT rate)
+  bb_tc = 0.85;
+  bb_sub_sm    = bb_sub_sm    * bb_tc + (bb_sub_db    - bb_ref) * (1 - bb_tc);
+  bb_bass_sm   = bb_bass_sm   * bb_tc + (bb_bass_db   - bb_ref) * (1 - bb_tc);
+  bb_lowmid_sm = bb_lowmid_sm * bb_tc + (bb_lowmid_db - bb_ref) * (1 - bb_tc);
+  bb_high_sm   = bb_high_sm   * bb_tc + (bb_high_db   - bb_ref) * (1 - bb_tc);
+
+  gmem[468] = bb_sub_sm;
+  gmem[469] = bb_bass_sm;
+  gmem[470] = bb_lowmid_sm;
+  gmem[471] = bb_high_sm;
+);
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// DTB BALLISTICS — @block section
+// Item 5: Convert gmem[473] TC (seconds) to proper one-pole alpha.
+//
+// REAPER calls @block once per audio block (samplesblock samples).
+// Ballistics time constant -> alpha = exp(-block_duration / tau)
+//
+// gmem[473] carries the TC in seconds:
+//   0.8  s  → Fast   (~100 ms rise/fall)
+//   3.0  s  → Medium (~300 ms) [default]
+//   8.0  s  → Slow   (~1000 ms)
+//
+// Spectrum smoothing in @sample (MEM_SM[i]) uses ball_alpha so that
+// the displayed spectrum reacts at the selected ballistics speed.
+// ═══════════════════════════════════════════════════════════════════════
+@block
+
+// Read ballistics TC from Lua; clamp to safe range
+// Zero-division guard (IEEE 754 safety):
+//   gmem[473] = 0 (uninitialized) => -block_dt/0 = -Inf => exp(-Inf) = 0
+//   A NaN in ball_alpha poisons all 256 MEM_SM bins instantly.
+//   floor to 0.05 s (50 ms) guarantees ball_alpha stays in (0, 1).
+ball_tc = max(gmem[473], 0.05);   // 50ms floor — safe even before Lua writes
+ball_tc > 30.0 ? ball_tc = 30.0;  // 30s ceiling (anti-freeze guard)
+
+// Block duration in seconds
+block_dt = samplesblock / srate;
+
+// One-pole low-pass coefficient for exponential moving average
+// alpha → 1.0 means "hold everything" (infinite decay)
+// alpha → 0.0 means "snap instantly" (no smoothing)
+ball_alpha = exp(-block_dt / ball_tc);
+
+// Clamp to valid range (floating point safety)
+ball_alpha < 0   ? ball_alpha = 0;
+ball_alpha > 0.9999 ? ball_alpha = 0.9999;
+
+// Apply per-bin: MEM_SM[i] = alpha * MEM_SM[i] + (1-alpha) * MEM_RAW[i]
+// MEM_SM is the existing smoothed spectrum buffer written to gmem[200..455].
+// MEM_RAW is the raw FFT magnitude buffer (assumed name from Damei convention).
+// This loop runs every audio block (~5.8 ms @ 48kHz/256 samples).
+ball_i = 0;
+loop(256,
+  MEM_SM[ball_i] = ball_alpha * MEM_SM[ball_i] + (1.0 - ball_alpha) * MEM_RAW[ball_i];
+  ball_i += 1;
+);
+

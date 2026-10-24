@@ -17,18 +17,25 @@ options:no_meter
 options:maxmem=65536
 
 slider1:0<0,1,1{Follow Mixing Suite Preset,Manual Preset}>-Reference Source
-slider2:18<0,21,1>-Manual Preset Index (0-21)
-slider3:0<0,2,1{Producer Preset Reference,Captured Reference,Library Track}>-Compare Against
-slider9:16<0,21,1>-Library Reference Track (0-21)
+slider2:18<0,24,1>-Manual Preset Index (0-24)
+slider3:0<0,3,1{Producer Preset Reference,Captured Reference,Library Track,Live Sidechain (Pins 3/4)}>-Compare Against
+slider9:16<0,24,1>-Library Reference Track (0-24)
 slider4:0<0,1,1{Mix Bus Stage (tonal+stereo scored),Master Stage (loudness+dynamics scored too)}>-Assessment Stage
 slider5:0<0,1,1{Run,Hold}>-Analysis
 slider6:1<0,1,1{Off,On}>-Auto-Reset On Transport Play
 slider7:1<0,2,1{Off,Static Calibration Lock,Psychoacoustic Slow Dynamic}>-Auto-Correct Suites (publishes trim lane to the 6 suites)
 slider8:3.5<0.5,4.0,0.5>-Max Trim Per Suite (dB)
 slider10:0<0,1,1{Normal Processing Active,Audit Raw Mix (Bypass Mixing Suite)}>-Raw Mix Audit Mode
+slider11:0<0,4,1{Full Master,Drums,Bass,Vocals,Other / Synth}>-Stem Profile Target
+slider12:0<0,3,1{Monitor Mix (Pins 1/2),Monitor Ref Matched (Pins 3/4),Monitor Ref Raw,Auditory Delta Null (Mix - Ref)}>-Monitor Output Mode
+slider13:0<-18,18,0.1>-Manual Ref Gain Trim (dB)
+slider14:1<0,1,1{Manual Trim,Auto-Matched LUFS}>-Ref Gain Match Mode
+slider47:0<0,5,1{Matrix,Library,Mastering,Ollama AI,Stem A/B,Producer DNA}>-Active Console View
 
-in_pin:left input
-in_pin:right input
+in_pin:Mix L
+in_pin:Mix R
+in_pin:Ref L (Sidechain)
+in_pin:Ref R (Sidechain)
 out_pin:left output
 out_pin:right output
 
@@ -36,7 +43,7 @@ out_pin:right output
 ext_noinit = 1;
 
 // ---- memory map -------------------------------------------------------------
-FP   = 0;      // 22 fingerprints x 32 slots
+FP   = 0;      // 24 fingerprints x 32 slots = 768 floats
 BQC  = 1000;   // band filter coefficients: 14 filters x 5
 BQS  = 1100;   // band filter states: 2 chains x 14 x 2
 EDG  = 1400;   // band edges (8)
@@ -47,9 +54,9 @@ HSTG   = 2000;   // integrated loudness histogram (400 bins, 0.2 LU)
 HS   = 2500;   // short-term histogram (120 bins, 0.5 LU)
 RB   = 3000;   // 30 x 100 ms block powers
 CAP  = 3200;   // captured reference (32)
-LIB  = 4000;   // reference library: 22 tracks x 32 slots (same layout as FP)
-LPR  = 4720;   // library track -> producer preset index (-1 = none)
-LM   = 4760;   // live match % of the mix against each library track
+LIB  = 4000;   // reference library: 24 tracks x 32 slots (same layout as FP)
+LPR  = 4800;   // library track -> producer preset index (-1 = none)
+LM   = 4840;   // live match % of the mix against each library track
 LV   = 3300;   // live metrics (20)
 DV   = 3400;   // deviations (20)
 DEVF   = 3430;   // normalised deviations (20)
@@ -65,10 +72,24 @@ TW   = 3820;   // width trims (dB) (6)
 RAW_FP = 5000;   // captured raw metrics (20)
 RAW_DV = 5040;   // raw deviations (20)
 
+// ---- stem & live sidechain memory map -----------------------------------------
+BQS_REF   = 5200;   // 56 floats: band filter states for reference [m, s]
+KS_REF    = 5260;   // 8 floats: K-weighting states for reference
+ACC_REF   = 5280;   // 14 floats: band energy accumulators for reference [eM, eS]
+BA_REF    = 5300;   // 14 floats: block energy accumulators for reference
+RB_REF    = 5320;   // 30 floats: 100ms block powers for reference
+HSTG_REF  = 5400;   // 400 floats: integrated loudness histogram for reference
+HS_REF    = 5850;   // 120 floats: short-term histogram for reference
+LIVE_REF  = 6000;   // 32 floats: live metrics for reference
+BAND_DIFF = 6040;   // 7 floats: live band energy delta in dB (Mix vs Ref)
+BAND_XCORR= 6050;   // 7 floats: band cross-correlation between Mix and Ref
+ACC_XCORR = 6060;   // 7 floats: accumulators for cross correlation
+STEM_FP   = 6100;   // 5 stem profiles x 32 slots = 160 floats
+
 // ---- fingerprints (generated) - DO NOT EDIT BY HAND ----------------------------
 // layout per slot block: 0 lufs 1 plr 2 crest 3 lra 4 corr 5 width | 6..12 band % | 13..19 band S/M width | 31 has-reference
 // <<FP_BEGIN>>
-  p = FP + 0*32; p[0]=-5.9683; p[1]=5.8955; p[2]=9.8087; p[3]=6.5583; p[4]=0.5786; p[5]=0.5159; p[6]=15.4747; p[7]=34.9751; p[8]=18.9558; p[9]=19.5897; p[10]=8.0553; p[11]=2.0943; p[12]=0.8552; p[13]=0.1609; p[14]=0.3886; p[15]=0.6616; p[16]=0.6997; p[17]=0.7409; p[18]=0.6972; p[19]=0.6650; p[31]=0;
+  p = FP + 0*32; p[0]=-6.1274; p[1]=6.0958; p[2]=9.9718; p[3]=6.6445; p[4]=0.5806; p[5]=0.5144; p[6]=15.5103; p[7]=35.2857; p[8]=18.8855; p[9]=19.5329; p[10]=7.8795; p[11]=2.0716; p[12]=0.8345; p[13]=0.1612; p[14]=0.3846; p[15]=0.6646; p[16]=0.7075; p[17]=0.7432; p[18]=0.6983; p[19]=0.6640; p[31]=0;
   p = FP + 1*32; p[0]=-5.0369; p[1]=4.9364; p[2]=9.0853; p[3]=9.6899; p[4]=0.6183; p[5]=0.4857; p[6]=16.2993; p[7]=30.4513; p[8]=16.4311; p[9]=23.6718; p[10]=9.7691; p[11]=2.4426; p[12]=0.9347; p[13]=0.1385; p[14]=0.3716; p[15]=0.6046; p[16]=0.6359; p[17]=0.6820; p[18]=0.6406; p[19]=0.5686; p[31]=1;
   p = FP + 2*32; p[0]=-5.5232; p[1]=5.7982; p[2]=9.1337; p[3]=3.2517; p[4]=0.6700; p[5]=0.4447; p[6]=28.6432; p[7]=32.1938; p[8]=9.6149; p[9]=15.3817; p[10]=9.1462; p[11]=3.3585; p[12]=1.6616; p[13]=0.1989; p[14]=0.4000; p[15]=0.6205; p[16]=0.6718; p[17]=0.6425; p[18]=0.5540; p[19]=0.5182; p[31]=1;
   p = FP + 3*32; p[0]=-5.8510; p[1]=5.8500; p[2]=9.8742; p[3]=8.0200; p[4]=0.4479; p[5]=0.6175; p[6]=11.8521; p[7]=35.5156; p[8]=25.5598; p[9]=19.0841; p[10]=5.4115; p[11]=1.6911; p[12]=0.8858; p[13]=0.1944; p[14]=0.5091; p[15]=0.7715; p[16]=0.7920; p[17]=0.7882; p[18]=0.8198; p[19]=0.7709; p[31]=1;
@@ -81,15 +102,18 @@ RAW_DV = 5040;   // raw deviations (20)
   p = FP + 10*32; p[0]=-6.0095; p[1]=5.9047; p[2]=10.0787; p[3]=2.9408; p[4]=0.5451; p[5]=0.5426; p[6]=9.7561; p[7]=36.1594; p[8]=22.5212; p[9]=18.9827; p[10]=8.9642; p[11]=2.6025; p[12]=1.0139; p[13]=0.1441; p[14]=0.3947; p[15]=0.6755; p[16]=0.7061; p[17]=0.7260; p[18]=0.7426; p[19]=0.8038; p[31]=1;
   p = FP + 11*32; p[0]=-6.1981; p[1]=4.8273; p[2]=8.1946; p[3]=2.9294; p[4]=0.6721; p[5]=0.4430; p[6]=9.8767; p[7]=41.7711; p[8]=23.2119; p[9]=16.9886; p[10]=6.0891; p[11]=1.4800; p[12]=0.5826; p[13]=0.1408; p[14]=0.2976; p[15]=0.5606; p[16]=0.6404; p[17]=0.6567; p[18]=0.6107; p[19]=0.6650; p[31]=1;
   p = FP + 12*32; p[0]=-6.2327; p[1]=5.9317; p[2]=10.8590; p[3]=14.8249; p[4]=0.4274; p[5]=0.6334; p[6]=13.4086; p[7]=29.2936; p[8]=23.9377; p[9]=25.4095; p[10]=6.6246; p[11]=1.0264; p[12]=0.2996; p[13]=0.2646; p[14]=0.5287; p[15]=0.7442; p[16]=0.7939; p[17]=0.8243; p[18]=0.8059; p[19]=0.7173; p[31]=1;
-  p = FP + 13*32; p[0]=-5.9683; p[1]=5.8955; p[2]=9.8087; p[3]=6.5583; p[4]=0.5786; p[5]=0.5159; p[6]=15.4747; p[7]=34.9751; p[8]=18.9558; p[9]=19.5897; p[10]=8.0553; p[11]=2.0943; p[12]=0.8552; p[13]=0.1609; p[14]=0.3886; p[15]=0.6616; p[16]=0.6997; p[17]=0.7409; p[18]=0.6972; p[19]=0.6650; p[31]=0;
+  p = FP + 13*32; p[0]=-6.1274; p[1]=6.0958; p[2]=9.9718; p[3]=6.6445; p[4]=0.5806; p[5]=0.5144; p[6]=15.5103; p[7]=35.2857; p[8]=18.8855; p[9]=19.5329; p[10]=7.8795; p[11]=2.0716; p[12]=0.8345; p[13]=0.1612; p[14]=0.3846; p[15]=0.6646; p[16]=0.7075; p[17]=0.7432; p[18]=0.6983; p[19]=0.6640; p[31]=0;
   p = FP + 14*32; p[0]=-5.2352; p[1]=5.2714; p[2]=9.1777; p[3]=3.0594; p[4]=0.5114; p[5]=0.5686; p[6]=13.2088; p[7]=38.4912; p[8]=19.8901; p[9]=18.2914; p[10]=7.3716; p[11]=2.0763; p[12]=0.6706; p[13]=0.2044; p[14]=0.5827; p[15]=0.6795; p[16]=0.6072; p[17]=0.6915; p[18]=0.6285; p[19]=0.5762; p[31]=1;
   p = FP + 15*32; p[0]=-7.5164; p[1]=7.2168; p[2]=10.6268; p[3]=2.1671; p[4]=0.6139; p[5]=0.4892; p[6]=16.2238; p[7]=45.5864; p[8]=13.7087; p[9]=14.7516; p[10]=6.8375; p[11]=2.1105; p[12]=0.7814; p[13]=0.1768; p[14]=0.3982; p[15]=0.6198; p[16]=0.7355; p[17]=0.8029; p[18]=0.7767; p[19]=0.7326; p[31]=1;
   p = FP + 16*32; p[0]=-6.2118; p[1]=6.0319; p[2]=10.0208; p[3]=8.3573; p[4]=0.5761; p[5]=0.5189; p[6]=17.4613; p[7]=33.6070; p[8]=16.7310; p[9]=21.0352; p[10]=7.9870; p[11]=2.1244; p[12]=1.0541; p[13]=0.1529; p[14]=0.3883; p[15]=0.6475; p[16]=0.7306; p[17]=0.8183; p[18]=0.7469; p[19]=0.7203; p[31]=1;
   p = FP + 17*32; p[0]=-5.7727; p[1]=5.7475; p[2]=9.7771; p[3]=11.7231; p[4]=0.6898; p[5]=0.4284; p[6]=13.7513; p[7]=37.1638; p[8]=16.7578; p[9]=21.8169; p[10]=8.3183; p[11]=1.6122; p[12]=0.5798; p[13]=0.1842; p[14]=0.3555; p[15]=0.5255; p[16]=0.5239; p[17]=0.6058; p[18]=0.5064; p[19]=0.4121; p[31]=1;
   p = FP + 18*32; p[0]=-5.3273; p[1]=5.2269; p[2]=9.3666; p[3]=6.2878; p[4]=0.5612; p[5]=0.5302; p[6]=15.6120; p[7]=30.6081; p[8]=17.8643; p[9]=21.9693; p[10]=10.8948; p[11]=2.2083; p[12]=0.8431; p[13]=0.1150; p[14]=0.3103; p[15]=0.7284; p[16]=0.7658; p[17]=0.7531; p[18]=0.6952; p[19]=0.6580; p[31]=1;
   p = FP + 19*32; p[0]=-7.2241; p[1]=6.9294; p[2]=10.0873; p[3]=8.0302; p[4]=0.6065; p[5]=0.4949; p[6]=17.9343; p[7]=36.2320; p[8]=26.0096; p[9]=13.4652; p[10]=4.6049; p[11]=1.2167; p[12]=0.5373; p[13]=0.1270; p[14]=0.3880; p[15]=0.6798; p[16]=0.7091; p[17]=0.7294; p[18]=0.6401; p[19]=0.5726; p[31]=1;
-  p = FP + 20*32; p[0]=-5.9683; p[1]=5.8955; p[2]=9.8087; p[3]=6.5583; p[4]=0.5786; p[5]=0.5159; p[6]=15.4747; p[7]=34.9751; p[8]=18.9558; p[9]=19.5897; p[10]=8.0553; p[11]=2.0943; p[12]=0.8552; p[13]=0.1609; p[14]=0.3886; p[15]=0.6616; p[16]=0.6997; p[17]=0.7409; p[18]=0.6972; p[19]=0.6650; p[31]=0;
-  p = FP + 21*32; p[0]=-5.9683; p[1]=5.8955; p[2]=9.8087; p[3]=6.5583; p[4]=0.5786; p[5]=0.5159; p[6]=15.4747; p[7]=34.9751; p[8]=18.9558; p[9]=19.5897; p[10]=8.0553; p[11]=2.0943; p[12]=0.8552; p[13]=0.1609; p[14]=0.3886; p[15]=0.6616; p[16]=0.6997; p[17]=0.7409; p[18]=0.6972; p[19]=0.6650; p[31]=0;
+  p = FP + 20*32; p[0]=-6.1274; p[1]=6.0958; p[2]=9.9718; p[3]=6.6445; p[4]=0.5806; p[5]=0.5144; p[6]=15.5103; p[7]=35.2857; p[8]=18.8855; p[9]=19.5329; p[10]=7.8795; p[11]=2.0716; p[12]=0.8345; p[13]=0.1612; p[14]=0.3846; p[15]=0.6646; p[16]=0.7075; p[17]=0.7432; p[18]=0.6983; p[19]=0.6640; p[31]=0;
+  p = FP + 21*32; p[0]=-6.1274; p[1]=6.0958; p[2]=9.9718; p[3]=6.6445; p[4]=0.5806; p[5]=0.5144; p[6]=15.5103; p[7]=35.2857; p[8]=18.8855; p[9]=19.5329; p[10]=7.8795; p[11]=2.0716; p[12]=0.8345; p[13]=0.1612; p[14]=0.3846; p[15]=0.6646; p[16]=0.7075; p[17]=0.7432; p[18]=0.6983; p[19]=0.6640; p[31]=0;
+  p = FP + 22*32; p[0]=-9.7655; p[1]=9.4721; p[2]=13.6464; p[3]=10.4885; p[4]=0.5166; p[5]=0.5647; p[6]=11.3442; p[7]=36.5985; p[8]=21.2806; p[9]=22.8366; p[10]=5.7571; p[11]=1.6780; p[12]=0.5051; p[13]=0.2092; p[14]=0.4288; p[15]=0.6883; p[16]=0.7834; p[17]=0.7216; p[18]=0.6481; p[19]=0.6006; p[31]=1;
+  p = FP + 23*32; p[0]=-5.5487; p[1]=6.5902; p[2]=10.4528; p[3]=2.6964; p[4]=0.6304; p[5]=0.4761; p[6]=12.7325; p[7]=32.8097; p[8]=17.6911; p[9]=22.6895; p[10]=10.0912; p[11]=2.8416; p[12]=1.1443; p[13]=0.1437; p[14]=0.2968; p[15]=0.6281; p[16]=0.6287; p[17]=0.6554; p[18]=0.6629; p[19]=0.6858; p[31]=1;
+  p = FP + 24*32; p[0]=-5.9311; p[1]=5.8312; p[2]=8.7515; p[3]=8.2994; p[4]=0.6311; p[5]=0.4756; p[6]=23.0964; p[7]=42.0397; p[8]=16.4191; p[9]=12.0507; p[10]=4.6264; p[11]=1.2867; p[12]=0.4809; p[13]=0.1364; p[14]=0.3561; p[15]=0.7315; p[16]=0.8508; p[17]=0.8949; p[18]=0.8042; p[19]=0.6881; p[31]=1;
   // <<FP_END>>
 // ---- reference library (generated) - DO NOT EDIT BY HAND -------------------------------------
 // <<LIB_BEGIN>>
@@ -111,10 +135,13 @@ RAW_DV = 5040;   // raw deviations (20)
   p = LIB + 15*32; p[0]=-5.7727; p[1]=5.7475; p[2]=9.7771; p[3]=11.7231; p[4]=0.6898; p[5]=0.4284; p[6]=13.7513; p[7]=37.1638; p[8]=16.7578; p[9]=21.8169; p[10]=8.3183; p[11]=1.6122; p[12]=0.5798; p[13]=0.1842; p[14]=0.3555; p[15]=0.5255; p[16]=0.5239; p[17]=0.6058; p[18]=0.5064; p[19]=0.4121; p[31]=1; LPR[15]=17;
   p = LIB + 16*32; p[0]=-5.3273; p[1]=5.2269; p[2]=9.3666; p[3]=6.2878; p[4]=0.5612; p[5]=0.5302; p[6]=15.6120; p[7]=30.6081; p[8]=17.8643; p[9]=21.9693; p[10]=10.8948; p[11]=2.2083; p[12]=0.8431; p[13]=0.1150; p[14]=0.3103; p[15]=0.7284; p[16]=0.7658; p[17]=0.7531; p[18]=0.6952; p[19]=0.6580; p[31]=1; LPR[16]=18;
   p = LIB + 17*32; p[0]=-7.2241; p[1]=6.9294; p[2]=10.0873; p[3]=8.0302; p[4]=0.6065; p[5]=0.4949; p[6]=17.9343; p[7]=36.2320; p[8]=26.0096; p[9]=13.4652; p[10]=4.6049; p[11]=1.2167; p[12]=0.5373; p[13]=0.1270; p[14]=0.3880; p[15]=0.6798; p[16]=0.7091; p[17]=0.7294; p[18]=0.6401; p[19]=0.5726; p[31]=1; LPR[17]=19;
-  p = LIB + 18*32; p[0]=-5.2305; p[1]=6.5533; p[2]=10.9461; p[3]=8.9305; p[4]=0.4602; p[5]=0.6080; p[6]=18.5071; p[7]=34.2077; p[8]=14.6136; p[9]=19.0172; p[10]=8.8100; p[11]=3.2455; p[12]=1.5990; p[13]=0.2762; p[14]=0.5974; p[15]=0.7132; p[16]=0.7435; p[17]=0.8036; p[18]=0.7684; p[19]=0.7187; p[31]=1; LPR[18]=-1;
-  p = LIB + 19*32; p[0]=-5.6986; p[1]=5.3686; p[2]=9.6463; p[3]=5.5904; p[4]=0.4217; p[5]=0.6378; p[6]=13.2707; p[7]=32.3402; p[8]=22.2987; p[9]=21.7530; p[10]=7.5388; p[11]=1.9550; p[12]=0.8436; p[13]=0.1352; p[14]=0.4113; p[15]=0.8818; p[16]=0.9030; p[17]=0.9505; p[18]=0.8299; p[19]=0.7852; p[31]=1; LPR[19]=-1;
-  p = LIB + 20*32; p[0]=-7.7222; p[1]=7.6938; p[2]=11.4866; p[3]=3.2200; p[4]=0.5054; p[5]=0.5732; p[6]=18.1353; p[7]=35.2806; p[8]=17.4784; p[9]=19.0124; p[10]=7.2881; p[11]=2.0087; p[12]=0.7965; p[13]=0.2406; p[14]=0.6527; p[15]=0.6423; p[16]=0.6274; p[17]=0.6553; p[18]=0.5860; p[19]=0.5481; p[31]=1; LPR[20]=-1;
-  p = LIB + 21*32; p[0]=-6.4312; p[1]=5.4225; p[2]=10.2071; p[3]=7.1584; p[4]=0.3376; p[5]=0.7037; p[6]=6.4378; p[7]=41.6045; p[8]=26.9973; p[9]=14.2921; p[10]=7.9141; p[11]=2.1006; p[12]=0.6535; p[13]=0.4000; p[14]=0.6795; p[15]=0.7578; p[16]=0.7796; p[17]=0.7654; p[18]=0.7386; p[19]=0.7790; p[31]=1; LPR[21]=-1;
+  p = LIB + 18*32; p[0]=-9.7655; p[1]=9.4721; p[2]=13.6464; p[3]=10.4885; p[4]=0.5166; p[5]=0.5647; p[6]=11.3442; p[7]=36.5985; p[8]=21.2806; p[9]=22.8366; p[10]=5.7571; p[11]=1.6780; p[12]=0.5051; p[13]=0.2092; p[14]=0.4288; p[15]=0.6883; p[16]=0.7834; p[17]=0.7216; p[18]=0.6481; p[19]=0.6006; p[31]=1; LPR[18]=22;
+  p = LIB + 19*32; p[0]=-5.5487; p[1]=6.5902; p[2]=10.4528; p[3]=2.6964; p[4]=0.6304; p[5]=0.4761; p[6]=12.7325; p[7]=32.8097; p[8]=17.6911; p[9]=22.6895; p[10]=10.0912; p[11]=2.8416; p[12]=1.1443; p[13]=0.1437; p[14]=0.2968; p[15]=0.6281; p[16]=0.6287; p[17]=0.6554; p[18]=0.6629; p[19]=0.6858; p[31]=1; LPR[19]=23;
+  p = LIB + 20*32; p[0]=-5.2305; p[1]=6.5533; p[2]=10.9461; p[3]=8.9305; p[4]=0.4602; p[5]=0.6080; p[6]=18.5071; p[7]=34.2077; p[8]=14.6136; p[9]=19.0172; p[10]=8.8100; p[11]=3.2455; p[12]=1.5990; p[13]=0.2762; p[14]=0.5974; p[15]=0.7132; p[16]=0.7435; p[17]=0.8036; p[18]=0.7684; p[19]=0.7187; p[31]=1; LPR[20]=-1;
+  p = LIB + 21*32; p[0]=-5.6986; p[1]=5.3686; p[2]=9.6463; p[3]=5.5904; p[4]=0.4217; p[5]=0.6378; p[6]=13.2707; p[7]=32.3402; p[8]=22.2987; p[9]=21.7530; p[10]=7.5388; p[11]=1.9550; p[12]=0.8436; p[13]=0.1352; p[14]=0.4113; p[15]=0.8818; p[16]=0.9030; p[17]=0.9505; p[18]=0.8299; p[19]=0.7852; p[31]=1; LPR[21]=-1;
+  p = LIB + 22*32; p[0]=-7.7222; p[1]=7.6938; p[2]=11.4866; p[3]=3.2200; p[4]=0.5054; p[5]=0.5732; p[6]=18.1353; p[7]=35.2806; p[8]=17.4784; p[9]=19.0124; p[10]=7.2881; p[11]=2.0087; p[12]=0.7965; p[13]=0.2406; p[14]=0.6527; p[15]=0.6423; p[16]=0.6274; p[17]=0.6553; p[18]=0.5860; p[19]=0.5481; p[31]=1; LPR[22]=-1;
+  p = LIB + 23*32; p[0]=-6.4312; p[1]=5.4225; p[2]=10.2071; p[3]=7.1584; p[4]=0.3376; p[5]=0.7037; p[6]=6.4378; p[7]=41.6045; p[8]=26.9973; p[9]=14.2921; p[10]=7.9141; p[11]=2.1006; p[12]=0.6535; p[13]=0.4000; p[14]=0.6795; p[15]=0.7578; p[16]=0.7796; p[17]=0.7654; p[18]=0.7386; p[19]=0.7790; p[31]=1; LPR[23]=-1;
+  p = LIB + 24*32; p[0]=-5.9311; p[1]=5.8312; p[2]=8.7515; p[3]=8.2994; p[4]=0.6311; p[5]=0.4756; p[6]=23.0964; p[7]=42.0397; p[8]=16.4191; p[9]=12.0507; p[10]=4.6264; p[11]=1.2867; p[12]=0.4809; p[13]=0.1364; p[14]=0.3561; p[15]=0.7315; p[16]=0.8508; p[17]=0.8949; p[18]=0.8042; p[19]=0.6881; p[31]=1; LPR[24]=24;
   function lib_name(i, out) (
     i == 0 ? strcpy(out, "Alpha Wolf - 60cm Of Steel") :
     i == 1 ? strcpy(out, "DIESECT - Too Many Scars") :
@@ -134,10 +161,13 @@ RAW_DV = 5040;   // raw deviations (20)
     i == 15 ? strcpy(out, "Architects - Gravity") :
     i == 16 ? strcpy(out, "Spiritbox - Keep Sweet") :
     i == 17 ? strcpy(out, "Bad Omens - Death Of Peace Of Mind") :
-    i == 18 ? strcpy(out, "Northlane - Evian") :
-    i == 19 ? strcpy(out, "Love Is Noise - Hole In Me") :
-    i == 20 ? strcpy(out, "The End Of All We Know") :
-    i == 21 ? strcpy(out, "Flake - Grief") :
+    i == 18 ? strcpy(out, "TesseracT - King") :
+    i == 19 ? strcpy(out, "heaving. - carsick (Adam Cichocki)") :
+    i == 20 ? strcpy(out, "Northlane - Evian") :
+    i == 21 ? strcpy(out, "Love Is Noise - Hole In Me") :
+    i == 22 ? strcpy(out, "The End Of All We Know") :
+    i == 23 ? strcpy(out, "Flake - Grief") :
+    i == 24 ? strcpy(out, "SENNA - Out Of The Blue (Manuel Renner)") :
     strcpy(out, "?");
   );
   // <<LIB_END>>
@@ -189,6 +219,19 @@ KC[8] = 2*(kK*kK - 1)/kh0; KC[9] = (1 - kK/kQ + kK*kK)/kh0;
 
 blk_len = floor(0.1*srate);
 
+// ---- Stem target profile fingerprints (5 profiles x 32 slots) -----------------
+// layout per slot block: 0 lufs 1 plr 2 crest 3 lra 4 corr 5 width | 6..12 band % | 13..19 band S/M width | 31 has-reference
+// 0: Full Master
+p = STEM_FP + 0*32; p[0]=-6.0; p[1]=6.0; p[2]=9.8; p[3]=6.5; p[4]=0.55; p[5]=0.52; p[6]=15.5; p[7]=35.0; p[8]=19.0; p[9]=19.5; p[10]=8.0; p[11]=2.1; p[12]=0.9; p[13]=0.16; p[14]=0.39; p[15]=0.66; p[16]=0.70; p[17]=0.74; p[18]=0.70; p[19]=0.67; p[31]=1;
+// 1: Drums (Kick/Snare/Toms/Cymbals - strong sub/low transient attack)
+p = STEM_FP + 1*32; p[0]=-8.5; p[1]=9.5; p[2]=13.2; p[3]=7.5; p[4]=0.65; p[5]=0.45; p[6]=18.0; p[7]=40.0; p[8]=16.0; p[9]=14.0; p[10]=7.5; p[11]=3.5; p[12]=1.0; p[13]=0.10; p[14]=0.25; p[15]=0.55; p[16]=0.65; p[17]=0.75; p[18]=0.80; p[19]=0.78; p[31]=1;
+// 2: Bass (Sub & 808 fundamental - dense, mono anchor)
+p = STEM_FP + 2*32; p[0]=-9.0; p[1]=6.0; p[2]=7.5; p[3]=4.0; p[4]=0.98; p[5]=0.08; p[6]=38.0; p[7]=46.0; p[8]=12.0; p[9]=3.5; p[10]=0.5; p[11]=0.0; p[12]=0.0; p[13]=0.02; p[14]=0.05; p[15]=0.15; p[16]=0.20; p[17]=0.20; p[18]=0.10; p[19]=0.05; p[31]=1;
+// 3: Vocals (Lead & BVs - presence and dynamic crest)
+p = STEM_FP + 3*32; p[0]=-10.5; p[1]=7.5; p[2]=11.0; p[3]=8.5; p[4]=0.80; p[5]=0.35; p[6]=0.5; p[7]=6.5; p[8]=25.0; p[9]=38.0; p[10]=21.0; p[11]=6.5; p[12]=2.5; p[13]=0.05; p[14]=0.20; p[15]=0.35; p[16]=0.45; p[17]=0.55; p[18]=0.65; p[19]=0.60; p[31]=1;
+// 4: Other / Synth / Guitars (Walls of sound, wide imaging)
+p = STEM_FP + 4*32; p[0]=-9.5; p[1]=6.8; p[2]=9.2; p[3]=6.0; p[4]=0.40; p[5]=0.65; p[6]=2.0; p[7]=16.0; p[8]=28.0; p[9]=28.0; p[10]=16.0; p[11]=7.5; p[12]=2.5; p[13]=0.15; p[14]=0.45; p[15]=0.70; p[16]=0.78; p[17]=0.80; p[18]=0.78; p[19]=0.75; p[31]=1;
+
 function reset_all() local(i) (
   i = 0; loop(14,  ACC[i] = 0; i += 1; );
   i = 0; loop(400, HSTG[i] = 0;  i += 1; );
@@ -211,6 +254,26 @@ function reset_all() local(i) (
   i = 0; loop(42, TT[i] = 0; i += 1; );
   i = 0; loop(6, TW[i] = 0; i += 1; );
   ED = 0;
+
+  // Reference & Sidechain Resets
+  i = 0; loop(56, BQS_REF[i] = 0; i += 1; );
+  i = 0; loop(8,  KS_REF[i] = 0;  i += 1; );
+  i = 0; loop(14, ACC_REF[i] = 0; BA_REF[i] = 0; i += 1; );
+  i = 0; loop(30, RB_REF[i] = 0; i += 1; );
+  i = 0; loop(400, HSTG_REF[i] = 0; i += 1; );
+  i = 0; loop(120, HS_REF[i] = 0; i += 1; );
+  i = 0; loop(7, ACC_XCORR[i] = 0; BAND_XCORR[i] = 0; BAND_DIFF[i] = 0; i += 1; );
+  ref_blk_pow = 0; ref_blk_n = 0; ref_rpos = 0; ref_rcount = 0;
+  ref_sum_m2 = 0; ref_sum_s2 = 0; ref_sLR = 0; ref_sLL = 0; ref_sRR = 0; ref_pk = 0; ref_tot_n = 0;
+  ref_lufs_m = -70; ref_lufs_m_max = -70;
+  ref_lufs_s = -70; ref_lufs_s_max = -70;
+  int_lufs_ref = -70;
+  pk_low_mix = 0; sum_low_mix2 = 0;
+  pk_low_ref = 0; sum_low_ref2 = 0;
+  pk_pres_mix = 0; sum_pres_mix2 = 0;
+  sub_side_pct = 0; lr_asym_db = 0; pres_crest_db = 10.0;
+  vox_mask_idx = 0; chorus_lift_db = 0; chorus_width_lift = 1.0;
+  have_ref_data = 0;
 );
 reset_all();
 cap_valid = 0;
@@ -273,11 +336,89 @@ function compute_metrics() local(i, tot, c, n, pw, g, n2, sum2, gate, mean1, lo,
     i += 1;
   );
 
+  // Reference integrated loudness
+  ref_n = 0; ref_sum1 = 0; i = 0;
+  loop(400, c = HSTG_REF[i]; c > 0 ? ( ref_n += c; ref_sum1 += c * pow(10, (((i+0.5)/5 - 70) + 0.691)/10); ); i += 1; );
+  ref_n > 0 ? (
+    ref_gate = -0.691 + 10*log10(ref_sum1/ref_n) - 10;
+    ref_n2 = 0; ref_sum2 = 0; i = 0;
+    loop(400, c = HSTG_REF[i]; (c > 0 && ((i+0.5)/5 - 70) > ref_gate) ? ( ref_n2 += c; ref_sum2 += c * pow(10, (((i+0.5)/5 - 70) + 0.691)/10); ); i += 1; );
+    int_lufs_ref = ref_n2 > 0 ? -0.691 + 10*log10(ref_sum2/ref_n2) : -70;
+  ) : ( int_lufs_ref = -70; );
+
+  // Reference LRA
+  ref_n = 0; i = 0; loop(120, ref_n += HS_REF[i]; i += 1; );
+  ref_lra = ref_n > 8 ? (hist_pct(HS_REF, 120, ref_n, 0.95) - hist_pct(HS_REF, 120, ref_n, 0.10))*0.5 : 0;
+
+  ref_pdb = 20*log10(ref_pk + 0.000000000001);
+  ref_rms_db = 10*log10(ref_sum_m2/max(ref_tot_n,1) + 0.000000000000000001);
+  LIVE_REF[0] = int_lufs_ref;
+  LIVE_REF[1] = ref_pdb - int_lufs_ref;
+  LIVE_REF[2] = ref_pdb - ref_rms_db;
+  LIVE_REF[3] = ref_lra;
+  LIVE_REF[4] = ref_sLR/sqrt(ref_sLL*ref_sRR + 0.000000000000000000000000000001);
+  LIVE_REF[5] = sqrt(ref_sum_s2/(ref_sum_m2 + 0.000000000000000001));
+  LIVE_REF[31] = have_ref_data ? 1 : 0;
+
+  ref_tot = 0; i = 0; loop(7, ref_tot += ACC_REF[i*2] + ACC_REF[i*2+1]; i += 1; );
+  i = 0;
+  loop(7,
+    LIVE_REF[6+i]  = 100*(ACC_REF[i*2] + ACC_REF[i*2+1])/(ref_tot + 0.000000000000000000000000000001);
+    LIVE_REF[13+i] = sqrt(ACC_REF[i*2+1]/(ACC_REF[i*2] + 0.000000000000000000000000000001));
+    i += 1;
+  );
+
+  // Band differentials & Cross Correlation
+  i = 0;
+  loop(7,
+    denom = sqrt((ACC[i*2] + 0.0000000001) * (ACC_REF[i*2] + 0.0000000001));
+    BAND_XCORR[i] = clampv(ACC_XCORR[i] / denom, -1.0, 1.0);
+    BAND_DIFF[i] = 10*log10((ACC[i*2] + ACC[i*2+1] + 0.000000001) / (ACC_REF[i*2] + ACC_REF[i*2+1] + 0.000000001));
+    i += 1;
+  );
+
+  // Low-End Punch Index (20-250 Hz Crest Factor)
+  rms_low_mix = sqrt(sum_low_mix2 / max(tot_n, 1));
+  punch_mix_db = 20*log10(pk_low_mix / (rms_low_mix + 0.000000001));
+  rms_low_ref = sqrt(sum_low_ref2 / max(ref_tot_n, 1));
+  punch_ref_db = 20*log10(pk_low_ref / (rms_low_ref + 0.000000001));
+  punch_delta = punch_mix_db - punch_ref_db;
+
+  // Continuous Spectral Tilt
+  tilt_mix = (-4.8343*10*log10(LV[6]+0.01) - 2.8843*10*log10(LV[7]+0.01) - 1.1243*10*log10(LV[8]+0.01) + 0.5257*10*log10(LV[9]+0.01) + 1.8957*10*log10(LV[10]+0.01) + 2.8057*10*log10(LV[11]+0.01) + 3.6157*10*log10(LV[12]+0.01)) / 57.76;
+
   // choose reference
-  pidx_eff = (slider1 == 0 && gmem[1000] == 1) ? clampv(floor(gmem[1008]+0.5), 0, 21) : slider2;
-  ref = (slider3 == 2) ? (LIB + clampv(slider9, 0, 21)*32) : ((slider3 == 1 && cap_valid) ? CAP : (FP + pidx_eff*32));
+  pidx_eff = (slider1 == 0 && gmem[1000] == 1) ? clampv(floor(gmem[1008]+0.5), 0, 24) : slider2;
+  ref = (slider3 == 3 && have_ref_data) ? LIVE_REF :
+        (slider11 > 0 ? (STEM_FP + slider11*32) :
+        ((slider3 == 2) ? (LIB + clampv(slider9, 0, 24)*32) :
+        ((slider3 == 1 && cap_valid) ? CAP : (FP + pidx_eff*32))));
   ref_ptr = ref;
   stg = slider4;
+
+  tilt_ref = (-4.8343*10*log10(ref_ptr[6]+0.01) - 2.8843*10*log10(ref_ptr[7]+0.01) - 1.1243*10*log10(ref_ptr[8]+0.01) + 0.5257*10*log10(ref_ptr[9]+0.01) + 1.8957*10*log10(ref_ptr[10]+0.01) + 2.8057*10*log10(ref_ptr[11]+0.01) + 3.6157*10*log10(ref_ptr[12]+0.01)) / 57.76;
+  tilt_delta = tilt_mix - tilt_ref;
+
+  // Auto loudness match delta
+  auto_gain_db = (have_data && have_ref_data) ? clampv(int_lufs - int_lufs_ref, -24, 24) : 0;
+
+  // Advanced Comparison Metrics:
+  // 1. Sub Stereo Leakage (<100Hz Side-to-Mid Power %)
+  sub_side_pct = 100.0 * (ACC[1] + 0.000000000001) / (ACC[0] + ACC[1] + 0.000000000002);
+
+  // 2. L/R RMS Balance Asymmetry (dB)
+  lr_asym_db = 10.0 * log10((sLL + 0.000000000001) / (sRR + 0.000000000001));
+
+  // 3. Presence Crest Factor (1-6 kHz Snare & Vocal Snap)
+  rms_pres_mix = sqrt(sum_pres_mix2 / max(tot_n, 1));
+  pres_crest_db = 20.0 * log10(pk_pres_mix / (rms_pres_mix + 0.000000001));
+
+  // 4. Vocal-to-Instrumental Masking Severity (0-100%)
+  vox_mask_idx = vox_act ? clampv((1.0 - max(0, vox_rel_mst - (-4.0)) / 6.0) * (LV[9] + LV[10]) / 35.0 * 100.0, 0, 100) : 0;
+
+  // 5. Macro Chorus Dynamic Impact Lift & Stereo Bloom
+  chorus_lift_db = max(0, lufs_s_max - int_lufs);
+  chorus_width_lift = max(1.0, LV[5] / max(ref_ptr[5], 0.20));
 
   // deviations
   tonal_sc = 0; i = 0;
@@ -347,7 +488,7 @@ function compute_metrics() local(i, tot, c, n, pw, g, n2, sum2, gate, mean1, lo,
 
   // how closely the live signal matches EVERY library reference (tonal 60% + width 40%)
   k = 0;
-  loop(22,
+  loop(24,
     rf = LIB + k*32; ts = 0; ws = 0; i = 0;
     loop(7,
       dd = abs(10*log10((LV[6+i] + 0.02)/(rf[6+i] + 0.02)))/((i == 0 || i == 6) ? 2.0 : 1.5);
@@ -430,6 +571,24 @@ function compute_metrics() local(i, tot, c, n, pw, g, n2, sum2, gate, mean1, lo,
   gmem[1143] = sub_mono_pct;
   gmem[1144] = dc_db;
   gmem[1145] = isp_overs;
+
+  // Publish Extended Stem & Comparative Telemetry to gmem[1146..1160]
+  gmem[1146] = auto_gain_db;
+  gmem[1147] = punch_mix_db;
+  gmem[1148] = punch_ref_db;
+  gmem[1149] = tilt_delta;
+  i = 0; loop(7, gmem[1150+i] = BAND_DIFF[i]; i += 1; );
+  gmem[1157] = slider11; // Stem Profile Mode
+  gmem[1158] = slider12; // Monitor Mode
+  gmem[1159] = int_lufs_ref;
+  gmem[1160] = have_ref_data ? 1 : 0;
+  // Advanced Telemetry to gmem[1161..1166]
+  gmem[1161] = sub_side_pct;
+  gmem[1162] = lr_asym_db;
+  gmem[1163] = pres_crest_db;
+  gmem[1164] = vox_mask_idx;
+  gmem[1165] = chorus_lift_db;
+  gmem[1166] = chorus_width_lift;
 );
 
 // ---- closed-loop correction lane --------------------------------------------------------------------
@@ -555,7 +714,17 @@ function ctl_block() local(i, w, e, s, b, tot, pct, dvb, cap, ew, bwv, bwr, x, b
   );
 );
 
+@slider
+(slider47 != last_slider47) ? (
+  ui_view = (slider47 == 0 ? 0 : (slider47 == 1 ? 1 : (slider47 == 2 ? 2 : (slider47 == 3 ? 3 : (slider47 == 4 ? 4 : 5)))));
+  last_slider47 = slider47;
+);
+
 @block
+(slider47 != last_slider47) ? (
+  ui_view = (slider47 == 0 ? 0 : (slider47 == 1 ? 1 : (slider47 == 2 ? 2 : (slider47 == 3 ? 3 : (slider47 == 4 ? 4 : 5)))));
+  last_slider47 = slider47;
+);
 ps = play_state & 1;
 (slider6 == 1 && ps && !last_ps) ? ( reset_req = 1; );
 last_ps = ps;
@@ -569,10 +738,14 @@ ctl_publish();
 reset_req ? ( reset_all(); reset_req = 0; );
 
 l = spl0; r = spl1;
+ref_l = spl2; ref_r = spl3;
+
 slider5 == 0 ? (
   m = (l + r)*0.5; s = (l - r)*0.5;
+  ref_m = (ref_l + ref_r)*0.5; ref_s = (ref_l - ref_r)*0.5;
 
   b = 0;
+  ym_low = 0; ref_ym_low = 0; ym_pres = 0;
   loop(7,
     ym = bqrun(BQC + (b*2)*5,   BQS + (b*2)*2,       m);
     ym = bqrun(BQC + (b*2+1)*5, BQS + (b*2+1)*2,     ym);
@@ -580,16 +753,57 @@ slider5 == 0 ? (
     ys = bqrun(BQC + (b*2+1)*5, BQS + (14 + b*2+1)*2, ys);
     ACC[b*2] += ym*ym; ACC[b*2+1] += ys*ys;
     BA[b*2] += ym*ym;  BA[b*2+1] += ys*ys;
+
+    // Reference band filtering
+    ref_ym = bqrun(BQC + (b*2)*5,   BQS_REF + (b*2)*2,       ref_m);
+    ref_ym = bqrun(BQC + (b*2+1)*5, BQS_REF + (b*2+1)*2,     ref_ym);
+    ref_ys = bqrun(BQC + (b*2)*5,   BQS_REF + (14 + b*2)*2,  ref_s);
+    ref_ys = bqrun(BQC + (b*2+1)*5, BQS_REF + (14 + b*2+1)*2, ref_ys);
+    ACC_REF[b*2] += ref_ym*ref_ym; ACC_REF[b*2+1] += ref_ys*ref_ys;
+    BA_REF[b*2] += ref_ym*ref_ym;  BA_REF[b*2+1] += ref_ys*ref_ys;
+
+    // Cross correlation mid channel
+    ACC_XCORR[b] += ym * ref_ym;
+
+    // Low band tracking (Bands 0 and 1: 20-250 Hz)
+    (b == 0 || b == 1) ? (
+      ym_low += ym;
+      ref_ym_low += ref_ym;
+    );
+
+    // Presence band tracking (Bands 3 and 4: 800 Hz - 6 kHz for vocal/snare crack)
+    (b == 3 || b == 4) ? (
+      ym_pres += ym;
+    );
+
     b += 1;
   );
 
+  pk_low_mix = max(pk_low_mix, abs(ym_low));
+  sum_low_mix2 += ym_low * ym_low;
+  pk_pres_mix = max(pk_pres_mix, abs(ym_pres));
+  sum_pres_mix2 += ym_pres * ym_pres;
+  pk_low_ref = max(pk_low_ref, abs(ref_ym_low));
+  sum_low_ref2 += ref_ym_low * ref_ym_low;
+
+  // Mix K-weighting
   kl = bqrun(KC, KS + 0, l);  kl = bqrun(KC + 5, KS + 2, kl);
   kr = bqrun(KC, KS + 4, r);  kr = bqrun(KC + 5, KS + 6, kr);
   blk_pow += kl*kl + kr*kr; blk_n += 1;
 
+  // Ref K-weighting
+  ref_kl = bqrun(KC, KS_REF + 0, ref_l);  ref_kl = bqrun(KC + 5, KS_REF + 2, ref_kl);
+  ref_kr = bqrun(KC, KS_REF + 4, ref_r);  ref_kr = bqrun(KC + 5, KS_REF + 6, ref_kr);
+  ref_blk_pow += ref_kl*ref_kl + ref_kr*ref_kr; ref_blk_n += 1;
+
   sum_m2 += m*m; sum_s2 += s*s; sLR += l*r; sLL += l*l; sRR += r*r;
   pk = max(pk, max(abs(l), abs(r)));
   tot_n += 1;
+
+  ref_sum_m2 += ref_m*ref_m; ref_sum_s2 += ref_s*ref_s;
+  ref_sLR += ref_l*ref_r; ref_sLL += ref_l*ref_l; ref_sRR += ref_r*ref_r;
+  ref_pk = max(ref_pk, max(abs(ref_l), abs(ref_r)));
+  ref_tot_n += 1;
 
   // 4x Intersample True Peak (ISP) Polyphase Hermite Estimator
   isp_l = max(abs(l), abs((-isp_l_p2 + 9*isp_l_p1 + 9*l - spl0)*0.0625));
@@ -623,10 +837,50 @@ slider5 == 0 ? (
       lufs_s = lst;
       lufs_s_max = max(lufs_s_max, lst);
     );
-    (rcount % 5 == 0 && rcount >= 10) ? ( have_data = 1; compute_metrics(); );
+
+    // Ref block power tracking
+    ref_pw = ref_blk_pow/max(ref_blk_n, 1); ref_blk_pow = 0; ref_blk_n = 0;
+    RB_REF[ref_rpos] = ref_pw; ref_rpos = (ref_rpos + 1) % 30; ref_rcount += 1;
+    ref_rcount >= 4 ? (
+      ref_mp = 0; q = 0;
+      loop(4, ref_mp += RB_REF[(ref_rpos - 1 - q + 60) % 30]; q += 1; );
+      ref_lmv = -0.691 + 10*log10(ref_mp/4 + 0.000000000000000001);
+      ref_lmv > -70 ? ( ref_bn = clampv(floor((ref_lmv + 70)*5), 0, 399); HSTG_REF[ref_bn] += 1; );
+      ref_lufs_m = ref_lmv;
+      ref_lufs_m_max = max(ref_lufs_m_max, ref_lmv);
+    );
+    (ref_rcount >= 30 && ref_rcount % 10 == 0) ? (
+      ref_mp = 0; q = 0; loop(30, ref_mp += RB_REF[q]; q += 1; );
+      ref_lst = -0.691 + 10*log10(ref_mp/30 + 0.000000000000000001);
+      ref_lst > -60 ? ( ref_bn = clampv(floor((ref_lst + 60)*2), 0, 119); HS_REF[ref_bn] += 1; );
+      ref_lufs_s = ref_lst;
+      ref_lufs_s_max = max(ref_lufs_s_max, ref_lst);
+    );
+
+    (rcount % 5 == 0 && rcount >= 10) ? (
+      have_data = 1;
+      (ref_rcount >= 10 && (ref_sLL + ref_sRR) > 0.00000001) ? ( have_ref_data = 1; );
+      compute_metrics();
+    );
     ctl_block();
   );
 );
+
+// Monitor routing & Auditory Null output
+eff_ref_gain_db = (slider14 == 1 && have_ref_data && have_data) ? clampv(int_lufs - int_lufs_ref, -24, 24) : slider13;
+eff_ref_gain = pow(10, eff_ref_gain_db * 0.05);
+
+slider12 == 1 ? (
+  spl0 = ref_l * eff_ref_gain;
+  spl1 = ref_r * eff_ref_gain;
+) : slider12 == 2 ? (
+  spl0 = ref_l;
+  spl1 = ref_r;
+) : slider12 == 3 ? (
+  spl0 = l - ref_l * eff_ref_gain;
+  spl1 = r - ref_r * eff_ref_gain;
+);
+// slider12 == 0: spl0 & spl1 left untouched
 
 @serialize
 file_var(0, cap_valid);
@@ -635,6 +889,10 @@ ci = 0; loop(6, file_var(0, TW[ci]); ci += 1; );
 ci = 0; loop(32, file_var(0, CAP[ci]); ci += 1; );
 
 @gfx 1020 800
+(slider47 != last_slider47) ? (
+  ui_view = (slider47 == 0 ? 0 : (slider47 == 1 ? 1 : (slider47 == 2 ? 2 : (slider47 == 3 ? 3 : (slider47 == 4 ? 4 : 5)))));
+  last_slider47 = slider47;
+);
 // ---- helpers ------------------------------------------------------------------
 function rct(x, y, w, h) ( gfx_rect(ox + x*gsc, oy + y*gsc, max(1, w*gsc), max(1, h*gsc)); );
 function rcto(x, y, w, h) ( gfx_rect(ox + x*gsc, oy + y*gsc, max(1, w*gsc), max(1, h*gsc), 0); );
@@ -699,7 +957,11 @@ function preset_name(i, out) (
   i == 18 ? strcpy(out, "Dan Braunstein - Spiritbox Keep Sweet") :
   i == 19 ? strcpy(out, "Cervini & Ron - Bad Omens") :
   i == 20 ? strcpy(out, "Jens Bogren (avg ref)") :
-            strcpy(out, "Nolly Getgood (avg ref)");
+  i == 21 ? strcpy(out, "Nolly Getgood (avg ref)") :
+  i == 22 ? strcpy(out, "Acle Kahney - TesseracT King") :
+  i == 23 ? strcpy(out, "Adam Cichocki (heaving.)") :
+  i == 24 ? strcpy(out, "Manuel Renner (SENNA)") :
+            strcpy(out, "Default Modern Metal");
 );
 
 function band_label(b, out) (
@@ -774,22 +1036,22 @@ function draw_sankofa(cx, cy, sz) local(k, t, px, py, nx, ny, sc, a, rad, side) 
 );
 
 function draw_library() local(k, y, rf, sel, hov, clk, best, bm, x0) (
-  card(24, 86, 972, 692, "REFERENCE LIBRARY (22 tracks) - click a row to compare", 1.00, 0.85, 0.30);
+  card(24, 86, 972, 716, "REFERENCE LIBRARY (25 tracks) - click a row to compare", 1.00, 0.85, 0.30);
   gfx_setfont(3); col(0.5, 0.55, 0.68);
   txt(38, 122, "#");  txt(62, 122, "TRACK");
   txt(306, 122, "LUFS"); txt(352, 122, "PLR"); txt(394, 122, "CREST"); txt(440, 122, "LRA"); txt(480, 122, "CORR"); txt(524, 122, "WIDTH");
   txt(576, 122, "SUB"); txt(620, 122, "LOW"); txt(664, 122, "LMID"); txt(708, 122, "MID"); txt(752, 122, "HMID"); txt(796, 122, "HIGH"); txt(840, 122, "AIR");
   txt(892, 122, "LIVE MATCH");
   best = -1; bm = 0; k = 0;
-  have_data ? ( loop(22, LM[k] > bm ? ( bm = LM[k]; best = k; ); k += 1; ); );
+  have_data ? ( loop(25, LM[k] > bm ? ( bm = LM[k]; best = k; ); k += 1; ); );
   k = 0;
-  loop(22,
-    y = 144 + k*25;
+  loop(25,
+    y = 140 + k*24;
     rf = LIB + k*32;
     sel = (slider3 == 2 && floor(slider9 + 0.5) == k);
-    hov = (mxs >= 30 && mxs < 990 && mys >= y - 2 && mys < y + 23);
+    hov = (mxs >= 30 && mxs < 990 && mys >= y - 2 && mys < y + 22);
     clk = hov && (mouse_cap & 1) && !(last_mc & 1);
-    sel ? ( col(0.10, 0.22, 0.22); rct(30, y - 2, 960, 24); ) : ( hov ? ( col(0.09, 0.10, 0.16); rct(30, y - 2, 960, 24); ); );
+    sel ? ( col(0.10, 0.22, 0.22); rct(30, y - 2, 960, 23); ) : ( hov ? ( col(0.09, 0.10, 0.16); rct(30, y - 2, 960, 23); ); );
     gfx_setfont(2);
     sel ? col(0.00, 0.96, 0.83) : col(0.85, 0.9, 1.0);
     sprintf(#v, "%d", k + 1); txt(38, y, #v);
@@ -818,7 +1080,7 @@ function draw_library() local(k, y, rf, sel, hov, clk, best, bm, x0) (
   LPR[k] >= 0 ? ( preset_name(LPR[k], #pp); ) : ( strcpy(#pp, "no producer preset linked"); );
   sprintf(#v, "%s  |  Producer preset: %s  |  LUFS %.1f  PLR %.1f  Crest %.1f  LRA %.1f  Corr %.2f",
           #ln, #pp, rf[0], rf[1], rf[2], rf[3], rf[4]);
-  txt(38, 744, #v);
+  txt(38, 746, #v);
 );
 
 // ---- frame setup ----------------------------------------------------------------
@@ -826,6 +1088,9 @@ function draw_library() local(k, y, rf, sel, hov, clk, best, bm, x0) (
 gsc = max(0.35, min(gfx_w/1020, gfx_h/800));
 ox = floor((gfx_w - 1020*gsc)*0.5); oy = floor((gfx_h - 800*gsc)*0.5);
 mxs = (mouse_x - ox)/gsc; mys = (mouse_y - oy)/gsc;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+m_wheel = mouse_wheel; mouse_wheel = 0;
 gfx_setfont(1, "Orbitron", max(8, floor(15*gsc + 0.5)), 'b');
 gfx_setfont(2, "Arial", max(8, floor(14*gsc + 0.5)));
 gfx_setfont(3, "Arial", max(8, floor(13*gsc + 0.5)), 'b');
@@ -844,31 +1109,229 @@ col(0.050, 0.060, 0.098); rct(10, 8, 1000, 54);
 col(0.00, 0.50, 0.46); rcto(10, 8, 1000, 54);
 draw_sankofa(44, 35, 38);
 gfx_setfont(5); col(0.00, 0.96, 0.83); txt(78, 12, "SANKOFA ORACLE");
-gfx_setfont(2); col(1.00, 0.72, 0.02); txt(78, 38, "ASSESSMENT MATRIX  |  REFERENCE MATCH");
+gfx_setfont(2); col(1.00, 0.72, 0.02); txt(78, 38, "ASSESSMENT MATRIX");
 
 pn = preset_name(pidx_eff, #pname);
 using_cap = (slider3 == 1 && cap_valid);
 using_lib = (slider3 == 2);
-lib_name(clampv(floor(slider9 + 0.5), 0, 21), #lname);
+lib_name(clampv(floor(slider9 + 0.5), 0, 24), #lname);
 sprintf(#hdr, "Reference: %s   |   Source: %s   |   Stage: %s",
   using_cap ? "CAPTURED REFERENCE" : (using_lib ? #lname : #pname),
   using_lib ? "Reference Library" : ((slider1 == 0 && gmem[1000] == 1) ? "Mixing Suite (live)" : "Manual"),
   slider4 ? "MASTER" : "MIX BUS");
 gfx_setfont(2); col(0.60, 0.65, 0.75); txt(24, 66, #hdr);
 
+// Live Suite Interlock Telemetry Badges
+s_mix = (gmem[1000] == 1);
+s_vox = (gmem[880] == 1);
+s_drm = (gmem[820] == 1);
+s_bas = (gmem[860] == 1);
+s_gtr = (gmem[840] == 1);
+s_syn = (gmem[920] == 1);
+
+function draw_suite_badge(bx, by, bw, bh, name, is_on) (
+  col(0.04, 0.05, 0.08); rct(bx, by, bw, bh);
+  is_on ? col(0.12, 0.55, 0.35) : col(0.20, 0.22, 0.28); rcto(bx, by, bw, bh);
+  is_on ? col(0.20, 0.95, 0.55) : col(0.35, 0.38, 0.45);
+  cir(bx + 10, by + bh*0.5, 3.5);
+  gfx_setfont(3);
+  is_on ? col(0.85, 0.95, 0.90) : col(0.40, 0.45, 0.52);
+  txt(bx + 18, by + (bh - 10)*0.5, name);
+);
+
+draw_suite_badge(542, 62, 70, 19, "MIX", s_mix);
+draw_suite_badge(618, 62, 70, 19, "VOX", s_vox);
+draw_suite_badge(694, 62, 70, 19, "DRM", s_drm);
+draw_suite_badge(770, 62, 70, 19, "BAS", s_bas);
+draw_suite_badge(846, 62, 70, 19, "GTR", s_gtr);
+draw_suite_badge(922, 62, 70, 19, "SYN", s_syn);
+
 tmx = 0; s_i = 0;
 loop(6, tm = 0; b_i = 0; loop(7, tm = max(tm, abs(TT[s_i*7 + b_i])); b_i += 1; ); tm = max(tm, abs(TW[s_i])); TMV[s_i] = tm; s_i += 1; );
 sprintf(#trm, "AUTO-CORRECT %s | trim D%.1f G%.1f B%.1f V%.1f gsc%.1f", slider7 == 1 ? "STATIC" : (slider7 == 2 ? "DYNAMIC" : "OFF"), TMV[0], TMV[1], TMV[2], TMV[3], TMV[4]);
-col(0.03, 0.04, 0.07); rct(330, 18, 195, 34);
-slider7 > 0 ? (slider7 == 1 ? col(0.20, 0.92, 0.62) : col(0.00, 0.85, 1.00)) : col(0.38, 0.42, 0.55); rcto(330, 18, 195, 34);
+// Positioned starting at x=310, leaving 32px clear margin from SANKOFA ORACLE title (which ends at x=278)
+col(0.03, 0.04, 0.07); rct(306, 18, 118, 34);
+slider7 > 0 ? (slider7 == 1 ? col(0.20, 0.92, 0.62) : col(0.00, 0.85, 1.00)) : col(0.38, 0.42, 0.55); rcto(306, 18, 118, 34);
 gfx_setfont(3); slider7 > 0 ? (slider7 == 1 ? col(0.20, 0.92, 0.62) : col(0.00, 0.85, 1.00)) : col(0.60, 0.65, 0.75);
-sprintf(#trm_short, "AUTO-CORRECT: %s", slider7 == 1 ? (static_locked ? "STATIC LOCKED" : "LOCKING...") : (slider7 == 2 ? "SLOW DYNAMIC" : "OFF"));
-txt(342, 28, #trm_short);
-btn(535, 18, 105, 34, "MATRIX", ui_view == 0) ? ( ui_view = 0; );
-btn(648, 18, 115, 34, "MASTERING", ui_view == 2) ? ( ui_view = 2; );
-btn(771, 18, 115, 34, "LIBRARY >", ui_view == 1) ? ( ui_view = 1; );
-btn(894, 18, 110, 34, "OLLAMA AI", ui_view == 3) ? ( ui_view = 3; );
+sprintf(#trm_short, "%s", slider7 == 1 ? (static_locked ? "CORRECT: LOCK" : "CORRECT: AUTO") : (slider7 == 2 ? "CORRECT: DYN" : "CORRECT: OFF"));
+txt(312, 28, #trm_short);
 
+btn(430, 18, 76, 34, "MATRIX", ui_view == 0) ? ( ui_view = 0; slider47 = 0; last_slider47 = 0; slider_automate(slider47); );
+btn(512, 18, 86, 34, "STEM A/B", ui_view == 4) ? ( ui_view = 4; slider47 = 4; last_slider47 = 4; slider_automate(slider47); );
+btn(604, 18, 120, 34, "PRODUCER DNA", ui_view == 5) ? ( ui_view = 5; slider47 = 5; last_slider47 = 5; slider_automate(slider47); );
+btn(730, 18, 92, 34, "MASTERING", ui_view == 2) ? ( ui_view = 2; slider47 = 2; last_slider47 = 2; slider_automate(slider47); );
+btn(828, 18, 80, 34, "LIBRARY", ui_view == 1) ? ( ui_view = 1; slider47 = 1; last_slider47 = 1; slider_automate(slider47); );
+btn(914, 18, 88, 34, "OLLAMA AI", ui_view == 3) ? ( ui_view = 3; slider47 = 3; last_slider47 = 3; slider_automate(slider47); );
+
+
+function draw_candy_play(x, y, w, h, title, desc_txt, armed) (
+  col(0.04, 0.06, 0.10); rct(x, y, w, h);
+  armed ? col(0.20, 0.92, 0.62) : col(0.40, 0.45, 0.55); rcto(x, y, w, h);
+  gfx_setfont(3); armed ? col(0.20, 0.92, 0.62) : col(0.70, 0.75, 0.85);
+  txt(x + 12, y + 8, title);
+  // Badge
+  col(armed ? 0.08 : 0.15, armed ? 0.25 : 0.15, armed ? 0.18 : 0.18);
+  rct(x + w - 74, y + 6, 64, 18);
+  armed ? col(0.20, 0.92, 0.62) : col(0.5, 0.5, 0.5); rcto(x + w - 74, y + 6, 64, 18);
+  gfx_setfont(3);
+  txt(x + w - 68, y + 9, armed ? "[ARMED]" : "OFF");
+  gfx_setfont(2); col(0.70, 0.75, 0.85);
+  txt(x + 12, y + 26, desc_txt);
+);
+
+function draw_producer_dna() local(cal_st, relay_btn_txt, b_rat, r_rat, w_box, h_box, y_pos) (
+  card(24, 86, 972, 692, "PRODUCER BLUEPRINT // KEL PINCHIN (SPLIT CHAIN) - BOOMINESS & BRIGHTNESS RADAR", 1.00, 0.72, 0.02);
+
+  // Top Action Banner: Dual Action Buttons with Zero Text Overlap
+  col(0.05, 0.12, 0.18); rct(38, 118, 944, 46);
+  col(0.00, 0.85, 1.00); rcto(38, 118, 944, 46);
+  gfx_setfont(1); col(0.00, 0.96, 0.83);
+  txt(52, 124, "PRODUCER TARGET: KEL PINCHIN");
+  gfx_setfont(3); col(0.70, 0.80, 0.95);
+  txt(52, 144, "'I'm Not Dying To Be Here' (motionblur)");
+
+  cal_st = gmem[1159];
+  btn(520, 126, 210, 30, "[APPLY DE-BOOM & AIR]", 0) ? (
+    gmem[1096] = 1; // Trigger apply_deboom_and_vocal_lift.lua
+  );
+  btn(740, 126, 230, 30, cal_st == 1 ? "[SUITES SYNCED]" : "[RELAY BLUEPRINT]", cal_st == 1) ? (
+    gmem[1096] = 1;
+  );
+
+  // =========================================================================
+  // COLUMN 1 (LEFT, w=464): STEM BALANCE MATRIX & LOW-END BOOMINESS RADAR
+  // =========================================================================
+  card(38, 172, 464, 590, "STEM BALANCE MATRIX & LOW-END BOOMINESS RADAR", 0.00, 0.96, 0.83);
+
+  // Card 1A: Stem Level Balance Matrix (No Guessing on Vocal/Drum/Bass/Synth levels)
+  col(0.04, 0.06, 0.10); rct(50, 206, 440, 160);
+  col(0.18, 0.25, 0.38); rcto(50, 206, 440, 160);
+  gfx_setfont(3); col(1.00, 0.72, 0.02); txt(62, 214, "STEM LEVEL BALANCE BENCHMARK (REF vs CALIBRATED MIX)");
+  
+  // Table Header
+  gfx_setfont(2); col(0.60, 0.65, 0.75);
+  txt(62, 236, "STEM"); txt(140, 236, "REF LUFS"); txt(220, 236, "REL TO DRUMS"); txt(320, 236, "CALIBRATION APPLIED");
+  
+  // Vocals Row
+  col(1.00, 0.40, 0.65); txt(62, 258, "VOCALS");
+  col(0.85, 0.90, 1.00); txt(140, 258, "-19.7 LUFS");
+  col(0.20, 0.92, 0.62); txt(220, 258, "-2.0 dB");
+  col(0.20, 0.92, 0.62); txt(320, 258, "+2.2dB Trim + Donut Hole");
+
+  // Drums Row
+  col(0.20, 0.92, 0.62); txt(62, 282, "DRUMS");
+  col(0.85, 0.90, 1.00); txt(140, 282, "-17.6 LUFS");
+  col(1.00, 0.85, 0.30); txt(220, 282, "0.0 dB (Anchor)");
+  col(0.85, 0.90, 1.00); txt(320, 282, "Cymbal Silk + BSA 85%");
+
+  // Bass Row
+  col(1.00, 0.72, 0.02); txt(62, 306, "BASS");
+  col(0.85, 0.90, 1.00); txt(140, 306, "-19.8 LUFS");
+  col(0.20, 0.92, 0.62); txt(220, 306, "-2.2 dB");
+  col(0.85, 0.90, 1.00); txt(320, 306, "3.0dB Kick Duck + 90Hz Mono");
+
+  // Other (Gtr/Synth) Row
+  col(0.00, 0.85, 1.00); txt(62, 330, "OTHER (GTR)");
+  col(0.85, 0.90, 1.00); txt(140, 330, "-14.7 LUFS");
+  col(0.00, 0.85, 1.00); txt(220, 330, "+2.9 dB (Sides)");
+  col(0.85, 0.90, 1.00); txt(320, 330, "Quad-Wall 1.28x + 95Hz HPF");
+
+  // Card 1B: Boominess vs Sub-Bass Cleanliness Radar (80-200 Hz vs 20-60 Hz)
+  col(0.04, 0.06, 0.10); rct(50, 376, 440, 185);
+  col(0.18, 0.25, 0.38); rcto(50, 376, 440, 185);
+  gfx_setfont(3); col(0.00, 0.96, 0.83); txt(62, 384, "LOW-END BOOMINESS vs SUB-BASS CONTROL GAUGE");
+  gfx_setfont(2); col(0.85, 0.90, 1.00);
+  txt(62, 404, "Sub-Bass (20-60 Hz):     Ref: 16.3%  |  Mix: 11.1%  (Deficit: -5.2%)");
+  txt(62, 422, "Boominess (80-200 Hz):   Ref: 21.6%  |  Mix: 28.5%  (Excess Mud: +6.8%)");
+  
+  // Ratio Comparison
+  col(0.20, 0.92, 0.62); txt(62, 444, "Ref Boom/Sub Ratio: 1.32x (Tight Punch)");
+  col(1.00, 0.35, 0.55); txt(280, 444, "Mix Ratio: 2.56x (BOOMY!)");
+
+  // Visual Bars for Boominess Comparison - High Contrast Studio Meter
+  bw_ref = floor(416 * (1.32 / 3.0));
+  bw_mud = floor(416 * ((2.56 - 1.32) / 3.0));
+  
+  // Track Container
+  col(0.05, 0.07, 0.11); rct(62, 464, 416, 22);
+  col(0.20, 0.28, 0.40); rcto(62, 464, 416, 22);
+  
+  // 1. Ref Clean Baseline Segment (High-Visibility Emerald + Pure Dark Charcoal Text)
+  col(0.12, 0.78, 0.50); rct(63, 465, bw_ref - 1, 20);
+  gfx_setfont(3);
+  gfx_measurestr("REF BASELINE [1.32x]", sw_ref, sh_ref);
+  col(0.01, 0.12, 0.06); txt(63 + (bw_ref - sw_ref)*0.5, 468, "REF BASELINE [1.32x]");
+
+  // 2. Excess Mud Segment (Vibrant Coral Red + Crisp Pure White Text)
+  col(0.88, 0.22, 0.38); rct(62 + bw_ref, 465, bw_mud, 20);
+  gfx_setfont(3);
+  gfx_measurestr("+6.8% EXCESS MUD", sw_mud, sh_mud);
+  col(1.00, 1.00, 1.00); txt(62 + bw_ref + (bw_mud - sw_mud)*0.5, 468, "+6.8% EXCESS MUD");
+
+  // Calibration Threshold Needle
+  col(1.00, 1.00, 1.00); lin(62 + bw_ref, 461, 62 + bw_ref, 489);
+
+  // Remaining Headroom / Scale Cap
+  gfx_setfont(2); col(0.45, 0.52, 0.65);
+  txt(62 + bw_ref + bw_mud + 14, 468, "3.0x MAX");
+
+  col(0.70, 0.75, 0.85);
+  txt(62, 492, "Diagnosis: Upper-bass mud (100-160Hz) is masking sub-bass and vocals.");
+  col(0.20, 0.92, 0.62);
+  txt(62, 510, "Prescription: -2.5dB mud scoop @ 160Hz, 95Hz Guitar HPF, 3.0dB Kick Duck.");
+  txt(62, 528, "Linear-Phase HPF: 28 Hz steep on Mix Bus removes infrasonic clutter.");
+
+  // Card 1C: Brightness & High-End Sheen (5 kHz - 16 kHz)
+  col(0.04, 0.06, 0.10); rct(50, 570, 440, 180);
+  col(0.18, 0.25, 0.38); rcto(50, 570, 440, 180);
+  gfx_setfont(3); col(0.00, 0.85, 1.00); txt(62, 578, "BRIGHTNESS & AIR SHEEN RADAR (5 kHz - 16 kHz)");
+  gfx_setfont(2); col(0.85, 0.90, 1.00);
+  txt(62, 598, "Brightness Energy (5-16k):  Ref: 2.31%  |  Mix: 0.61%  (Deficit: -1.7%)");
+  txt(62, 616, "Spectral Sheen Deficit:     +5.0 to +7.4 dB needed between 5kHz and 10kHz.");
+  
+  col(0.70, 0.75, 0.85);
+  txt(62, 638, "HF Match Applied: +1.8 dB Mix Bus Spectral Tilt + Maag 16kHz Air Sheen.");
+  txt(62, 654, "Drums: Cymbal Silk Air Sheen >9kHz set to +2.2 dB.");
+  txt(62, 670, "Guitars: Air Sheen & Cab Presence >9kHz set to +1.8 dB.");
+  txt(62, 686, "Synths: 12kHz Glassy Air Sheen set to +3.2 dB.");
+  col(0.20, 0.92, 0.62);
+  txt(62, 706, "STATUS: Brightness matched cleanly without introducing harshness.");
+
+  // =========================================================================
+  // COLUMN 2 (RIGHT, w=464): VOCAL UNBURY POCKET & PRODUCER PLAYS
+  // =========================================================================
+  card(518, 172, 464, 590, "VOCAL UNBURY POCKET & PRODUCER PLAYS (ARMED)", 1.00, 0.40, 0.65);
+
+  // Card 2A: Vocal Unbury Pocket Architecture
+  col(0.04, 0.06, 0.10); rct(530, 206, 440, 120);
+  col(1.00, 0.40, 0.65); rcto(530, 206, 440, 120);
+  gfx_setfont(3); col(1.00, 0.40, 0.65); txt(542, 214, "LEAD VOCAL UNBURY & CENTER POCKET ARCHITECTURE");
+  gfx_setfont(2); col(0.85, 0.90, 1.00);
+  txt(542, 234, "1. Center Donut-Hole: -3.5 dB Notch @ 2500 Hz on Mix Bus Guitars/Synths.");
+  txt(542, 252, "2. Center Vocal Level Trim: +2.2 dB applied via Producer Channel (slider41).");
+  txt(542, 270, "3. Track Fader: [VOX] optimized to +1.6 dB (sits 2.0 dB below Drums anchor).");
+  col(0.20, 0.92, 0.62);
+  txt(542, 290, "4. Serial Dynamics: 1176 FET (28%) + LA-2A (24%) + 1.8kHz bite (+1.5dB).");
+  txt(542, 306, "RESULT: Lead vocals cut directly through the wall with radio intimacy.");
+
+  // Card 2B: 7 Producer Signature Plays
+  draw_candy_play(530, 334, 440, 44, "PLAY 1: REVERSE VOCAL SWELL", "2.0 Bars before Chorus drop | Vocal Sovereign (slider31=1)", 1);
+  draw_candy_play(530, 382, 440, 44, "PLAY 2: PRE-DROP MICRO-SILENCE CHOKE", "80 ms dead silence gap before Chorus drop | Devastator (slider22=80)", 1);
+  draw_candy_play(530, 430, 440, 44, "PLAY 3: GUITAR PICK-SCRAPE & SWELL", "Pre-drop riser swell into chorus | Guitar Alchemist (slider42=1)", 1);
+  draw_candy_play(530, 478, 440, 44, "PLAY 4: QUAD-WALL CHORUS EXPLOSION", "Width expands to 1.28x on downbeat | Mixing & Guitar Suites", 1);
+  draw_candy_play(530, 526, 440, 44, "PLAY 5: BREAKDOWN WHAMMY PITCH DIVE", "Automatic tape stop/divebomb on bridge | Guitar Alchemist (slider45=1)", 1);
+  draw_candy_play(530, 574, 440, 44, "PLAY 6: MEGAPHONE / TELEPHONE CHOKE", "Final bar Lo-Fi bandpass filter before drop | Vocal Sovereign (slider32=1)", 1);
+  draw_candy_play(530, 622, 440, 44, "PLAY 7: DEVASTATOR SUB DIVEBOMB & BRAAM", "AI Context-Aware trailer impacts | Devastator Suite (Slots 1 & 3)", 1);
+
+  // Live Telemetry Strip
+  col(0.04, 0.06, 0.10); rct(530, 674, 440, 75);
+  col(0.20, 0.92, 0.62); rcto(530, 674, 440, 75);
+  gfx_setfont(2); col(0.70, 0.75, 0.85);
+  txt(542, 682, "gmem[820]: Kick -> Bass/Synth Duck (3.0dB) | gmem[840]: Gtr Carve (3.0dB)");
+  txt(542, 700, "gmem[880]: Vocal -> Gtr Center Donut Carve | gmem[900]: Neural Braam");
+  col(0.20, 0.92, 0.62);
+  txt(542, 718, "● LIVE CALIBRATION LOCKED: Vocals Forward | De-Boomed | Brightness Aligned");
+);
 
 function draw_mastering_console() local(y_r, pass_tp, pass_sp, pass_ap, pass_yt, num_w, num_h) (
   card(24, 86, 972, 692, "COMPREHENSIVE MASTERING TELEMETRY & EBU R128 COMPLIANCE", 0.00, 0.96, 0.83);
@@ -937,49 +1400,49 @@ function draw_mastering_console() local(y_r, pass_tp, pass_sp, pass_ap, pass_yt,
   card(678, 118, 304, 330, "STREAMING COMPLIANCE", 0.75, 0.45, 1.00);
   gfx_setfont(3); col(0.5, 0.55, 0.68);
   txt(692, 146, "PLATFORM");
-  txt_r(796, 146, "TARGET");
-  txt_r(872, 146, "PENALTY");
-  txt_r(968, 146, "STATUS");
+  txt_r(810, 146, "TARGET");
+  txt_r(888, 146, "PENALTY");
+  txt_r(970, 146, "STATUS");
 
   y_r = 170;
   // Spotify
   col(0.85, 0.9, 1.0); txt(692, y_r, "Spotify");
-  col(0.6, 0.65, 0.75); txt_r(796, y_r, "-14 LUFS");
+  col(0.6, 0.65, 0.75); txt_r(810, y_r, "-14 LUFS");
   pen_spotify > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
-  sprintf(#v, "-%.1f dB", pen_spotify); txt_r(872, y_r, #v);
-  pen_spotify > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(968, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(968, y_r, "PERFECT"); );
+  sprintf(#v, "-%.1f dB", pen_spotify); txt_r(888, y_r, #v);
+  pen_spotify > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(970, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(970, y_r, "PERFECT"); );
 
   y_r += 32;
   // Apple Music
-  col(0.85, 0.9, 1.0); txt(692, y_r, "Apple Music");
-  col(0.6, 0.65, 0.75); txt_r(796, y_r, "-16 LUFS");
+  col(0.85, 0.9, 1.0); txt(692, y_r, "Apple");
+  col(0.6, 0.65, 0.75); txt_r(810, y_r, "-16 LUFS");
   pen_apple > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
-  sprintf(#v, "-%.1f dB", pen_apple); txt_r(872, y_r, #v);
-  pen_apple > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(968, y_r, "SOUNDCHECK"); ) : ( col(0.20, 0.92, 0.62); txt_r(968, y_r, "PERFECT"); );
+  sprintf(#v, "-%.1f dB", pen_apple); txt_r(888, y_r, #v);
+  pen_apple > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(970, y_r, "SOUNDCHECK"); ) : ( col(0.20, 0.92, 0.62); txt_r(970, y_r, "PERFECT"); );
 
   y_r += 32;
   // YouTube
   col(0.85, 0.9, 1.0); txt(692, y_r, "YouTube");
-  col(0.6, 0.65, 0.75); txt_r(796, y_r, "-14 LUFS");
+  col(0.6, 0.65, 0.75); txt_r(810, y_r, "-14 LUFS");
   pen_youtube > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
-  sprintf(#v, "-%.1f dB", pen_youtube); txt_r(872, y_r, #v);
-  pen_youtube > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(968, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(968, y_r, "PERFECT"); );
+  sprintf(#v, "-%.1f dB", pen_youtube); txt_r(888, y_r, #v);
+  pen_youtube > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(970, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(970, y_r, "PERFECT"); );
 
   y_r += 32;
   // Tidal / Amazon
-  col(0.85, 0.9, 1.0); txt(692, y_r, "Tidal/Amazon");
-  col(0.6, 0.65, 0.75); txt_r(796, y_r, "-14 LUFS");
+  col(0.85, 0.9, 1.0); txt(692, y_r, "Tidal/Amzn");
+  col(0.6, 0.65, 0.75); txt_r(810, y_r, "-14 LUFS");
   pen_tidal > 0.2 ? col(1.00, 0.75, 0.20) : col(0.20, 0.92, 0.62);
-  sprintf(#v, "-%.1f dB", pen_tidal); txt_r(872, y_r, #v);
-  pen_tidal > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(968, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(968, y_r, "PERFECT"); );
+  sprintf(#v, "-%.1f dB", pen_tidal); txt_r(888, y_r, #v);
+  pen_tidal > 0.2 ? ( col(1.00, 0.75, 0.20); txt_r(970, y_r, "TURN DOWN"); ) : ( col(0.20, 0.92, 0.62); txt_r(970, y_r, "PERFECT"); );
 
   y_r += 32;
   // Commercial CD / Club
-  col(0.85, 0.9, 1.0); txt(692, y_r, "CD / Club Loud");
-  col(0.6, 0.65, 0.75); txt_r(796, y_r, "-8.5 LUFS");
+  col(0.85, 0.9, 1.0); txt(692, y_r, "CD / Club");
+  col(0.6, 0.65, 0.75); txt_r(810, y_r, "-8.5 LUFS");
   abs(delta_cd) <= 1.0 ? col(0.20, 0.92, 0.62) : (delta_cd > 1.0 ? col(1.00, 0.75, 0.20) : col(0.35, 0.85, 1.00));
-  sprintf(#v, "%+.1f dB", delta_cd); txt_r(872, y_r, #v);
-  abs(delta_cd) <= 1.0 ? ( col(0.20, 0.92, 0.62); txt_r(968, y_r, "OPTIMAL"); ) : ( delta_cd > 1.0 ? ( col(1.00, 0.75, 0.20); txt_r(968, y_r, "HOT LOUD"); ) : ( col(0.35, 0.85, 1.00); txt_r(968, y_r, "HEADROOM"); ) );
+  sprintf(#v, "%+.1f dB", delta_cd); txt_r(888, y_r, #v);
+  abs(delta_cd) <= 1.0 ? ( col(0.20, 0.92, 0.62); txt_r(970, y_r, "OPTIMAL"); ) : ( delta_cd > 1.0 ? ( col(1.00, 0.75, 0.20); txt_r(970, y_r, "HOT LOUD"); ) : ( col(0.35, 0.85, 1.00); txt_r(970, y_r, "HEADROOM"); ) );
 
   // Bottom Notice
   col(0.04, 0.05, 0.08); rct(692, 342, 276, 88);
@@ -1147,7 +1610,7 @@ function draw_ollama_console() local(y_m) (
   col(0.20, 0.92, 0.62); txt(552, 556, "STATUS: Mix & Master aligned with Dan Braunstein commercial DNA.");
 
   // Action Buttons
-  btn(540, 600, 206, 32, "⚡ TRIGGER OLLAMA MIR", 1) ? (
+  btn(540, 600, 206, 32, "[TRIGGER MIR]", 1) ? (
     gmem[1090] = 1;
   );
   btn(760, 600, 208, 32, "< RETURN TO MATRIX", 0) ? (
@@ -1162,12 +1625,177 @@ function draw_ollama_console() local(y_m) (
   );
 );
 
+function draw_stem_console() local(y_d, y_c, bar_w, cx, diff_val, corr_val, d_col) (
+  card(24, 86, 972, 692, "SIDE-BY-SIDE STEM & REFERENCE COMPARATIVE CONSOLE (4-CH SIDECHAIN)", 0.00, 0.96, 0.83);
+
+  // Top Left: 4-Channel Sidechain Routing & Monitor Controller (Zero Title Overlap)
+  card(38, 118, 460, 260, "SIDECHAIN & MONITOR", 1.00, 0.85, 0.30);
+
+  // Cleanly positioned buttons inside header boundary with ample title breathing room
+  shoot_st = gmem[1094];
+  shoot_lbl = shoot_st == 3 ? "[READY]" : (shoot_st == 2 ? "SETUP..." : "[1-CLICK SETUP]");
+  btn(245, 122, 115, 22, shoot_lbl, shoot_st == 3) ? (
+    gmem[1094] = 1;
+  );
+
+  dem_st = gmem[1095];
+  dem_lbl = dem_st == 3 ? "[STEMS LOADED]" : (dem_st == 2 ? "SEPARATING..." : "[SEPARATE STEMS]");
+  btn(366, 122, 124, 22, dem_lbl, dem_st == 3) ? (
+    gmem[1095] = 1;
+  );
+  gfx_setfont(3); col(0.6, 0.65, 0.75);
+  txt(52, 148, "AUDIO SOURCE");
+  txt(160, 148, "INTEGRATED");
+  txt(270, 148, "PEAK dBFS");
+  txt(370, 148, "STATUS");
+
+  // Mix Row
+  col(0.85, 0.90, 1.00); txt(52, 170, "MIX (Pins 1/2)");
+  have_data ? (
+    col(0.20, 0.92, 0.62); sprintf(#v, "%.1f LUFS", LV[0]); txt(160, 170, #v);
+    col(0.85, 0.90, 1.00); sprintf(#v, "%+.1f dB", pk_db); txt(270, 170, #v);
+    col(0.20, 0.92, 0.62); txt(370, 170, "● ACTIVE");
+  ) : (
+    col(0.5, 0.55, 0.68); txt(160, 170, "--"); txt(270, 170, "--"); txt(370, 170, "○ WAITING");
+  );
+
+  // Ref Row
+  col(0.85, 0.90, 1.00); txt(52, 194, "REF (Pins 3/4)");
+  have_ref_data ? (
+    col(0.00, 0.96, 0.83); sprintf(#v, "%.1f LUFS", int_lufs_ref); txt(160, 194, #v);
+    col(0.85, 0.90, 1.00); sprintf(#v, "%+.1f dB", ref_pdb); txt(270, 194, #v);
+    col(0.00, 0.96, 0.83); txt(370, 194, "● ACTIVE");
+  ) : (
+    col(0.5, 0.55, 0.68); txt(160, 194, "--"); txt(270, 194, "--"); txt(370, 194, "○ NO SIDECHAIN");
+  );
+
+  // Monitor Buttons
+  gfx_setfont(3); col(0.6, 0.65, 0.75); txt(52, 226, "AUDITION MONITOR:");
+  btn(52, 246, 95, 26, "MIX (1/2)", slider12 == 0) ? ( slider12 = 0; slider_automate(slider12); );
+  btn(152, 246, 110, 26, "REF MATCHED", slider12 == 1) ? ( slider12 = 1; slider_automate(slider12); );
+  btn(267, 246, 95, 26, "REF RAW", slider12 == 2) ? ( slider12 = 2; slider_automate(slider12); );
+  btn(367, 246, 115, 26, "NULL (DIFF)", slider12 == 3) ? ( slider12 = 3; slider_automate(slider12); );
+
+  // Gain Matching status & controls
+  col(0.04, 0.05, 0.08); rct(52, 282, 430, 80);
+  col(0.20, 0.25, 0.35); rcto(52, 282, 430, 80);
+  gfx_setfont(2); col(0.70, 0.75, 0.85);
+  sprintf(#gain_info, "Ref Gain Offset: %+.1f dB  (%s)",
+          eff_ref_gain_db,
+          slider14 == 1 ? "Auto LUFS-I Matched" : "Manual Trim");
+  txt(62, 290, #gain_info);
+  btn(62, 312, 120, 22, slider14 ? "MODE: AUTO LUFS" : "MODE: MANUAL", slider14 == 1) ? (
+    slider14 = !slider14; slider_automate(slider14);
+  );
+  btn(190, 312, 60, 22, "-1.0 dB", 0) ? ( slider13 -= 1.0; slider14 = 0; slider_automate(slider13); slider_automate(slider14); );
+  btn(256, 312, 60, 22, "+1.0 dB", 0) ? ( slider13 += 1.0; slider14 = 0; slider_automate(slider13); slider_automate(slider14); );
+  btn(322, 312, 60, 22, "RESET 0", 0) ? ( slider13 = 0.0; slider_automate(slider13); );
+  gfx_setfont(2); col(0.55, 0.60, 0.70);
+  txt(62, 342, "Null Diff isolates exact structural & spectral balance mismatches.");
+
+  // Top Right: Stem Target Profile & Dynamic Punch Index (Zero Title Overlap)
+  card(518, 118, 464, 260, "STEM PROFILE & PUNCH", 0.75, 0.45, 1.00);
+  cal_st = gmem[1159];
+  cal_lbl = cal_st == 1 ? "[STATIC LOCKED]" : "[APPLY CAL]";
+  btn(830, 122, 140, 22, cal_lbl, cal_st == 1) ? (
+    gmem[1096] = 1;
+  );
+  gfx_setfont(3); col(0.6, 0.65, 0.75); txt(532, 148, "TARGET STEM PROFILE:");
+  btn(532, 168, 85, 24, "MASTER", slider11 == 0) ? ( slider11 = 0; slider_automate(slider11); );
+  btn(622, 168, 80, 24, "DRUMS", slider11 == 1) ? ( slider11 = 1; slider_automate(slider11); );
+  btn(707, 168, 75, 24, "BASS", slider11 == 2) ? ( slider11 = 2; slider_automate(slider11); );
+  btn(787, 168, 85, 24, "VOCALS", slider11 == 3) ? ( slider11 = 3; slider_automate(slider11); );
+  btn(877, 168, 90, 24, "SYNTH/FX", slider11 == 4) ? ( slider11 = 4; slider_automate(slider11); );
+
+  // Punch Index & Crest
+  col(0.6, 0.65, 0.75); txt(532, 206, "LOW-END PUNCH (20-250 Hz CREST):");
+  have_data ? (
+    col(0.85, 0.90, 1.00); sprintf(#v, "Mix: %.1f dB", punch_mix_db); txt(532, 226, #v);
+    have_ref_data ? (
+      sprintf(#v, "Ref: %.1f dB", punch_ref_db); txt(650, 226, #v);
+      abs(punch_delta) <= 1.5 ? col(0.20, 0.92, 0.62) : (punch_delta < -1.5 ? col(1.00, 0.35, 0.55) : col(1.00, 0.85, 0.30));
+      sprintf(#v, "Delta: %+.1f dB (%s)", punch_delta, punch_delta < -1.5 ? "OVER-LIMITED" : (punch_delta > 1.5 ? "MORE PUNCH" : "MATCHED"));
+      txt(760, 226, #v);
+    ) : (
+      col(0.5, 0.55, 0.68); txt(650, 226, "Ref: --");
+    );
+  ) : (
+    col(0.5, 0.55, 0.68); txt(532, 226, "Waiting for audio...");
+  );
+
+  // Spectral Tilt
+  col(0.6, 0.65, 0.75); txt(532, 258, "CONTINUOUS SPECTRAL TILT (dB/OCT):");
+  have_data ? (
+    col(0.85, 0.90, 1.00); sprintf(#v, "Mix: %+.2f dB/oct", tilt_mix); txt(532, 278, #v);
+    sprintf(#v, "Ref: %+.2f dB/oct", tilt_ref); txt(670, 278, #v);
+    abs(tilt_delta) <= 0.8 ? col(0.20, 0.92, 0.62) : (tilt_delta > 0.8 ? col(1.00, 0.75, 0.20) : col(0.35, 0.85, 1.00));
+    sprintf(#v, "Delta: %+.2f (%s)", tilt_delta, tilt_delta > 0.8 ? "BRIGHTER" : (tilt_delta < -0.8 ? "DARKER" : "BALANCED"));
+    txt(800, 278, #v);
+  ) : (
+    col(0.5, 0.55, 0.68); txt(532, 278, "Waiting for audio...");
+  );
+
+  // Full Crest Factor
+  col(0.6, 0.65, 0.75); txt(532, 310, "FULL-BAND DYNAMICS (CREST / PLR):");
+  col(0.00, 0.96, 0.83);
+  have_data ? (
+    sprintf(#v, "Mix Crest: %.1f dB  |  Ref Crest: %.1f dB  |  PLR: %.1f dB", LV[2], ref_ptr[2], LV[1]);
+    txt(532, 330, #v);
+  ) : (
+    txt(532, 330, "--");
+  );
+
+  // Bottom Left: 7-Band Live Spectral Delta Matrix
+  card(38, 394, 460, 360, "7-BAND LIVE SPECTRAL DELTA (MIX vs REF)", 1.00, 0.85, 0.30);
+  gfx_setfont(3); col(0.5, 0.55, 0.68);
+  txt(52, 424, "BAND"); txt(145, 424, "MIX %"); txt(205, 424, "REF %"); txt(265, 424, "DIFF dB"); txt(345, 424, "< REF louder | MIX louder >");
+  i = 0;
+  loop(7,
+    y_d = 448 + i*40;
+    band_label(i, #bl);
+    gfx_setfont(2); col(0.85, 0.9, 1.0); txt(52, y_d, #bl);
+    have_data ? (
+      sprintf(#v, "%.1f%%", LV[6+i]); txt(145, y_d, #v);
+      col(0.6, 0.65, 0.75); sprintf(#v, "%.1f%%", ref_ptr[6+i]); txt(205, y_d, #v);
+      diff_val = (slider3 == 3 && have_ref_data) ? BAND_DIFF[i] : DV[i];
+      status_col(abs(diff_val)/1.5); sprintf(#v, "%+.1f", diff_val); txt(265, y_d, #v);
+      dev_bar(335, y_d + 1, 150, 16, diff_val, 6.0, abs(diff_val)/1.5);
+    );
+    i += 1;
+  );
+
+  // Bottom Right: Multi-Band Phase Coherence & Stereo Alignment
+  card(518, 394, 464, 360, "PHASE COHERENCE & SEPARATION ARTIFACTS", 0.20, 0.92, 0.62);
+  gfx_setfont(3); col(0.5, 0.55, 0.68);
+  txt(532, 424, "BAND"); txt(625, 424, "INTER-TRACK PHASE"); txt(760, 424, "WIDTH MIX/REF"); txt(885, 424, "COHERENCE");
+  i = 0;
+  loop(7,
+    y_c = 448 + i*40;
+    band_label(i, #bl);
+    gfx_setfont(2); col(0.85, 0.9, 1.0); txt(532, y_c, #bl);
+    have_data ? (
+      corr_val = have_ref_data ? BAND_XCORR[i] : LV[4];
+      corr_val >= 0.5 ? col(0.20, 0.92, 0.62) : (corr_val >= 0.0 ? col(1.00, 0.85, 0.30) : col(1.00, 0.35, 0.55));
+      sprintf(#v, "%+.2f", corr_val); txt(640, y_c, #v);
+      dev_bar(685, y_c + 1, 65, 14, corr_val, 1.0, corr_val >= 0.5 ? 1 : (corr_val >= 0 ? 2 : 3));
+      col(0.70, 0.75, 0.85); sprintf(#v, "%.2f / %.2f", LV[13+i], ref_ptr[13+i]); txt(760, y_c, #v);
+      corr_val >= 0.5 ? ( col(0.20, 0.92, 0.62); txt(885, y_c, "IN-PHASE"); ) :
+      (corr_val >= 0.0 ? ( col(1.00, 0.85, 0.30); txt(885, y_c, "DIFFUSE"); ) :
+      ( col(1.00, 0.35, 0.55); txt(885, y_c, "OPPOSITION!"); ));
+    );
+    i += 1;
+  );
+);
+
+
+ui_view == 5 ? ( draw_producer_dna(); ) : (
+ui_view == 4 ? ( draw_stem_console(); ) : (
 ui_view == 1 ? ( draw_library(); ) : (
 ui_view == 2 ? ( draw_mastering_console(); ) : (
 ui_view == 3 ? ( draw_ollama_console(); ) : (
 // ---- score card -------------------------------------------------------------------
 card(24, 86, 300, 200, slider10 ? "MATCH SCORE [RAW AUDIT]" : "MATCH SCORE", slider10 ? 1.00 : 0.00, slider10 ? 0.40 : 0.96, slider10 ? 0.20 : 0.83);
-btn(164, 92, 150, 22, slider10 ? "⚡ RAW AUDIT: ON" : "AUDIT RAW MIX", slider10) ? (
+btn(164, 92, 150, 22, slider10 ? "[RAW AUDIT: ON]" : "AUDIT RAW MIX", slider10) ? (
   slider10 = !slider10;
   slider_automate(slider10);
   reset_req = 1;
@@ -1307,6 +1935,88 @@ have_data ? (
   );
 );
 
+// ---- lower left card: controls & advanced telemetry --------------------------------------
+card(24, 490, 300, 166, show_adv_metrics ? "ADVANCED METRICS" : "MIX CONTROLS", 0.00, 0.85, 1.00);
+btn(196, 493, 120, 18, show_adv_metrics ? "[SHOW CONTROLS]" : "[ADV METRICS]", show_adv_metrics) ? (
+  show_adv_metrics = !show_adv_metrics;
+);
+
+show_adv_metrics ? (
+  gfx_setfont(3); col(0.5, 0.55, 0.68); txt(36, 516, "METRIC"); txt(126, 516, "VALUE"); txt(206, 516, "STATUS");
+  have_data ? (
+    gfx_setfont(2);
+    // Row 1: Sub Side Leakage (<100Hz)
+    col(0.85, 0.9, 1.0); txt(36, 534, "Sub Leak");
+    sprintf(#v, "%.1f%%", sub_side_pct); txt(126, 534, #v);
+    sub_side_pct <= 5.0 ? ( col(0.20, 0.92, 0.62); txt(206, 534, "MONO OK"); ) :
+    sub_side_pct <= 12.0 ? ( col(1.00, 0.85, 0.30); txt(206, 534, "MILD SIDE"); ) :
+    ( col(1.00, 0.35, 0.55); txt(206, 534, "SIDE LEAK!"); );
+
+    // Row 2: L/R RMS Balance Asymmetry
+    col(0.85, 0.9, 1.0); txt(36, 553, "L/R Bal");
+    sprintf(#v, "%+.2fdB", lr_asym_db); txt(126, 553, #v);
+    abs(lr_asym_db) <= 0.35 ? ( col(0.20, 0.92, 0.62); txt(206, 553, "CENTERED"); ) :
+    abs(lr_asym_db) <= 0.80 ? ( col(1.00, 0.85, 0.30); txt(206, 553, lr_asym_db > 0 ? "L-TILT" : "R-TILT"); ) :
+    ( col(1.00, 0.35, 0.55); txt(206, 553, lr_asym_db > 0 ? "L-HEAVY!" : "R-HEAVY!"); );
+
+    // Row 3: Presence Crest Factor (1-6 kHz Snare & Vocal Snap)
+    col(0.85, 0.9, 1.0); txt(36, 572, "Pres Crest");
+    sprintf(#v, "%.1fdB", pres_crest_db); txt(126, 572, #v);
+    pres_crest_db >= 9.5 && pres_crest_db <= 14.5 ? ( col(0.20, 0.92, 0.62); txt(206, 572, "SNARE SNAP"); ) :
+    pres_crest_db < 9.5 ? ( col(1.00, 0.85, 0.30); txt(206, 572, "DENSE"); ) :
+    ( col(0.70, 0.85, 1.00); txt(206, 572, "DYNAMIC"); );
+
+    // Row 4: Vocal-to-Instrumental Masking Index
+    col(0.85, 0.9, 1.0); txt(36, 591, "Vox Mask");
+    vox_act ? (
+      sprintf(#v, "%.0f%%", vox_mask_idx); txt(126, 591, #v);
+      vox_mask_idx <= 25.0 ? ( col(0.20, 0.92, 0.62); txt(206, 591, "UNMASKED"); ) :
+      vox_mask_idx <= 45.0 ? ( col(1.00, 0.85, 0.30); txt(206, 591, "MODERATE"); ) :
+      ( col(1.00, 0.35, 0.55); txt(206, 591, "MASKED!"); );
+    ) : (
+      col(0.5, 0.55, 0.68); txt(126, 591, "--"); txt(206, 591, "no vocal");
+    );
+
+    // Row 5: Chorus Macro Dynamic Lift
+    col(0.85, 0.9, 1.0); txt(36, 610, "Chorus Lift");
+    sprintf(#v, "%+.1f LU", chorus_lift_db); txt(126, 610, #v);
+    chorus_lift_db >= 1.5 ? ( col(0.20, 0.92, 0.62); txt(206, 610, "SLAM"); ) :
+    chorus_lift_db >= 0.6 ? ( col(1.00, 0.85, 0.30); txt(206, 610, "MODERATE"); ) :
+    ( col(0.55, 0.60, 0.70); txt(206, 610, "SUBTLE"); );
+
+    // Row 6: Chorus Width Bloom Expansion
+    col(0.85, 0.9, 1.0); txt(36, 629, "Bloom Lift");
+    sprintf(#v, "%.2fx", chorus_width_lift); txt(126, 629, #v);
+    chorus_width_lift >= 1.08 ? ( col(0.20, 0.92, 0.62); txt(206, 629, "BLOOM"); ) :
+    ( col(0.70, 0.80, 0.95); txt(206, 629, "BALANCED"); );
+  ) : (
+    gfx_setfont(3); col(0.6, 0.65, 0.75); txt(44, 550, "Awaiting audio stream...");
+  );
+) : (
+  // Neatly framed control buttons with uniform margins & zero border spillage
+  btn(34, 518, 136, 26, "RESET ANALYSIS", 0) ? ( reset_req = 1; );
+  btn(178, 518, 136, 26, slider5 ? "HELD (RUN)" : "RUNNING", slider5 == 0) ? ( slider5 = !slider5; slider_automate(slider5); );
+  btn(34, 548, 136, 26, mir_status == 2 ? "[ANALYZING...]" : (mir_status == 3 ? "[STEM DNA LOADED]" : "[DECONSTRUCT REF]"), mir_status == 3) ? (
+    gmem[1090] = 1;
+  );
+  btn(178, 548, 136, 26, "CAPTURE REF", 0) && have_data ? (
+    ci = 0; loop(20, CAP[ci] = LV[ci]; ci += 1; ); CAP[31] = 1; cap_valid = 1; slider3 = 1; slider_automate(slider3);
+  );
+  btn(34, 578, 136, 26, slider4 ? "STAGE: MASTER" : "STAGE: MIX BUS", slider4) ? ( slider4 = !slider4; slider_automate(slider4); );
+  btn(178, 578, 136, 26, slider1 ? "PRESET: MANUAL" : "PRESET: FOLLOW MIX", slider1 == 0) ? ( slider1 = !slider1; slider_automate(slider1); );
+  btn(34, 608, 65, 22, "< PREV", 0) ? ( slider1 = 1; slider2 = (slider2 + 24) % 25; slider_automate(slider1); slider_automate(slider2); );
+  btn(105, 608, 65, 22, "NEXT >", 0) ? ( slider1 = 1; slider2 = (slider2 + 1) % 25; slider_automate(slider1); slider_automate(slider2); );
+  btn(178, 608, 136, 22, slider6 ? "AUTO-RESET: ON" : "AUTO-RESET: OFF", slider6) ? ( slider6 = !slider6; slider_automate(slider6); );
+
+  btn(34, 632, 136, 20, slider7 == 1 ? "CORRECT: STATIC" : (slider7 == 2 ? "CORRECT: DYNAMIC" : "CORRECT: OFF"), slider7 > 0) ? (
+    slider7 = (slider7 + 1) % 3;
+    static_locked = 0;
+    lock_timer = 0;
+    slider_automate(slider7);
+  );
+  btn(178, 632, 136, 20, "CLEAR TRIMS", 0) ? ( ci = 0; loop(42, TT[ci] = 0; ci += 1; ); ci = 0; loop(6, TW[ci] = 0; ci += 1; ); );
+);
+
 // ---- action card ------------------------------------------------------------------------------
 mir_status = gmem[1090];
 card(24, 662, 972, 130, "WHAT TO ADJUST  (MAPPED TO SUITES)", 0.20, 0.92, 0.62);
@@ -1383,32 +2093,13 @@ loop(min(num_recs, 4),
 have_data && shown == 0 ? ( col(0.20, 0.92, 0.62); gfx_setfont(2); txt(44, 734, "All measured bands and dynamics are within tolerance of the reference."); );
 !have_data ? ( col(0.60, 0.65, 0.75); gfx_setfont(2); txt(44, 734, "Play the mix or master through this plugin to populate the matrix."); );
 
-// ---- controls ---------------------------------------------------------------------------------------
-btn(24, 496, 142, 28, "RESET ANALYSIS", 0) ? ( reset_req = 1; );
-btn(182, 496, 142, 28, slider5 ? "HELD (click: run)" : "RUNNING", slider5 == 0) ? ( slider5 = !slider5; slider_automate(slider5); );
-btn(24, 532, 142, 28, mir_status == 2 ? "⚡ ANALYZING..." : (mir_status == 3 ? "⚡ STEM DNA LOADED" : "⚡ DECONSTRUCT REF"), mir_status == 3) ? (
-  gmem[1090] = 1;
-);
-btn(182, 532, 142, 28, "CAPTURE REF", 0) && have_data ? (
-  ci = 0; loop(20, CAP[ci] = LV[ci]; ci += 1; ); CAP[31] = 1; cap_valid = 1; slider3 = 1; slider_automate(slider3);
-);
-btn(24, 568, 142, 28, slider4 ? "STAGE: MASTER" : "STAGE: MIX BUS", slider4) ? ( slider4 = !slider4; slider_automate(slider4); );
-btn(182, 568, 142, 28, slider1 ? "PRESET: MANUAL" : "PRESET: FOLLOW MIX", slider1 == 0) ? ( slider1 = !slider1; slider_automate(slider1); );
-btn(24, 604, 68, 24, "< PREV", 0) ? ( slider1 = 1; slider2 = (slider2 + 21) % 22; slider_automate(slider1); slider_automate(slider2); );
-btn(100, 604, 68, 24, "NEXT >", 0) ? ( slider1 = 1; slider2 = (slider2 + 1) % 22; slider_automate(slider1); slider_automate(slider2); );
-btn(182, 604, 142, 24, slider6 ? "AUTO-RESET: ON" : "AUTO-RESET: OFF", slider6) ? ( slider6 = !slider6; slider_automate(slider6); );
-
-btn(24, 636, 142, 24, slider7 == 1 ? "CORRECT: STATIC" : (slider7 == 2 ? "CORRECT: DYNAMIC" : "CORRECT: OFF"), slider7 > 0) ? (
-  slider7 = (slider7 + 1) % 3;
-  static_locked = 0;
-  lock_timer = 0;
-  slider_automate(slider7);
-);
-btn(182, 636, 142, 24, "CLEAR TRIMS", 0) ? ( ci = 0; loop(42, TT[ci] = 0; ci += 1; ); ci = 0; loop(6, TW[ci] = 0; ci += 1; ); );
+// controls now rendered cleanly inside the card container above
 );
 // corner bolts
 ); // close ui_view == 3
 ); // close ui_view == 2
+); // close ui_view == 4
+); // close ui_view == 5
 bx = 0; loop(4,
   bxx = (bx % 2) ? gfx_w - 14 : 14; byy = bx > 1 ? gfx_h - 14 : 14;
   col(0.16, 0.19, 0.25); gfx_circle(bxx, byy, 6, 1);

@@ -1,0 +1,6 @@
+undo: nil
+redo: nil
+dirty: 0
+proj name: ''
+resource path: C:\Users\pityy\AppData\Roaming\REAPER
+tracks: 0

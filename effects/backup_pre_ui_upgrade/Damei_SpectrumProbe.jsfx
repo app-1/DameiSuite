@@ -1,0 +1,137 @@
+﻿desc:Damei Spectrum Probe v2.0 (Spectral Collision Sender)
+author:Damei Audio
+version:2.0
+about:
+  Place on any competing track (Kick, Bass, Vocal, etc.)
+  Writes 256 log-spaced FFT bins to gmem[1200..1455].
+  Heartbeat at gmem[1199], active flag at gmem[1198].
+  Zero-latency passthrough. options:no_anticipative ensures
+  sample-synchronous metering with master bus.
+
+options:gmem=DameiMetering
+options:no_anticipative
+options:no_meter
+
+slider1:0<0,1,1{Active,Bypassed}>Processing
+slider2:0.3<0.05,3.0,0.05>Ballistics Decay (s)
+slider3:0<0,7,1{Collision Bus,Slot 1 Drums,Slot 2 Bass,Slot 3 Vocals,Slot 4 Guitars,Slot 5 Keys,Slot 6 FX,Slot 7 Aux}>Probe Slot
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1.0;
+
+FFT_SIZE  = 4096;
+FFT_HALF  = 2048;
+DISP_BINS = 256;
+PI        = 3.14159265358979323846;
+
+// Memory layout
+BUF_IN_RING = 0;       // 4096 mono samples
+BUF_WINDOW  = 4096;    // 4096 Hann window coefficients
+BUF_FFT     = 8192;    // 8192 complex FFT workspace (4096 x Re/Im)
+BUF_RAW_MAG = 24576;   // 256 raw dB bins
+BUF_SM_MAG  = 24832;   // 256 smoothed dB bins
+BUF_MAP_LO  = 25088;   // 256 low FFT bin indices
+BUF_MAP_HI  = 25344;   // 256 high FFT bin indices
+
+// Precompute periodic Hann window
+i = 0;
+while (i < FFT_SIZE) (
+  BUF_WINDOW[i] = 0.5 * (1.0 - cos(2.0 * PI * i / FFT_SIZE));
+  i += 1;
+);
+
+// Precompute logarithmic bin map (20 Hz -> 20 kHz, aligned with TonalBalance.jsfx)
+srate_val  = srate > 0 ? srate : 48000;
+hz_per_bin = srate_val / FFT_SIZE;
+f_min = 20.0;
+f_max = 20000.0;
+ratio = f_max / f_min;
+
+b = 0;
+while (b < DISP_BINS) (
+  f_lo = f_min * (ratio ^ (b / DISP_BINS));
+  f_hi = f_min * (ratio ^ ((b + 1.0) / DISP_BINS));
+
+  bin_lo = floor(f_lo / hz_per_bin);
+  bin_hi = ceil(f_hi / hz_per_bin);
+  bin_lo < 1 ? bin_lo = 1;
+  bin_hi > (FFT_HALF - 1) ? bin_hi = FFT_HALF - 1;
+  bin_hi < bin_lo ? bin_hi = bin_lo;
+
+  BUF_MAP_LO[b] = bin_lo;
+  BUF_MAP_HI[b] = bin_hi;
+  BUF_SM_MAG[b] = -90.0;  // floor init
+  b += 1;
+);
+
+ring_pos    = 0;
+block_accum = 0;
+HOP_SIZE    = 1024;    // 75% overlap -> fast visual tracking (~47 Hz refresh at 48k)
+
+@slider
+is_bypassed = slider1;
+ball_tc     = max(slider2, 0.05);
+
+@block
+block_dt   = samplesblock / srate;
+ball_alpha = exp(-block_dt / ball_tc);
+ball_alpha = min(max(ball_alpha, 0.0), 0.9999);
+
+// Status flags for Lua collision renderer
+gmem[1198] = is_bypassed ? 0 : 1;
+gmem[1199] = time_precise();
+
+@sample
+// Pure wire passthrough — zero audio modification
+is_bypassed ? () : (
+
+  mono_in = (spl0 + spl1) * 0.5;
+  BUF_IN_RING[ring_pos] = mono_in;
+  ring_pos = (ring_pos + 1) % FFT_SIZE;
+
+  block_accum += 1;
+  block_accum >= HOP_SIZE ? (
+    block_accum = 0;
+
+    // Copy circular ring into FFT buffer with Hann window
+    read_idx = ring_pos;
+    w = 0;
+    while (w < FFT_SIZE) (
+      BUF_FFT[w * 2]     = BUF_IN_RING[read_idx] * BUF_WINDOW[w];
+      BUF_FFT[w * 2 + 1] = 0.0;
+      read_idx = (read_idx + 1) % FFT_SIZE;
+      w += 1;
+    );
+
+    fft(BUF_FFT, FFT_SIZE);
+    fft_permute(BUF_FFT, FFT_SIZE);
+
+    // Pool bins into 256 log-spaced display bins with ballistic smoothing
+    b = 0;
+    while (b < DISP_BINS) (
+      k_lo = BUF_MAP_LO[b];
+      k_hi = BUF_MAP_HI[b];
+      mag_sum = 0.0;
+      k = k_lo;
+      while (k <= k_hi) (
+        re = BUF_FFT[k * 2]; im = BUF_FFT[k * 2 + 1];
+        mag_sum += sqrt(re * re + im * im);
+        k += 1;
+      );
+      avg_mag = mag_sum / max(k_hi - k_lo + 1, 1);
+      db_val  = 20.0 * log10(max(avg_mag, 0.000001));
+
+      // Exponential ballistics
+      BUF_SM_MAG[b] = ball_alpha * BUF_SM_MAG[b] + (1.0 - ball_alpha) * db_val;
+
+      // Write to collision bank gmem[1200..1455]
+      gmem[1200 + b] = BUF_SM_MAG[b];
+      b += 1;
+    );
+  );
+);

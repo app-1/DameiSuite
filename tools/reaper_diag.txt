@@ -1,0 +1,4 @@
+DIAG 23/10/2026 2:27:28 PM
+REAPER version: 7.82/x64
+Project[0] path='' tracks=0  <-- ACTIVE
+  MASTER: fx=0 inputfx=0

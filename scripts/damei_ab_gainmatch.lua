@@ -25,8 +25,13 @@ local St = {
   target_delta_db  = 0.0,   -- Raw instantaneous LUFS delta (Mix - Ref)
   ref_track_guid   = nil,   -- Cached GUID of track hosting Damei_RefMetering.jsfx
   last_calc_time   = 0.0,
-  active_monitor   = "A",   -- "A" = Mix/Master,  "B" = Reference
+  active_monitor   = "A",   -- "A" = Mix/Master,  "B" = Reference, "NULL" = Null Diff
   gate_active      = false, -- True when signal < silence floor
+  have_sidechain   = false, -- 4-channel sidechain active in Sankofa Oracle
+  low_punch_mix    = 0.0,
+  low_punch_ref    = 0.0,
+  tilt_delta       = 0.0,
+  oracle_monitor   = 0,     -- 0=Mix, 1=Ref Matched, 2=Ref Raw, 3=Null Diff
 }
 
 -- Calibration constants
@@ -86,6 +91,25 @@ function AB_MATCH.update()
   local dt  = math.min(now - (St.last_calc_time > 0 and St.last_calc_time or now), 0.1)
   St.last_calc_time = now
 
+  -- 1. Check for Sankofa Oracle 4-Channel Live Sidechain (DameiMixMetering)
+  reaper.gmem_attach("DameiMixMetering")
+  local have_sc = (reaper.gmem_read(1160) or 0) == 1
+  St.have_sidechain = have_sc
+
+  if have_sc then
+    -- Direct live sidechain telemetry from Sankofa Oracle
+    local delta = reaper.gmem_read(1146) or 0.0
+    St.target_delta_db = delta
+    St.smooth_offset_db = delta
+    St.low_punch_mix = reaper.gmem_read(1147) or 0.0
+    St.low_punch_ref = reaper.gmem_read(1148) or 0.0
+    St.tilt_delta = reaper.gmem_read(1149) or 0.0
+    St.oracle_monitor = math.floor((reaper.gmem_read(1158) or 0) + 0.5)
+    St.gate_active = false
+    return
+  end
+
+  -- Fallback: 2-bus legacy metering
   -- 1. Read working mix LUFS from DameiMetering
   reaper.gmem_attach("DameiMetering")
   local bm       = (reaper.gmem_read(127) or 0) == 0 and 0 or 32
@@ -141,6 +165,28 @@ end
 --- Toggle between working mix (A) and reference track (B) auditioning
 -- @param target string|nil  "A", "B", or nil (toggles)
 function AB_MATCH.toggle_monitor(target)
+  local master_tr = reaper.GetMasterTrack(0)
+  local oracle_idx = -1
+  for fx = 0, reaper.TrackFX_GetCount(master_tr) - 1 do
+    local _, fx_name = reaper.TrackFX_GetFXName(master_tr, fx, "")
+    if fx_name:find("AssessmentMatrix") or fx_name:find("Sankofa Oracle") then
+      oracle_idx = fx; break
+    end
+  end
+
+  if oracle_idx >= 0 then
+    -- Direct zero-latency monitor switching via Sankofa Oracle (slider12, param 11)
+    St.active_monitor = target or (St.active_monitor == "A" and "B" or "A")
+    if St.active_monitor == "A" then
+      reaper.TrackFX_SetParam(master_tr, oracle_idx, 11, 0) -- Monitor Mix
+    elseif St.active_monitor == "B" then
+      reaper.TrackFX_SetParam(master_tr, oracle_idx, 11, 1) -- Monitor Ref Matched
+    elseif St.active_monitor == "NULL" then
+      reaper.TrackFX_SetParam(master_tr, oracle_idx, 11, 3) -- Auditory Null Diff
+    end
+    return
+  end
+
   local ref_tr = AB_MATCH.resolve_ref_track()
   if not ref_tr then return end
 
@@ -176,12 +222,12 @@ function AB_MATCH.render(ctx)
   -- ── Header ────────────────────────────────────────────────────────────────
   reaper.ImGui_TextColored(ctx, COL_TRIM, "LOUDNESS-MATCHED A/B")
   reaper.ImGui_SameLine(ctx)
-  if ref_online then
+  if St.have_sidechain then
+    reaper.ImGui_TextColored(ctx, COL_ACTIVE_A, "  ● Sankofa 4-Ch Sidechain Active")
+  elseif ref_online then
     reaper.ImGui_TextColored(ctx, COL_ACTIVE_A, "  ● Ref Linked")
   else
-    reaper.ImGui_TextColored(ctx, COL_MUTED,    "  ○ No Damei_RefMetering Found")
-    reaper.ImGui_EndGroup(ctx)
-    return
+    reaper.ImGui_TextColored(ctx, COL_MUTED,    "  ○ Sidechain / Ref Inactive")
   end
   reaper.ImGui_Separator(ctx)
 
@@ -209,6 +255,19 @@ function AB_MATCH.render(ctx)
     is_b and 0x000000FF or 0xCCCCCCFF)
   if reaper.ImGui_Button(ctx, " [B] REFERENCE ##abm_b", 120, 26) then
     AB_MATCH.toggle_monitor("B")
+  end
+  reaper.ImGui_PopStyleColor(ctx, 2)
+
+  reaper.ImGui_SameLine(ctx, 0, 4)
+
+  -- [NULL] Auditory Null Diff button
+  local is_null = (St.active_monitor == "NULL")
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Button(),
+    is_null and 0xE04444FF or 0x24242CFF)
+  reaper.ImGui_PushStyleColor(ctx, reaper.ImGui_Col_Text(),
+    is_null and 0xFFFFFFFF or 0xCCCCCCFF)
+  if reaper.ImGui_Button(ctx, " [Δ] NULL DIFF ##abm_null", 95, 26) then
+    AB_MATCH.toggle_monitor("NULL")
   end
   reaper.ImGui_PopStyleColor(ctx, 2)
   reaper.ImGui_PopStyleVar(ctx)

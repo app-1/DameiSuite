@@ -20,7 +20,7 @@ slider11:28<0,100,1>-Britson Analogue Console Desk Saturation (%)
 slider12:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip,Commercial Hard Brickwall Clamp}>-Mix Bus Clipper Topology
 slider13:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider14:0.0<-12.0,12.0,0.5>-Output Master Makeup Trim (dB)
-slider15:0<0,17,1{Jordan Fish (BMTH / Architects),Dan Braunstein (Spiritbox / Dayseeker),Buster Odeholm (thrown / Vildhjarta),George Lever (Sleep Token / Loathe),Zakk Cervini (Blink-182 / MGK),Joey Sturgis (Asking Alexandria / Attack Attack),Mick Gordon (DOOM / Wolfenstein),Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT / Graphic Nature),Jonathan Dolese (Mirrorcell / Cane Hill),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH - That's The Spirit)}>-Producer Synth Blueprint
+slider15:0<0,20,1{Jordan Fish (BMTH / Architects),Dan Braunstein (Spiritbox / Dayseeker),Buster Odeholm (thrown / Vildhjarta),George Lever (Sleep Token / Loathe),Zakk Cervini (Blink-182 / MGK),Joey Sturgis (Asking Alexandria / Attack Attack),Mick Gordon (DOOM / Wolfenstein),Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT / Graphic Nature),Jonathan Dolese (Mirrorcell / Cane Hill),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH - That's The Spirit),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Synth Blueprint
 slider16:1<0,1,1{Manual Parameter Mode,ORA-AI Active Formula Calibration}>-AI Assist Intelligent Engine
 slider17:25<0,100,1>-SynBass 2nd/3rd Harmonic Tip Drive (%)
 slider18:1<0,1,1{Off,Dynamic Pre-Drop Silence Choke (BMTH / thrown)}> -Pre-Drop Silence Choke
@@ -49,6 +49,8 @@ slider34:-1.5<-12.0,12.0,0.5>-MultibandEQ Band 2: Low-Mid (110-650Hz) (dB)
 slider35:1.2<-12.0,12.0,0.5>-MultibandEQ Band 3: High-Mid (650Hz-4.5kHz) (dB)
 slider36:2.5<-12.0,12.0,0.5>-MultibandEQ Band 4: Glassy Air (>4.5kHz) (dB)
 slider37:1.40<0.80,2.20,0.05>-MultibandEQ High Band Width Ratio
+slider50:0<0,1,1{Normal Passthrough,Audition Delta Solo (Kick Duck & Sidechain)}>-Audition Delta Solo
+slider51:0<0,1,1{State A,State B}>-A/B Snapshot Selector
 options:gmem=DameiMixMetering
 options:no_meter
 options:maxmem=2097152
@@ -88,6 +90,7 @@ file_var(0, slider28); file_var(0, slider29); file_var(0, slider30); file_var(0,
 file_var(0, slider32); file_var(0, slider33); file_var(0, slider34); file_var(0, slider35); file_var(0, slider36); file_var(0, slider37);
 
 @init
+
 ext_noinit = 1.0;
 
 // MultibandEQ 4-Band Crossover Filters (110Hz, 650Hz, 4500Hz)
@@ -562,7 +565,7 @@ function dk_hall(x) local(c0, c1, c2, c3) (
 // ---------------- the per-block director (regions + energy -> decisions) ----------------
 function dk_block() local(k, w0, w1b, w5, w6, w7, w11, recent, cand, big, hc, pk, pm_) (
   dk_dt = samplesblock * dk_isr;
-  dk_prod = max(0, min(17, floor(slider15 + 0.5)));
+  dk_prod = max(0, min(19, floor(slider15 + 0.5)));
   dk_seed = dk_prod * 7.77;
   dk_sigk = dk_ps[dk_prod];
   dk_dn = dk_pd[dk_prod];
@@ -877,6 +880,16 @@ function apply_synth_preset(p_idx) (
     slider4 = 1; slider5 = 3.8; slider6 = 2.6; slider7 = 3.0;
     slider8 = 1.40; slider9 = 30; slider10 = 2.5; slider11 = 26; slider17 = 22; slider18 = 1;
     slider19 = 1; slider20 = 4.0; slider21 = 32; slider22 = 40; slider23 = 30;
+  ) : p_idx == 19 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Grungegaze Synth Bed & Fuzz Wash
+    slider32 = 1; slider33 = 2.5; slider34 = -1.0; slider35 = 1.8; slider36 = 2.0; slider37 = 1.4;
+    slider4 = 1; slider5 = 3.6; slider6 = 2.2; slider7 = 3.2;
+    slider8 = 1.42; slider9 = 35; slider10 = 2.5; slider11 = 35; slider17 = 35; slider18 = 1;
+    slider19 = 1; slider20 = 4.2; slider21 = 32; slider22 = 45; slider23 = 40;
+  ) : p_idx == 20 ? ( // Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Synth Sheen & Laser Anchor
+    slider32 = 1; slider33 = 1.2; slider34 = -2.2; slider35 = 2.8; slider36 = 3.0; slider37 = 1.5;
+    slider4 = 2; slider5 = 4.4; slider6 = 2.6; slider7 = 3.5;
+    slider8 = 1.48; slider9 = 20; slider10 = 2.6; slider11 = 28; slider17 = 25; slider18 = 1;
+    slider19 = 1; slider20 = 4.5; slider21 = 34; slider22 = 50; slider23 = 35;
   ) : ( // Default Sovereign
     slider4 = 1; slider5 = 3.5; slider6 = 2.5; slider7 = 3.0;
     slider8 = 1.45; slider9 = 40; slider10 = 2.8; slider11 = 28; slider17 = 25; slider18 = 1;
@@ -995,6 +1008,22 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 
 dk_boot = 0;
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_synth_snapshot(target_buf) local(k) (
+  k = 1; loop(49, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_synth_snapshot(src_buf) local(k) (
+  k = 1; loop(49, slider(k) = src_buf[k]; k += 1; );
+  apply_synth_preset(slider15);
+  slider_automate();
+);
+
 @slider
 update_synth_filters();
 
@@ -1015,7 +1044,7 @@ vox_active = (gmem[880] == 1);
 vox_rms = vox_active ? gmem[883] : -90.0;
 vox_singing = (vox_rms > -36.0);
 target_vox_carve = vox_singing ? exp(-slider6 * (log(10.0) / 20.0)) : 1.0;
-smooth_vox_carve = smooth_vox_carve * 0.94 + target_vox_carve * 0.06;
+smooth_vox_carve = smooth_vox_carve * 0.985 + target_vox_carve * 0.015; // ultra-smooth subtle transition
 live_vox_carve_db = 20.0 * log10(max(0.01, smooth_vox_carve));
 
 // 3. Read Guitar Suite Telemetry
@@ -1108,7 +1137,9 @@ live_tight_gr_db = 20.0 * log10(max(0.01, tg_hold));
 
   mtrim_block();
 
+
 @sample
+raw_orig_spl0 = spl0; raw_orig_spl1 = spl1;
 s_l = spl0;
 s_r = spl1;
 
@@ -1311,6 +1342,10 @@ vu_ballistics = vu_ballistics * vu_attack_c + cur_vu_amp * (1.0 - vu_attack_c);
 );
 
   mtrim_process();
+slider50 == 1 ? (
+  spl0 = raw_orig_spl0 - spl0;
+  spl1 = raw_orig_spl1 - spl1;
+);
 
 @gfx 1180 740
 // =============================================================================
@@ -1332,6 +1367,19 @@ gfx_rect(6, 6, gfx_w - 12, gfx_h - 12, 0);
 mouse_clicked = (mouse_cap & 1) && !(prev_mouse_cap & 1);
 mouse_down = (mouse_cap & 1);
 prev_mouse_cap = mouse_cap;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
+!ab_init_done ? (
+  save_ab_synth_snapshot(ab_mem_a);
+  save_ab_synth_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // Auto-fit title: shrinks font until the string fits inside fmax pixels (colour set by caller)
 function draw_fit_str(fx, fy, fmax, fstr, fsz) local(tw, th) (
@@ -1467,11 +1515,27 @@ p_name_hdr = (
   p_idx_c == 14 ? "15. Adam Nolly (Periphery)" :
   p_idx_c == 15 ? "16. Will Putney (FFAA)" :
   p_idx_c == 16 ? "17. Sam Bassal (Thornhill)" :
-                  "18. Henrik Udd (Architects)"
+  p_idx_c == 17 ? "18. Henrik Udd (Architects)" :
+  p_idx_c == 18 ? "19. Acle Kahney (TesseracT)" :
+  p_idx_c == 19 ? "20. Adam Cichocki (heaving.)" :
+                  "21. Manuel Renner (SENNA)"
 );
+p_font_sz = 12.0;
+gfx_setfont(1, "Orbitron", p_font_sz, 'b');
 gfx_measurestr(p_name_hdr, pnw, pnh);
+while (pnw > p_pill_w - 16 && p_font_sz > 8.0) (
+  p_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", p_font_sz, 'b');
+  gfx_measurestr(p_name_hdr, pnw, pnh);
+);
 gfx_x = p_pill_x + (p_pill_w - pnw) * 0.5; gfx_y = p_pill_y + 9;
 gfx_drawstr(p_name_hdr);
+
+// Dropdown selector on p_pill click
+mouse_clicked && (mouse_x >= p_pill_x && mouse_x <= p_pill_x + p_pill_w && mouse_y >= p_pill_y && mouse_y <= p_pill_y + p_pill_h) ? (
+  s_choice = gfx_showmenu("1. Jordan Fish (BMTH / Architects)|2. Dan Braunstein (Spiritbox / Dayseeker)|3. Buster Odeholm (thrown / Vildhjarta)|4. George Lever (Sleep Token / Loathe)|5. Zakk Cervini (Blink-182 / MGK)|6. Joey Sturgis (Asking Alexandria)|7. Mick Gordon (DOOM / Wolfenstein)|8. Lance Prenc (Alpha Wolf / Polaris)|9. Scott Seigel (DIESECT / Graphic Nature)|10. Jonathan Dolese (Mirrorcell / Cane Hill)|11. Kel Pinchin (Currents / Invent Animate)|12. Sam Guaiana (Silverstein / TDWP)|13. Forrester Savell (Karnivool / DLC)|14. Jens Bogren (Fascination Street)|15. Adam Nolly Getgood (Periphery)|16. Will Putney (Fit For An Autopsy)|17. Sam Bassal (Thornhill / Ocean Grove)|18. Henrik Udd (Architects / BMTH)|19. Acle Kahney (TesseracT - King)|20. Adam Cichocki (heaving. - carsick / Timber Studios)|21. Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
+  s_choice > 0 ? (apply_synth_preset(s_choice - 1); slider_automate(););
+);
 
 // Pinned Project Region Sync Pill
 rgn_pill_w = 220; rgn_pill_x = p_pill_x - rgn_pill_w - 10; rgn_pill_y = hdr_y + 9;
@@ -1491,7 +1555,14 @@ is_bridge_section ? (
   gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 0.60; gfx_g = 0.65; gfx_b = 0.75;
   rgn_txt = "● PROJECT SYNC: STANDBY";
 );
+r_font_sz = 12.0;
+gfx_setfont(1, "Orbitron", r_font_sz, 'b');
 gfx_measurestr(rgn_txt, rpw, rph);
+while (rpw > rgn_pill_w - 16 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(rgn_txt, rpw, rph);
+);
 gfx_x = rgn_pill_x + (rgn_pill_w - rpw) * 0.5; gfx_y = rgn_pill_y + 9;
 gfx_drawstr(rgn_txt);
 
@@ -2221,7 +2292,9 @@ function prod_short(i) (
   i == 14 ? "15. Adam Nolly" :
   i == 15 ? "16. Will Putney" :
   i == 16 ? "17. Sam Bassal" :
-            "18. Henrik Udd";
+  i == 17 ? "18. Henrik Udd" :
+  i == 18 ? "19. Acle Kahney" :
+            "20. heaving.";
 );
 
 function prod_full(i) (
@@ -2610,7 +2683,7 @@ function dk_gui(gx, gy, gw, gh, ar, ag, ab) (
   gfx_r = 0.42; gfx_g = 0.46; gfx_b = 0.54; gfx_x = dg_lx + 8; gfx_y = dg_ly + 42; gfx_drawstr(#dg_st);
 
   // ---- right column: producer playbook ----
-  (dg_last_prod != slider15) ? ( dg_pbi = max(0, min(17, floor(slider15 + 0.5))); dg_last_prod = slider15; );
+  (dg_last_prod != slider15) ? ( dg_pbi = max(0, min(19, floor(slider15 + 0.5))); dg_last_prod = slider15; );
   gfx_r = 0.018; gfx_g = 0.020; gfx_b = 0.028; gfx_rect(dg_rx, dg_ty, dg_cw, gh - 66);
   gfx_r = ar * 0.7; gfx_g = ag * 0.7; gfx_b = ab * 0.7; gfx_rect(dg_rx, dg_ty, dg_cw, gh - 66, 0);
   gfx_r = 0.08; gfx_g = 0.07; gfx_b = 0.12; gfx_rect(dg_rx + 8, dg_ty + 8, 32, 26); gfx_rect(dg_rx + dg_cw - 40, dg_ty + 8, 32, 26);
@@ -2688,10 +2761,10 @@ slider1 == 6 ? (
   // ── LEFT: 18 CLICKABLE PRODUCER BUTTONS ──────────────────────────────────
   draw_adinkrahene_sigil(p_x + 22, p_y + 20, 8);
   gfx_r = 1.00; gfx_g = 0.72; gfx_b = 0.02;
-  draw_fit_str(p_x + 38, p_y + 12, list_w - 30, "PRODUCER REFERENCE ROSTER (18 BLUEPRINTS)", 15);
+  draw_fit_str(p_x + 38, p_y + 12, list_w - 30, "PRODUCER REFERENCE ROSTER (20 BLUEPRINTS)", 15);
 
   pi = 0;
-  while (pi < 18) (
+  while (pi < 20) (
     col = pi % 2;
     row = floor(pi / 2);
     bw = floor((list_w - 8) * 0.5);

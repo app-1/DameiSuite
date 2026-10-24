@@ -1,0 +1,942 @@
+desc:Damei Gullfoss Master (Auditory Perception & Psychoacoustic Dynamic EQ)
+// =============================================================================
+// SOUNDTHEORY GULLFOSS COMPUTATIONAL AUDITORY PERCEPTION MASTERING ENGINE
+// Real-Time 16-Band Psychoacoustic Masking Threshold Computation & Dynamic De-Masking
+// Tandem Profile Link with Damei Mastering Suite & Sankofa Oracle (gmem:DameiMixMetering)
+// =============================================================================
+
+slider1:1<0,1,1{Bypassed,Active (Perceptual Unmasking)}>-Gullfoss Auditory Engine
+slider2:28<0,100,1>-Gullfoss Recover (%) (Unmask Submerged Detail)
+slider3:30<0,100,1>-Gullfoss Tame (%) (Suppress Dominant Resonance)
+slider4:8<-100,100,1>-Gullfoss Bias (%) (Tame <-> Recover Preference)
+slider5:12<-100,100,1>-Gullfoss Brightness (%) (High-End Sheen Tilt)
+slider6:10<0,100,1>-Gullfoss Boost (%) (Low-End Perceptual Weight)
+slider7:75<20,500,5>-Gullfoss Low Cutoff Limit (Hz)
+slider8:18500<5000,20000,250>-Gullfoss High Cutoff Limit (Hz)
+slider9:55<10,100,1>-Gullfoss Auditory Reaction Speed (%)
+slider10:1<0,2,1{Manual Standalone,Tandem Sync (Follow Sankofa / Ozone),Split Chain Signature Master (Robin Schmidt / Grant Berry)}>-Tandem Integration Mode
+slider11:0<-12,12,0.1>-Gullfoss Output Gain (dB)
+slider12:6<0,23,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic),Acle Kahney (TesseracT - King),heaving. (carsick / Grungegaze)}>-Mastering Engineer Signature Preset
+
+options:gmem=DameiMixMetering
+options:maxmem=65536
+options:no_meter
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1;
+srate <= 0 ? srate = 48000;
+last_srate = srate;
+
+
+function get_engineer_name(p_idx) (
+  p_idx == 0  ? "Default Modern Metal Clean" :
+  p_idx == 1  ? "Lance Prenc (Alpha Wolf)" :
+  p_idx == 2  ? "Scott Seigel (DIESECT)" :
+  p_idx == 3  ? "Jonathan Dolese (Mirrorcell)" :
+  p_idx == 4  ? "Buster Odeholm (thrown)" :
+  p_idx == 5  ? "Grant Berry (Fader Mastering)" :
+  p_idx == 6  ? "Robin Schmidt & Grant Berry" :
+  p_idx == 7  ? "Ted Jensen (Don Broco)" :
+  p_idx == 8  ? "Robin Schmidt (Static Dress)" :
+  p_idx == 9  ? "Mike Kalajian (Silverstein)" :
+  p_idx == 10 ? "Nick Townsend (Heavenward)" :
+  p_idx == 11 ? "Randy Merrill (City Of Souls)" :
+  p_idx == 12 ? "Leon Schmidt & C. Donaldson" :
+  p_idx == 13 ? "Ermin Hamidovic (Systematic)" :
+  p_idx == 14 ? "Will Putney (Fit For An Autopsy)" :
+  p_idx == 15 ? "George Lever (Loathe)" :
+  p_idx == 16 ? "Sam Bassal (Thornhill)" :
+  p_idx == 17 ? "Henrik Udd (Architects)" :
+  p_idx == 18 ? "Dan Braunstein (Spiritbox)" :
+  p_idx == 19 ? "Zakk Cervini & Erik Ron" :
+  p_idx == 20 ? "Jens Bogren (Fascination St.)" :
+  p_idx == 21 ? "Nolly (Periphery / GGD)" :
+  p_idx == 22 ? "Acle Kahney (TesseracT)" :
+  "heaving. (carsick)";
+);
+
+function apply_gullfoss_master_preset(p_idx) (
+  p_idx == 1 ? ( // Lance Prenc
+    slider2 = 32; slider3 = 38; slider4 = -5; slider5 = 16; slider6 = 6; slider7 = 80; slider8 = 19000; slider9 = 68;
+  ) : p_idx == 2 ? ( // Scott Seigel
+    slider2 = 26; slider3 = 35; slider4 = -8; slider5 = 10; slider6 = 14; slider7 = 70; slider8 = 18000; slider9 = 60;
+  ) : p_idx == 3 ? ( // Jonathan Dolese
+    slider2 = 34; slider3 = 28; slider4 = 6; slider5 = 14; slider6 = 10; slider7 = 75; slider8 = 18500; slider9 = 55;
+  ) : p_idx == 4 ? ( // Buster Odeholm
+    slider2 = 22; slider3 = 42; slider4 = -12; slider5 = 12; slider6 = 12; slider7 = 85; slider8 = 18500; slider9 = 75;
+  ) : p_idx == 5 ? ( // Grant Berry
+    slider2 = 25; slider3 = 22; slider4 = 4; slider5 = 15; slider6 = 12; slider7 = 65; slider8 = 19000; slider9 = 45;
+  ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain)
+    slider2 = 28; slider3 = 32; slider4 = 8; slider5 = 12; slider6 = 10; slider7 = 75; slider8 = 18500; slider9 = 55;
+  ) : p_idx == 7 ? ( // Ted Jensen
+    slider2 = 26; slider3 = 28; slider4 = 0; slider5 = 15; slider6 = 10; slider7 = 70; slider8 = 19000; slider9 = 52;
+  ) : p_idx == 8 ? ( // Robin Schmidt (Static Dress)
+    slider2 = 30; slider3 = 30; slider4 = 4; slider5 = 14; slider6 = 8; slider7 = 75; slider8 = 18000; slider9 = 58;
+  ) : p_idx == 9 ? ( // Mike Kalajian
+    slider2 = 30; slider3 = 34; slider4 = -2; slider5 = 12; slider6 = 8; slider7 = 80; slider8 = 18500; slider9 = 62;
+  ) : p_idx == 10 ? ( // Nick Townsend
+    slider2 = 22; slider3 = 24; slider4 = 2; slider5 = 8; slider6 = 14; slider7 = 60; slider8 = 17500; slider9 = 42;
+  ) : p_idx == 11 ? ( // Randy Merrill
+    slider2 = 25; slider3 = 26; slider4 = 2; slider5 = 10; slider6 = 10; slider7 = 65; slider8 = 19000; slider9 = 50;
+  ) : p_idx == 12 ? ( // Leon Schmidt & Christian Donaldson
+    slider2 = 32; slider3 = 36; slider4 = 0; slider5 = 16; slider6 = 8; slider7 = 80; slider8 = 19500; slider9 = 65;
+  ) : p_idx == 13 ? ( // Ermin Hamidovic
+    slider2 = 24; slider3 = 25; slider4 = 0; slider5 = 6; slider6 = 6; slider7 = 65; slider8 = 18500; slider9 = 50;
+  ) : p_idx == 14 ? ( // Will Putney
+    slider2 = 24; slider3 = 44; slider4 = -14; slider5 = 8; slider6 = 12; slider7 = 85; slider8 = 17500; slider9 = 70;
+  ) : p_idx == 15 ? ( // George Lever
+    slider2 = 30; slider3 = 24; slider4 = 8; slider5 = 10; slider6 = 16; slider7 = 60; slider8 = 18000; slider9 = 45;
+  ) : p_idx == 16 ? ( // Sam Bassal
+    slider2 = 32; slider3 = 30; slider4 = 6; slider5 = 16; slider6 = 10; slider7 = 75; slider8 = 19000; slider9 = 60;
+  ) : p_idx == 17 ? ( // Henrik Udd
+    slider2 = 28; slider3 = 38; slider4 = -4; slider5 = 14; slider6 = 8; slider7 = 80; slider8 = 18500; slider9 = 66;
+  ) : p_idx == 18 ? ( // Dan Braunstein
+    slider2 = 34; slider3 = 30; slider4 = 8; slider5 = 16; slider6 = 8; slider7 = 75; slider8 = 19000; slider9 = 58;
+  ) : p_idx == 19 ? ( // Zakk Cervini & Erik Ron
+    slider2 = 35; slider3 = 32; slider4 = 6; slider5 = 18; slider6 = 14; slider7 = 70; slider8 = 19500; slider9 = 64;
+  ) : p_idx == 20 ? ( // Jens Bogren
+    slider2 = 22; slider3 = 30; slider4 = -4; slider5 = 8; slider6 = 10; slider7 = 70; slider8 = 18000; slider9 = 48;
+  ) : p_idx == 21 ? ( // Nolly (Periphery / GGD)
+    slider2 = 28; slider3 = 34; slider4 = 0; slider5 = 12; slider6 = 8; slider7 = 75; slider8 = 18500; slider9 = 60;
+  ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King)
+    slider2 = 30; slider3 = 32; slider4 = -2; slider5 = 14; slider6 = 12; slider7 = 75; slider8 = 19000; slider9 = 62;
+  ) : p_idx == 23 ? ( // heaving. (carsick / Grungegaze)
+    slider2 = 36; slider3 = 28; slider4 = 10; slider5 = 18; slider6 = 15; slider7 = 70; slider8 = 19500; slider9 = 56;
+  ) : ( // Default Modern Metal Clean
+    slider2 = 24; slider3 = 26; slider4 = 0; slider5 = 8; slider6 = 8; slider7 = 60; slider8 = 18500; slider9 = 50;
+  );
+  slider_automate(2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 2048);
+);
+
+function init_gullfoss() (
+  srate <= 0 ? srate = 48000;
+  // Local fast cache memory layout (< 600 slots)
+  gf_freq      = 100;
+  gf_a1        = 120; gf_a2 = 140; gf_a3 = 160; gf_kd = 180;
+  gf_s1_l      = 200; gf_s2_l = 220; gf_s1_r = 240; gf_s2_r = 260;
+  gf_pwr       = 280; gf_db = 300; gf_mask = 320;
+  gf_tgt_gain  = 340; gf_gain_cur = 360;
+  gf_tgt_A     = 380; gf_A_cur = 400;
+  gf_tame_disp = 420; gf_rec_disp = 440;
+  gf_pos_arr   = 460; gf_pwr_decay = 480;
+  pt_x         = 500; pt_y = 520;
+  grid_norm_x  = 540;
+
+  gf_freq[0] = 80; gf_freq[1] = 140; gf_freq[2] = 220; gf_freq[3] = 340;
+  gf_freq[4] = 500; gf_freq[5] = 750; gf_freq[6] = 1100; gf_freq[7] = 1600;
+  gf_freq[8] = 2400; gf_freq[9] = 3500; gf_freq[10] = 5000; gf_freq[11] = 7000;
+  gf_freq[12] = 9500; gf_freq[13] = 12500; gf_freq[14] = 15500; gf_freq[15] = 18500;
+
+  gf_kd_val = 1.0 / 1.8; // Q = 1.8 constant critical bandwidth
+  k = 0;
+  loop(16,
+    f = max(20.0, min(22000.0, gf_freq[k]));
+    g = tan($pi * f / srate);
+    (g != g || g <= 0.0) ? g = 0.05;
+    a1 = 1.0 / (1.0 + g * (g + gf_kd_val));
+    a2 = g * a1;
+    a3 = g * a2;
+    gf_a1[k] = a1; gf_a2[k] = a2; gf_a3[k] = a3; gf_kd[k] = gf_kd_val;
+    gf_s1_l[k] = 0.0; gf_s2_l[k] = 0.0; gf_s1_r[k] = 0.0; gf_s2_r[k] = 0.0;
+    gf_pwr[k] = 0.00000001; gf_gain_cur[k] = 0.0; gf_tgt_gain[k] = 0.0;
+    gf_tgt_A[k] = 1.0; gf_A_cur[k] = 1.0;
+    gf_tame_disp[k] = 0.0; gf_rec_disp[k] = 0.0;
+    gf_pos_arr[k] = (log(f) - 2.99573227) / 6.90775528;
+
+    // Frequency-dependent integration time constant (at least 4 complete waveform cycles to eliminate AC ripple)
+    tau_k = max(0.045, min(0.120, 8.0 / f)); // Ripple-free 8-cycle integration eliminates AC detector flutter
+    gf_pwr_decay[k] = exp(-1.0 / (tau_k * srate));
+
+    k += 1;
+  );
+
+  // Precompute grid line normalized positions (zero runtime transcendentals)
+  grid_norm_x[0] = (log(20) - 2.99573227) / 6.90775528;
+  grid_norm_x[1] = (log(50) - 2.99573227) / 6.90775528;
+  grid_norm_x[2] = (log(100) - 2.99573227) / 6.90775528;
+  grid_norm_x[3] = (log(200) - 2.99573227) / 6.90775528;
+  grid_norm_x[4] = (log(500) - 2.99573227) / 6.90775528;
+  grid_norm_x[5] = (log(1000) - 2.99573227) / 6.90775528;
+  grid_norm_x[6] = (log(2000) - 2.99573227) / 6.90775528;
+  grid_norm_x[7] = (log(5000) - 2.99573227) / 6.90775528;
+  grid_norm_x[8] = (log(10000) - 2.99573227) / 6.90775528;
+  grid_norm_x[9] = (log(20000) - 2.99573227) / 6.90775528;
+
+  gf_initialized = 1;
+);
+
+init_gullfoss();
+apply_gullfoss_master_preset(slider12);
+prev_preset = slider12;
+
+comp_lin_cur = 1.0;
+loudness_comp_lin = 1.0;
+cur_out_pk = 0.0;
+crt_phase = 0.0;
+bp_fade = slider1 ? 1.0 : 0.0;
+fonts_initialized = 0;
+tandem_status_str = "STANDALONE MANUAL";
+
+function update_smoothing_rates() (
+  reaction_sec = 0.020 + (1.0 - slider9 * 0.01) * 0.040; // 20-60ms smooth audio transition
+  gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
+  fade_coeff = 1.0 - exp(-1.0 / (0.015 * srate)); // 15ms click-free bypass crossfade
+);
+
+update_smoothing_rates();
+
+@slider
+srate != last_srate ? (
+  init_gullfoss();
+  last_srate = srate;
+);
+update_smoothing_rates();
+out_gain_lin = exp(slider11 * 0.11512925);
+slider12 != prev_preset ? (
+  prev_preset = slider12;
+  apply_gullfoss_master_preset(slider12);
+);
+
+@block
+// ── 1. TANDEM INTEGRATION & RAW AUDIT BUS ────────────────────────────
+// Sankofa Oracle publishes raw audit state on gmem[1098]
+oracle_raw_audit = (gmem[1098] == 1);
+
+// Sankofa Oracle / Mixing Suite publishes effective producer preset on gmem[1105]
+oracle_active = (gmem[1100] == 1 && (time_precise() - gmem[1124]) < 2.0);
+active_pidx = oracle_active ? floor(gmem[1105] + 0.5) : -1;
+
+is_splitchain = (slider10 == 2) || (slider10 == 1 && active_pidx == 6);
+
+// Apply Tandem Profile Parameters when locked to Split Chain or synced
+is_splitchain ? (
+  tandem_mode_active = 1;
+  tandem_status_str = "TANDEM LOCKED // SPLIT CHAIN (ROBIN SCHMIDT / KEL PINCHIN)";
+  slider12 != 6 ? (
+    slider12 = 6;
+    prev_preset = 6;
+    apply_gullfoss_master_preset(6);
+  );
+) : (slider10 == 1 && oracle_active) ? (
+  tandem_mode_active = 1;
+  tandem_status_str = "TANDEM SYNC // FOLLOWING SANKOFA MASTER PROFILE";
+  active_pidx >= 0 && active_pidx <= 21 && active_pidx != slider12 ? (
+    slider12 = active_pidx;
+    prev_preset = slider12;
+    apply_gullfoss_master_preset(slider12);
+  );
+) : (
+  tandem_mode_active = 0;
+  tandem_status_str = "STANDALONE MANUAL // LOCAL PARAMETERS";
+);
+eff_recover = slider2;
+eff_tame    = slider3;
+eff_bias    = slider4;
+eff_bright  = slider5;
+eff_boost   = slider6;
+eff_locut   = slider7;
+eff_hicut   = slider8;
+eff_speed   = slider9;
+
+// Update per-sample smoothing factor based on effective speed
+reaction_sec = 0.020 + (1.0 - eff_speed * 0.01) * 0.040;
+gain_smooth = 1.0 - exp(-1.0 / (reaction_sec * srate));
+
+// Precompute GUI boundary log positions in block (never in @gfx)
+low_norm = (log(eff_locut) - 2.99573227) / 6.90775528;
+high_norm = (log(eff_hicut) - 2.99573227) / 6.90775528;
+
+// ── 2. AUDITORY MASKING & PSYCHOACOUSTIC TARGET CALCULATION ──────────
+// 1. Convert integrated power to dB
+k = 0;
+loop(16,
+  p_val = max(gf_pwr[k], 0.0000000001);
+  gf_db[k] = 10.0 * log10(p_val);
+  k += 1;
+);
+
+// 2. Compute psychoacoustic auditory masking threshold
+k = 0;
+loop(16,
+  m_thresh = -75.0;
+  j = 0;
+  loop(16,
+    j < k ? (
+      dist = k - j;
+      c = gf_db[j] - 3.8 * dist;
+      c > m_thresh ? m_thresh = c;
+    ) : j > k ? (
+      dist = j - k;
+      c = gf_db[j] - 8.5 * dist;
+      c > m_thresh ? m_thresh = c;
+    );
+    j += 1;
+  );
+  gf_mask[k] = m_thresh;
+
+  cur_d = gf_db[k];
+
+  // Noise gate floor taper to prevent low-level chatter or fadeout pops
+  gate_w = max(0.0, min(1.0, (cur_d - (-65.0)) * (1.0 / 15.0)));
+  diff = cur_d - m_thresh;
+
+  tgt_g = 0.0;
+  tame_disp = 0.0;
+  rec_disp = 0.0;
+
+  // Soft-knee continuous polynomial curve (C1 continuous at 0, no hard deadband clicks)
+  diff > 0.2 ? (
+    excess = diff - 0.2;
+    tame_amt = (excess * excess) / (excess + 1.8) * 0.50 * (eff_tame * 0.01) * max(0.0, 1.0 - eff_bias * 0.01);
+    tame_amt = min(2.5, tame_amt); // Mastering limit 2.5dB
+    tgt_g = -tame_amt;
+    tame_disp = tame_amt;
+  ) : diff < -0.2 ? (
+    deficit = -diff - 0.2;
+    rec_amt = (deficit * deficit) / (deficit + 1.8) * 0.50 * (eff_recover * 0.01) * max(0.0, 1.0 + eff_bias * 0.01) * gate_w;
+    rec_amt = min(2.5, rec_amt); // Mastering limit 2.5dB
+    tgt_g = rec_amt;
+    rec_disp = rec_amt;
+  );
+
+  eff_bright != 0 ? (
+    tgt_g += (k - 7.5) * (eff_bright * 0.01) * 0.12;
+  );
+
+  (eff_boost > 0 && k <= 2) ? (
+    tgt_g += (eff_boost * 0.01) * 1.5 * (1.0 - k / 3.0);
+  );
+
+  // Smooth cutoff limit tapering (avoids abrupt frequency cutoff boundaries)
+  band_f = gf_freq[k];
+  f_weight = 1.0;
+  band_f < eff_locut ? (
+    f_weight = max(0.0, min(1.0, (band_f - (eff_locut * 0.70)) / (eff_locut * 0.30 + 0.000001)));
+  ) : band_f > eff_hicut ? (
+    f_weight = max(0.0, min(1.0, ((eff_hicut * 1.30) - band_f) / (eff_hicut * 0.30 + 0.000001)));
+  );
+
+  tgt_g *= f_weight;
+  tame_disp *= f_weight;
+  rec_disp *= f_weight;
+
+  tgt_g = max(-3.5, min(3.5, tgt_g));
+  tgt_g != tgt_g ? tgt_g = 0.0;
+  gf_tgt_gain[k] = tgt_g;
+
+  // Precalculate linear gain target (eliminates all exp() calls from @sample!)
+  gf_tgt_A[k] = exp(tgt_g * 0.11512925);
+
+  // Smooth visualizer meter ballistics
+  gf_tame_disp[k] = gf_tame_disp[k] * 0.85 + tame_disp * 0.15;
+  gf_rec_disp[k]  = gf_rec_disp[k]  * 0.85 + rec_disp  * 0.15;
+
+  k += 1;
+);
+
+// Clean stable compensation - zero broadband dynamic volume pumping
+loudness_comp_lin = 1.0;
+
+@sample
+in_l = spl0;
+in_r = spl1;
+
+// Smooth clickless bypass crossfade fader (15ms time constant)
+// When Sankofa Oracle enters Raw Audit (oracle_raw_audit == 1), Gullfoss crossfades to dry
+bp_target = (slider1 == 1 && !oracle_raw_audit) ? 1.0 : 0.0;
+bp_fade += (bp_target - bp_fade) * fade_coeff;
+
+bp_fade > 0.0001 ? (
+  gf_in_l = in_l;
+  gf_in_r = in_r;
+
+  // Protect against incoming NaNs / denormals
+  gf_in_l != gf_in_l ? gf_in_l = 0.0;
+  gf_in_r != gf_in_r ? gf_in_r = 0.0;
+
+  // Smooth loudness compensation gain
+  comp_lin_cur += (loudness_comp_lin - comp_lin_cur) * gain_smooth;
+
+  k = 0;
+  loop(16,
+    a1 = gf_a1[k]; a2 = gf_a2[k]; a3 = gf_a3[k];
+    kd = gf_kd[k];
+
+    // Ultra-lightweight linear gain interpolation (Zero transcendental functions in audio loop)
+    cur_A = gf_A_cur[k];
+    cur_A += (gf_tgt_A[k] - cur_A) * gain_smooth;
+    gf_A_cur[k] = cur_A;
+
+    // Parallel Analysis Filterbank on Clean Input (Zero serial distortion accumulation)
+    v3_clean_l = in_l - gf_s2_l[k];
+    v1_clean_l = a1 * gf_s1_l[k] + a2 * v3_clean_l;
+    v2_clean_l = gf_s2_l[k] + a2 * gf_s1_l[k] + a3 * v3_clean_l;
+    s1_l = 2.0 * v1_clean_l - gf_s1_l[k];
+    s2_l = 2.0 * v2_clean_l - gf_s2_l[k];
+
+    // Smooth continuous rational saturation on state (100% click-free, zero hard-clipping pops)
+    abs(s1_l) > 16.0 ? s1_l = s1_l / (1.0 + 0.02 * abs(s1_l));
+    abs(s2_l) > 16.0 ? s2_l = s2_l / (1.0 + 0.02 * abs(s2_l));
+    s1_l != s1_l ? s1_l = 0.0;
+    s2_l != s2_l ? s2_l = 0.0;
+    gf_s1_l[k] = s1_l;
+    gf_s2_l[k] = s2_l;
+
+    gf_in_l += kd * (cur_A - 1.0) * v1_clean_l;
+
+    // Right channel Cytomic SVF
+    v3_clean_r = in_r - gf_s2_r[k];
+    v1_clean_r = a1 * gf_s1_r[k] + a2 * v3_clean_r;
+    v2_clean_r = gf_s2_r[k] + a2 * gf_s1_r[k] + a3 * v3_clean_r;
+    s1_r = 2.0 * v1_clean_r - gf_s1_r[k];
+    s2_r = 2.0 * v2_clean_r - gf_s2_r[k];
+
+    abs(s1_r) > 16.0 ? s1_r = s1_r / (1.0 + 0.02 * abs(s1_r));
+    abs(s2_r) > 16.0 ? s2_r = s2_r / (1.0 + 0.02 * abs(s2_r));
+    s1_r != s1_r ? s1_r = 0.0;
+    s2_r != s2_r ? s2_r = 0.0;
+    gf_s1_r[k] = s1_r;
+    gf_s2_r[k] = s2_r;
+
+    gf_in_r += kd * (cur_A - 1.0) * v1_clean_r;
+
+    // Ripple-Free Frequency-Matched Power Integration
+    pwr = v1_clean_l * v1_clean_l + v1_clean_r * v1_clean_r;
+    (pwr != pwr || pwr < 0.0) ? pwr = 0.00000001;
+    dec = gf_pwr_decay[k];
+    gf_pwr[k] = gf_pwr[k] * dec + pwr * (1.0 - dec);
+
+    k += 1;
+  );
+
+  // Zero dynamic volume riding - output is purely band de-masked
+
+  // Denormal & NaN guard on output
+  gf_in_l != gf_in_l ? gf_in_l = in_l;
+  gf_in_r != gf_in_r ? gf_in_r = in_r;
+  out_l = max(-8.0, min(8.0, gf_in_l));
+  out_r = max(-8.0, min(8.0, gf_in_r));
+) : (
+  out_l = in_l;
+  out_r = in_r;
+);
+
+// Click-Free Bypass Crossfade applied to final output with Output Gain Trim
+spl0 = (in_l * (1.0 - bp_fade) + out_l * bp_fade) * out_gain_lin;
+spl1 = (in_r * (1.0 - bp_fade) + out_r * bp_fade) * out_gain_lin;
+
+cur_out_pk = max(abs(spl0), abs(spl1));
+
+@gfx 820 440
+disp_x = 0; disp_y = 0; disp_w = gfx_w; disp_h = gfx_h;
+
+// Initialize fonts ONCE (Eliminates 660 Windows GDI CreateFont calls/sec!)
+!fonts_initialized ? (
+  gfx_setfont(1, "Orbitron", 13, 'b');
+  gfx_setfont(2, "Orbitron", 10, 'b');
+  gfx_setfont(3, "Consolas", 11, 'b');
+  gfx_setfont(4, "Consolas", 10);
+  fonts_initialized = 1;
+);
+
+// Background
+gfx_r = 0.012; gfx_g = 0.015; gfx_b = 0.022;
+gfx_rect(0, 0, gfx_w, gfx_h);
+
+// 1. TOP PARAMETER HEADER BAR
+hdr_y = 6;
+hdr_h = 42;
+
+gfx_r = 0.025; gfx_g = 0.035; gfx_b = 0.048;
+gfx_rect(disp_x + 8, hdr_y, disp_w - 16, hdr_h);
+gfx_r = 0.14; gfx_g = 0.22; gfx_b = 0.32;
+gfx_rect(disp_x + 8, hdr_y, disp_w - 16, hdr_h, 0);
+
+// Title & Tandem Status
+gfx_setfont(1);
+gfx_r = 0.90; gfx_g = 0.95; gfx_b = 1.00;
+gfx_x = disp_x + 18; gfx_y = hdr_y + 6;
+gfx_drawstr("G U L L F O S S   M A S T E R");
+
+gfx_setfont(4);
+oracle_raw_audit ? (
+  gfx_r = 1.00; gfx_g = 0.40; gfx_b = 0.20;
+  gfx_x = disp_x + 18; gfx_y = hdr_y + 24;
+  gfx_drawstr("⚡ SANKOFA RAW AUDIT (BYPASSED FOR A/B)");
+) : is_splitchain ? (
+  gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
+  gfx_x = disp_x + 18; gfx_y = hdr_y + 24;
+  gfx_drawstr("🔗 TANDEM: SPLIT CHAIN UK GRUNGE MASTER");
+) : tandem_mode_active ? (
+  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_x = disp_x + 18; gfx_y = hdr_y + 24;
+  gfx_drawstr("🔗 TANDEM: SANKOFA ORACLE SYNC ACTIVE");
+) : (
+  gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75;
+  gfx_x = disp_x + 18; gfx_y = hdr_y + 24;
+  gfx_drawstr("STANDALONE MANUAL CONTROLS");
+);
+
+par_x = disp_x + 290;
+par_step = floor((disp_w - 300 - 220) / 4);
+
+gfx_setfont(3);
+gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = par_x; gfx_y = hdr_y + 12; gfx_drawstr("REC ");
+gfx_r = 0.00; gfx_g = 0.96; gfx_b = 0.65; gfx_printf("%2d%%", eff_recover);
+
+gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = par_x + par_step; gfx_y = hdr_y + 12; gfx_drawstr("TAME ");
+gfx_r = 1.00; gfx_g = 0.20; gfx_b = 0.60; gfx_printf("%2d%%", eff_tame);
+
+gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = par_x + par_step * 2; gfx_y = hdr_y + 12; gfx_drawstr("BRIGHT ");
+gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25; gfx_printf("%+2d%%", eff_bright);
+
+gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75; gfx_x = par_x + par_step * 3; gfx_y = hdr_y + 12; gfx_drawstr("BOOST ");
+gfx_r = 0.20; gfx_g = 0.88; gfx_b = 1.00; gfx_printf("%2d%%", eff_boost);
+
+// Tandem Toggle Button
+tan_w = 95; tan_h = 24;
+tan_x = disp_x + disp_w - tan_w - 110; tan_y = hdr_y + 9;
+tan_hov = (mouse_x >= tan_x && mouse_x <= tan_x + tan_w && mouse_y >= tan_y && mouse_y <= tan_y + tan_h);
+gfx_r = is_splitchain ? 0.02 : (tandem_mode_active ? 0.02 : 0.08);
+gfx_g = is_splitchain ? 0.25 : (tandem_mode_active ? 0.20 : 0.08);
+gfx_b = is_splitchain ? 0.16 : (tandem_mode_active ? 0.28 : 0.12);
+gfx_rect(tan_x, tan_y, tan_w, tan_h);
+gfx_r = is_splitchain ? 0.00 : (tandem_mode_active ? 0.00 : 0.40);
+gfx_g = is_splitchain ? 0.95 : (tandem_mode_active ? 0.85 : 0.50);
+gfx_b = is_splitchain ? 0.65 : (tandem_mode_active ? 1.00 : 0.60);
+gfx_rect(tan_x, tan_y, tan_w, tan_h, 0);
+gfx_setfont(2);
+gfx_x = tan_x + 8; gfx_y = tan_y + 5;
+slider10 == 2 ? gfx_drawstr("SPLIT CHAIN") : (slider10 == 1 ? gfx_drawstr("TANDEM SYNC") : gfx_drawstr("MANUAL"));
+(mouse_cap & 1) && !prev_mouse_cap && tan_hov ? (
+  slider10 = (slider10 + 1) % 3;
+  slider_automate(512);
+);
+
+// Far Right: BYPASS / ACTIVE Button
+byp_w = 90; byp_h = 24;
+byp_x = disp_x + disp_w - byp_w - 14; byp_y = hdr_y + 9;
+byp_hov = (mouse_x >= byp_x && mouse_x <= byp_x + byp_w && mouse_y >= byp_y && mouse_y <= byp_y + byp_h);
+gfx_r = slider1 ? (byp_hov ? 0.08 : 0.04) : (byp_hov ? 0.22 : 0.12);
+gfx_g = slider1 ? (byp_hov ? 0.28 : 0.16) : (byp_hov ? 0.06 : 0.04);
+gfx_b = slider1 ? (byp_hov ? 0.38 : 0.22) : (byp_hov ? 0.08 : 0.05);
+gfx_rect(byp_x, byp_y, byp_w, byp_h);
+gfx_r = slider1 ? 0.00 : 0.85; gfx_g = slider1 ? 0.95 : 0.25; gfx_b = slider1 ? 0.65 : 0.25;
+gfx_rect(byp_x, byp_y, byp_w, byp_h, 0);
+gfx_setfont(2);
+gfx_x = byp_x + (slider1 ? 12 : 10); gfx_y = byp_y + 5;
+slider1 ? gfx_drawstr("• ACTIVE") : gfx_drawstr("✕ BYPASS");
+(mouse_cap & 1) && !prev_mouse_cap && byp_hov ? (
+  slider1 = !slider1;
+  slider_automate(1);
+);
+
+// 2. CENTRAL GULLFOSS AUDITORY EQ GRAPH DISPLAY
+gp_x = disp_x + 8;
+gp_y = hdr_y + hdr_h + 8;
+gp_w = disp_w - 16;
+gp_h = 200;
+gp_cy = gp_y + gp_h * 0.50; // 0 dB line
+
+gfx_r = 0.014; gfx_g = 0.018; gfx_b = 0.026;
+gfx_rect(gp_x, gp_y, gp_w, gp_h);
+gfx_r = 0.10; gfx_g = 0.16; gfx_b = 0.24;
+gfx_rect(gp_x, gp_y, gp_w, gp_h, 0);
+
+// Horizontal Grid Lines & dB Scales (+12dB, +6dB, 0dB, -6dB, -12dB)
+gfx_setfont(4);
+loop_i = 0;
+loop(5,
+  db_val = 12.0 - loop_i * 6.0;
+  line_y = gp_cy - (db_val / 12.0) * (gp_h * 0.40);
+  gfx_r = db_val == 0.0 ? 0.22 : 0.08;
+  gfx_g = db_val == 0.0 ? 0.32 : 0.12;
+  gfx_b = db_val == 0.0 ? 0.44 : 0.18;
+  gfx_line(gp_x, line_y, gp_x + gp_w, line_y);
+
+  gfx_r = 0.45; gfx_g = 0.55; gfx_b = 0.65;
+  gfx_x = gp_x + 6; gfx_y = line_y - 6;
+  db_val > 0.0 ? gfx_printf("+%.0fdB", db_val) : (db_val == 0.0 ? gfx_drawstr(" 0dB") : gfx_printf("%.0fdB", db_val));
+  gfx_x = gp_x + gp_w - 42; gfx_y = line_y - 6;
+  db_val > 0.0 ? gfx_printf("+%.0fdB", db_val) : (db_val == 0.0 ? gfx_drawstr(" 0dB") : gfx_printf("%.0fdB", db_val));
+  loop_i += 1;
+);
+
+// Vertical Frequency Grid Lines
+gi = 0;
+loop(10,
+  norm_x = grid_norm_x[gi];
+  gx = gp_x + norm_x * gp_w;
+  gfx_r = 0.06; gfx_g = 0.09; gfx_b = 0.14;
+  gfx_line(gx, gp_y, gx, gp_y + gp_h);
+
+  gfx_setfont(4);
+  gfx_r = 0.40; gfx_g = 0.50; gfx_b = 0.60;
+  f_lbl = (gi==0?"20Hz":gi==1?"50":gi==2?"100":gi==3?"200":gi==4?"500":gi==5?"1k":gi==6?"2k":gi==7?"5k":gi==8?"10k":"20k");
+  flw = (gi==0 ? 24 : gi >= 7 ? 20 : 16);
+  gfx_x = max(gp_x + 4, min(gp_x + gp_w - flw - 4, gx - flw * 0.5));
+  gfx_y = gp_y + gp_h - 14;
+  gfx_drawstr(f_lbl);
+  gi += 1;
+);
+
+// 3. ULTRA-FAST CATMULL-ROM PERCEPTUAL CURVE (Zero exp() calls in GUI)
+// Populate 18 key curve nodes
+pt_x[0] = gp_x;
+pt_y[0] = gp_cy;
+
+k = 0;
+loop(16,
+  px = gp_x + gf_pos_arr[k] * gp_w;
+  g_db = gf_tgt_gain[k];
+  f_val = gf_freq[k];
+  (f_val < eff_locut || f_val > eff_hicut) ? g_db *= 0.15;
+  py = gp_cy - (g_db / 12.0) * (gp_h * 0.40);
+  pt_x[k + 1] = px;
+  pt_y[k + 1] = max(gp_y + 4, min(gp_y + gp_h - 16, py));
+  k += 1;
+);
+
+pt_x[17] = gp_x + gp_w;
+pt_y[17] = gp_cy;
+
+// Render smooth spline curve across the 17 intervals (4 subdivisions each = 68 fast line segments)
+prev_cx = pt_x[0];
+prev_cy = pt_y[0];
+
+seg_i = 0;
+loop(17,
+  p0_y = pt_y[max(0, seg_i - 1)];
+  p1_y = pt_y[seg_i];
+  p2_y = pt_y[min(17, seg_i + 1)];
+  p3_y = pt_y[min(17, seg_i + 2)];
+
+  x_start = pt_x[seg_i];
+  x_end   = pt_x[seg_i + 1];
+
+  sub_i = 1;
+  loop(4,
+    t = sub_i * 0.25;
+    t2 = t * t;
+    t3 = t2 * t;
+
+    cx = x_start + t * (x_end - x_start);
+    cy = 0.5 * ((2.0 * p1_y) + (-p0_y + p2_y) * t + (2.0 * p0_y - 5.0 * p1_y + 4.0 * p2_y - p3_y) * t2 + (-p0_y + 3.0 * p1_y - 3.0 * p2_y + p3_y) * t3);
+    cy = max(gp_y + 4, min(gp_y + gp_h - 16, cy));
+
+    (slider1 == 1 && !oracle_raw_audit) ? (
+      // Main glowing curve line
+      gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_a = 1.0;
+      gfx_line(prev_cx, prev_cy, cx, cy);
+      // Subtle aura lines (zero alpha software blending overhead)
+      gfx_r = 0.00; gfx_g = 0.60; gfx_b = 0.45; gfx_a = 0.50;
+      gfx_line(prev_cx, prev_cy - 1, cx, cy - 1);
+      gfx_line(prev_cx, prev_cy + 1, cx, cy + 1);
+    ) : (
+      gfx_r = 0.40; gfx_g = 0.48; gfx_b = 0.56; gfx_a = 0.40;
+      gfx_line(prev_cx, prev_cy, cx, cy);
+    );
+
+    prev_cx = cx;
+    prev_cy = cy;
+    sub_i += 1;
+  );
+
+  seg_i += 1;
+);
+gfx_a = 1.0;
+
+// 4. BOUNDARY BARS (LOW CUTOFF & HIGH CUTOFF - precomputed in @block)
+low_x = gp_x + max(0.0, min(1.0, low_norm)) * gp_w;
+
+gfx_r = 0.00; gfx_g = 0.02; gfx_b = 0.04; gfx_a = 0.68;
+gfx_rect(gp_x + 1, gp_y + 1, max(0, low_x - gp_x - 1), gp_h - 2);
+gfx_a = 1.0;
+
+high_x = gp_x + max(0.0, min(1.0, high_norm)) * gp_w;
+
+gfx_r = 0.00; gfx_g = 0.02; gfx_b = 0.04; gfx_a = 0.68;
+gfx_rect(high_x, gp_y + 1, max(0, gp_x + gp_w - high_x - 1), gp_h - 2);
+gfx_a = 1.0;
+
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_line(low_x, gp_y, low_x, gp_y + gp_h);
+gfx_line(high_x, gp_y, high_x, gp_y + gp_h);
+
+// 5. 16-BAND RECOVER (GREEN UP) & TAME (PINK DOWN) LIVE METER BARS
+k = 0;
+loop(16,
+  bx = gp_x + gf_pos_arr[k] * gp_w;
+  bw = 6;
+  b_left = bx - bw * 0.5;
+
+  tame_val = gf_tame_disp[k];
+  rec_val  = gf_rec_disp[k];
+
+  rec_val > 0.05 ? (
+    bar_h = (rec_val / 5.0) * (gp_h * 0.38);
+    gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_a = 0.70;
+    gfx_rect(b_left, gp_cy - bar_h, bw, bar_h);
+    gfx_r = 0.40; gfx_g = 1.00; gfx_b = 0.80; gfx_a = 1.0;
+    gfx_line(b_left, gp_cy - bar_h, b_left + bw, gp_cy - bar_h);
+  );
+
+  tame_val > 0.05 ? (
+    bar_h = (tame_val / 5.0) * (gp_h * 0.38);
+    gfx_r = 1.00; gfx_g = 0.18; gfx_b = 0.55; gfx_a = 0.70;
+    gfx_rect(b_left, gp_cy, bw, bar_h);
+    gfx_r = 1.00; gfx_g = 0.45; gfx_b = 0.75; gfx_a = 1.0;
+    gfx_line(b_left, gp_cy + bar_h, b_left + bw, gp_cy + bar_h);
+  );
+
+  k += 1;
+);
+gfx_a = 1.0;
+
+// 6. BOTTOM CONTROL CARDS (3 CARDS)
+ctrl_y = gp_y + gp_h + 8;
+ctrl_h = disp_h - ctrl_y - 8;
+col_w = floor((disp_w - 32) / 3);
+c1_x = disp_x + 8;
+c2_x = c1_x + col_w + 8;
+c3_x = c2_x + col_w + 8;
+pad_m = 12;
+
+// CARD 1: PERCEPTION UNMASKING
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c1_x, ctrl_y, col_w, ctrl_h);
+gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c1_x, ctrl_y, col_w, ctrl_h, 0);
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("PERCEPTION UNMASKING");
+
+btn_w = 26; btn_gap = 4;
+btn_p_x = c1_x + col_w - pad_m - btn_w;
+btn_m_x = btn_p_x - btn_gap - btn_w;
+
+gfx_setfont(3);
+gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65;
+gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 32; gfx_printf("RECOVER : %3d%% (CLARITY)", eff_recover);
+b_r_m = (mouse_x >= btn_m_x && mouse_x <= btn_m_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
+b_r_p = (mouse_x >= btn_p_x && mouse_x <= btn_p_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
+gfx_r = b_r_m ? 0.16 : 0.06; gfx_g = b_r_m ? 0.24 : 0.10; gfx_b = b_r_m ? 0.32 : 0.14;
+gfx_rect(btn_m_x, ctrl_y + 30, btn_w, 16); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_m_x, ctrl_y + 30, btn_w, 16, 0);
+gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 31; gfx_drawstr("-");
+gfx_r = b_r_p ? 0.16 : 0.06; gfx_g = b_r_p ? 0.24 : 0.10; gfx_b = b_r_p ? 0.32 : 0.14;
+gfx_rect(btn_p_x, ctrl_y + 30, btn_w, 16); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_p_x, ctrl_y + 30, btn_w, 16, 0);
+gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 31; gfx_drawstr("+");
+(mouse_cap & 1) && !prev_mouse_cap && b_r_m ? (slider2 = max(0, slider2 - 2); slider10 = 0; slider_automate(2 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_r_p ? (slider2 = min(100, slider2 + 2); slider10 = 0; slider_automate(2 | 512););
+
+gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65;
+gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 56; gfx_printf("TAME    : %3d%% (DE-RESONANCE)", eff_tame);
+b_t_m = (mouse_x >= btn_m_x && mouse_x <= btn_m_x + btn_w && mouse_y >= ctrl_y + 54 && mouse_y <= ctrl_y + 70);
+b_t_p = (mouse_x >= btn_p_x && mouse_x <= btn_p_x + btn_w && mouse_y >= ctrl_y + 54 && mouse_y <= ctrl_y + 70);
+gfx_r = b_t_m ? 0.16 : 0.06; gfx_g = b_t_m ? 0.24 : 0.10; gfx_b = b_r_m ? 0.32 : 0.14;
+gfx_rect(btn_m_x, ctrl_y + 54, btn_w, 16); gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65; gfx_rect(btn_m_x, ctrl_y + 54, btn_w, 16, 0);
+gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 55; gfx_drawstr("-");
+gfx_r = b_t_p ? 0.16 : 0.06; gfx_g = b_t_p ? 0.24 : 0.10; gfx_b = b_p_m ? 0.32 : 0.14;
+gfx_rect(btn_p_x, ctrl_y + 54, btn_w, 16); gfx_r = 1.00; gfx_g = 0.25; gfx_b = 0.65; gfx_rect(btn_p_x, ctrl_y + 54, btn_w, 16, 0);
+gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 55; gfx_drawstr("+");
+(mouse_cap & 1) && !prev_mouse_cap && b_t_m ? (slider3 = max(0, slider3 - 2); slider10 = 0; slider_automate(4 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_t_p ? (slider3 = min(100, slider3 + 2); slider10 = 0; slider_automate(4 | 512););
+
+gfx_r = 0.70; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c1_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("BIAS    : %+3d%%", eff_bias);
+b_b_m = (mouse_x >= btn_m_x && mouse_x <= btn_m_x + btn_w && mouse_y >= ctrl_y + 78 && mouse_y <= ctrl_y + 94);
+b_b_p = (mouse_x >= btn_p_x && mouse_x <= btn_p_x + btn_w && mouse_y >= ctrl_y + 78 && mouse_y <= ctrl_y + 94);
+gfx_r = b_b_m ? 0.16 : 0.06; gfx_g = b_b_m ? 0.24 : 0.10; gfx_b = b_b_m ? 0.32 : 0.14;
+gfx_rect(btn_m_x, ctrl_y + 78, btn_w, 16); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_m_x, ctrl_y + 78, btn_w, 16, 0);
+gfx_x = btn_m_x + 10; gfx_y = ctrl_y + 79; gfx_drawstr("-");
+gfx_r = b_b_p ? 0.16 : 0.06; gfx_g = b_b_p ? 0.24 : 0.10; gfx_b = b_b_p ? 0.32 : 0.14;
+gfx_rect(btn_p_x, ctrl_y + 78, btn_w, 16); gfx_r = 0.70; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(btn_p_x, ctrl_y + 78, btn_w, 16, 0);
+gfx_x = btn_p_x + 9; gfx_y = ctrl_y + 79; gfx_drawstr("+");
+(mouse_cap & 1) && !prev_mouse_cap && b_b_m ? (slider4 = max(-100, slider4 - 5); slider10 = 0; slider_automate(8 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_b_p ? (slider4 = min(100, slider4 + 5); slider10 = 0; slider_automate(8 | 512););
+
+// CARD 2: ACOUSTIC WEIGHT & TILT
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c2_x, ctrl_y, col_w, ctrl_h);
+gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c2_x, ctrl_y, col_w, ctrl_h, 0);
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("ACOUSTIC WEIGHT & SPEED");
+
+btn2_p_x = c2_x + col_w - pad_m - btn_w;
+btn2_m_x = btn2_p_x - btn_gap - btn_w;
+
+gfx_setfont(3);
+gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25;
+gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 32; gfx_printf("BRIGHTEN: %+3d%%", eff_bright);
+b_br_m = (mouse_x >= btn2_m_x && mouse_x <= btn2_m_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
+b_br_p = (mouse_x >= btn2_p_x && mouse_x <= btn2_p_x + btn_w && mouse_y >= ctrl_y + 30 && mouse_y <= ctrl_y + 46);
+gfx_r = b_br_m ? 0.16 : 0.06; gfx_g = b_br_m ? 0.24 : 0.10; gfx_b = b_br_m ? 0.32 : 0.14;
+gfx_rect(btn2_m_x, ctrl_y + 30, btn_w, 16); gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25; gfx_rect(btn2_m_x, ctrl_y + 30, btn_w, 16, 0);
+gfx_x = btn2_m_x + 10; gfx_y = ctrl_y + 31; gfx_drawstr("-");
+gfx_r = b_br_p ? 0.16 : 0.06; gfx_g = b_br_p ? 0.24 : 0.10; gfx_b = b_br_p ? 0.32 : 0.14;
+gfx_rect(btn2_p_x, ctrl_y + 30, btn_w, 16); gfx_r = 1.00; gfx_g = 0.78; gfx_b = 0.25; gfx_rect(btn2_p_x, ctrl_y + 30, btn_w, 16, 0);
+gfx_x = btn2_p_x + 9; gfx_y = ctrl_y + 31; gfx_drawstr("+");
+(mouse_cap & 1) && !prev_mouse_cap && b_br_m ? (slider5 = max(-100, slider5 - 5); slider10 = 0; slider_automate(16 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_br_p ? (slider5 = min(100, slider5 + 5); slider10 = 0; slider_automate(16 | 512););
+
+gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98;
+gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 56; gfx_printf("SPEED   : %3d%% (REACTION)", eff_speed);
+b_sp_m = (mouse_x >= btn2_m_x && mouse_x <= btn2_m_x + btn_w && mouse_y >= ctrl_y + 54 && mouse_y <= ctrl_y + 70);
+b_sp_p = (mouse_x >= btn2_p_x && mouse_x <= btn2_p_x + btn_w && mouse_y >= ctrl_y + 54 && mouse_y <= ctrl_y + 70);
+gfx_r = b_sp_m ? 0.16 : 0.06; gfx_g = b_sp_m ? 0.24 : 0.10; gfx_b = b_sp_m ? 0.32 : 0.14;
+gfx_rect(btn2_m_x, ctrl_y + 54, btn_w, 16); gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98; gfx_rect(btn2_m_x, ctrl_y + 54, btn_w, 16, 0);
+gfx_x = btn2_m_x + 10; gfx_y = ctrl_y + 55; gfx_drawstr("-");
+gfx_r = b_sp_p ? 0.16 : 0.06; gfx_g = b_sp_p ? 0.24 : 0.10; gfx_b = b_sp_p ? 0.32 : 0.14;
+gfx_rect(btn2_p_x, ctrl_y + 54, btn_w, 16); gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98; gfx_rect(btn2_p_x, ctrl_y + 54, btn_w, 16, 0);
+gfx_x = btn2_p_x + 9; gfx_y = ctrl_y + 55; gfx_drawstr("+");
+(mouse_cap & 1) && !prev_mouse_cap && b_sp_m ? (slider9 = max(10, slider9 - 5); slider10 = 0; slider_automate(256 | 512););
+(mouse_cap & 1) && !prev_mouse_cap && b_sp_p ? (slider9 = min(100, slider9 + 5); slider10 = 0; slider_automate(256 | 512););
+
+gfx_r = 0.50; gfx_g = 0.65; gfx_b = 0.80;
+gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("RANGE   : %.0fHz - %.0fkHz", eff_locut, eff_hicut * 0.001);
+
+// CARD 3: MASTERING SIGNATURE PRESETS
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c3_x, ctrl_y, col_w, ctrl_h);
+gfx_r = 0.12; gfx_g = 0.20; gfx_b = 0.30; gfx_rect(c3_x, ctrl_y, col_w, ctrl_h, 0);
+gfx_setfont(1);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c3_x + pad_m; gfx_y = ctrl_y + 8; gfx_drawstr("MASTERING SIGNATURE PRESETS");
+
+// Preset Selector Row (<, Name/Menu, >)
+b_sel_y = ctrl_y + 28;
+b_sel_h = 22;
+b_prev_x = c3_x + pad_m;
+b_prev_w = 22;
+b_next_x = c3_x + col_w - pad_m - 22;
+b_next_w = 22;
+b_menu_x = b_prev_x + b_prev_w + 4;
+b_menu_w = b_next_x - b_menu_x - 4;
+
+hov_prev = (mouse_x >= b_prev_x && mouse_x <= b_prev_x + b_prev_w && mouse_y >= b_sel_y && mouse_y <= b_sel_y + b_sel_h);
+hov_next = (mouse_x >= b_next_x && mouse_x <= b_next_x + b_next_w && mouse_y >= b_sel_y && mouse_y <= b_sel_y + b_sel_h);
+hov_menu = (mouse_x >= b_menu_x && mouse_x <= b_menu_x + b_menu_w && mouse_y >= b_sel_y && mouse_y <= b_sel_y + b_sel_h);
+
+gfx_r = hov_prev ? 0.16 : 0.06; gfx_g = hov_prev ? 0.24 : 0.10; gfx_b = hov_prev ? 0.32 : 0.14;
+gfx_rect(b_prev_x, b_sel_y, b_prev_w, b_sel_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b_prev_x, b_sel_y, b_prev_w, b_sel_h, 0);
+gfx_setfont(3); gfx_x = b_prev_x + 7; gfx_y = b_sel_y + 4; gfx_drawstr("<");
+
+gfx_r = hov_menu ? 0.16 : 0.08; gfx_g = hov_menu ? 0.24 : 0.12; gfx_b = hov_menu ? 0.32 : 0.18;
+gfx_rect(b_menu_x, b_sel_y, b_menu_w, b_sel_h);
+gfx_r = 0.00; gfx_g = 0.95; gfx_b = 0.65; gfx_rect(b_menu_x, b_sel_y, b_menu_w, b_sel_h, 0);
+gfx_setfont(4); gfx_r = 0.95; gfx_g = 1.00; gfx_b = 0.95;
+gfx_x = b_menu_x + 6; gfx_y = b_sel_y + 4;
+gfx_printf("%02d: %s", slider12, get_engineer_name(slider12));
+
+gfx_r = hov_next ? 0.16 : 0.06; gfx_g = hov_next ? 0.24 : 0.10; gfx_b = hov_next ? 0.32 : 0.14;
+gfx_rect(b_next_x, b_sel_y, b_next_w, b_sel_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b_next_x, b_sel_y, b_next_w, b_sel_h, 0);
+gfx_setfont(3); gfx_x = b_next_x + 7; gfx_y = b_sel_y + 4; gfx_drawstr(">");
+
+(mouse_cap & 1) && !prev_mouse_cap && hov_prev ? (
+  slider12 = (slider12 - 1 + 24) % 24;
+  slider10 = 0;
+  prev_preset = slider12;
+  apply_gullfoss_master_preset(slider12);
+  slider_automate(2048 | 512);
+);
+(mouse_cap & 1) && !prev_mouse_cap && hov_next ? (
+  slider12 = (slider12 + 1) % 24;
+  slider10 = 0;
+  prev_preset = slider12;
+  apply_gullfoss_master_preset(slider12);
+  slider_automate(2048 | 512);
+);
+(mouse_cap & 1) && !prev_mouse_cap && hov_menu ? (
+  m_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)|22: Acle Kahney (TesseracT - King)|23: heaving. (carsick / Grungegaze)");
+  m_choice > 0 ? (
+    slider12 = m_choice - 1;
+    slider10 = 0;
+    prev_preset = slider12;
+    apply_gullfoss_master_preset(slider12);
+    slider_automate(2048 | 512);
+  );
+);
+
+// Row 2: Mode Pills (TANDEM SYNC, SPLIT CHAIN LOCK, STANDALONE)
+m_btn_y = ctrl_y + 54;
+m_btn_h = 20;
+pw3 = floor((col_w - pad_m * 2 - 8) / 3);
+m1_x = c3_x + pad_m;
+m2_x = m1_x + pw3 + 4;
+m3_x = m2_x + pw3 + 4;
+
+hov_m1 = (mouse_x >= m1_x && mouse_x <= m1_x + pw3 && mouse_y >= m_btn_y && mouse_y <= m_btn_y + m_btn_h);
+hov_m2 = (mouse_x >= m2_x && mouse_x <= m2_x + pw3 && mouse_y >= m_btn_y && mouse_y <= m_btn_y + m_btn_h);
+hov_m3 = (mouse_x >= m3_x && mouse_x <= m3_x + pw3 && mouse_y >= m_btn_y && mouse_y <= m_btn_y + m_btn_h);
+
+gfx_r = (slider10 == 1 || hov_m1) ? 0.06 : 0.03;
+gfx_g = (slider10 == 1 || hov_m1) ? 0.22 : 0.08;
+gfx_b = (slider10 == 1 || hov_m1) ? 0.26 : 0.12;
+gfx_rect(m1_x, m_btn_y, pw3, m_btn_h);
+gfx_r = slider10 == 1 ? 0.00 : 0.40;
+gfx_g = slider10 == 1 ? 0.85 : 0.50;
+gfx_b = slider10 == 1 ? 1.00 : 0.60;
+gfx_rect(m1_x, m_btn_y, pw3, m_btn_h, 0);
+gfx_setfont(4);
+gfx_r = slider10 == 1 ? 0.90 : 0.60;
+gfx_g = slider10 == 1 ? 1.00 : 0.70;
+gfx_b = slider10 == 1 ? 1.00 : 0.80;
+gfx_x = m1_x + floor((pw3 - 26) * 0.5); gfx_y = m_btn_y + 3; gfx_drawstr("SYNC");
+
+gfx_r = (slider10 == 2 || hov_m2) ? 0.04 : 0.03;
+gfx_g = (slider10 == 2 || hov_m2) ? 0.24 : 0.08;
+gfx_b = (slider10 == 2 || hov_m2) ? 0.16 : 0.12;
+gfx_rect(m2_x, m_btn_y, pw3, m_btn_h);
+gfx_r = slider10 == 2 ? 0.00 : 0.40;
+gfx_g = slider10 == 2 ? 0.95 : 0.50;
+gfx_b = slider10 == 2 ? 0.65 : 0.60;
+gfx_rect(m2_x, m_btn_y, pw3, m_btn_h, 0);
+gfx_r = slider10 == 2 ? 0.90 : 0.60;
+gfx_g = slider10 == 2 ? 1.00 : 0.70;
+gfx_b = slider10 == 2 ? 0.95 : 0.80;
+gfx_x = m2_x + floor((pw3 - 38) * 0.5); gfx_y = m_btn_y + 3; gfx_drawstr("SPLIT");
+
+gfx_r = (slider10 == 0 || hov_m3) ? 0.16 : 0.03;
+gfx_g = (slider10 == 0 || hov_m3) ? 0.18 : 0.08;
+gfx_b = (slider10 == 0 || hov_m3) ? 0.22 : 0.12;
+gfx_rect(m3_x, m_btn_y, pw3, m_btn_h);
+gfx_r = slider10 == 0 ? 0.90 : 0.40;
+gfx_g = slider10 == 0 ? 0.75 : 0.50;
+gfx_b = slider10 == 0 ? 0.35 : 0.60;
+gfx_rect(m3_x, m_btn_y, pw3, m_btn_h, 0);
+gfx_r = slider10 == 0 ? 1.00 : 0.60;
+gfx_g = slider10 == 0 ? 0.95 : 0.70;
+gfx_b = slider10 == 0 ? 0.80 : 0.80;
+gfx_x = m3_x + floor((pw3 - 44) * 0.5); gfx_y = m_btn_y + 3; gfx_drawstr("MANUAL");
+
+(mouse_cap & 1) && !prev_mouse_cap && hov_m1 ? (slider10 = 1; slider_automate(512););
+(mouse_cap & 1) && !prev_mouse_cap && hov_m2 ? (slider10 = 2; slider_automate(512););
+(mouse_cap & 1) && !prev_mouse_cap && hov_m3 ? (slider10 = 0; slider_automate(512););
+
+// Row 3: Output Gain Trim & Readout
+og_y = ctrl_y + 78;
+gfx_setfont(3);
+gfx_r = 0.85; gfx_g = 0.90; gfx_b = 1.00;
+gfx_x = c3_x + pad_m; gfx_y = og_y + 2;
+gfx_printf("OUT TRIM: %+4.1f dB", slider11);
+
+b_og_m_x = c3_x + col_w - pad_m - btn_w - btn_gap - btn_w;
+b_og_p_x = b_og_m_x + btn_w + btn_gap;
+hov_og_m = (mouse_x >= b_og_m_x && mouse_x <= b_og_m_x + btn_w && mouse_y >= og_y && mouse_y <= og_y + 16);
+hov_og_p = (mouse_x >= b_og_p_x && mouse_x <= b_og_p_x + btn_w && mouse_y >= og_y && mouse_y <= og_y + 16);
+
+gfx_r = hov_og_m ? 0.16 : 0.06; gfx_g = hov_og_m ? 0.24 : 0.10; gfx_b = hov_og_m ? 0.32 : 0.14;
+gfx_rect(b_og_m_x, og_y, btn_w, 16); gfx_r = 0.30; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b_og_m_x, og_y, btn_w, 16, 0);
+gfx_x = b_og_m_x + 10; gfx_y = og_y + 1; gfx_drawstr("-");
+
+gfx_r = hov_og_p ? 0.16 : 0.06; gfx_g = hov_og_p ? 0.24 : 0.10; gfx_b = hov_og_p ? 0.32 : 0.14;
+gfx_rect(b_og_p_x, og_y, btn_w, 16); gfx_r = 0.30; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b_og_p_x, og_y, btn_w, 16, 0);
+gfx_x = b_og_p_x + 9; gfx_y = og_y + 1; gfx_drawstr("+");
+
+(mouse_cap & 1) && !prev_mouse_cap && hov_og_m ? (slider11 = max(-12.0, slider11 - 0.5); out_gain_lin = exp(slider11 * 0.11512925); slider_automate(1024););
+(mouse_cap & 1) && !prev_mouse_cap && hov_og_p ? (slider11 = min(12.0, slider11 + 0.5); out_gain_lin = exp(slider11 * 0.11512925); slider_automate(1024););
+
+prev_mouse_cap = mouse_cap;

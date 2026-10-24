@@ -1,0 +1,80 @@
+================================================================================
+⚡ DAMEI SUITE: APPLYING DE-BOOM, BRIGHTNESS MATCH & VOCAL UNBURY
+   Target Reference: Split Chain - 'I'm Not Dying To Be Here'
+   1. Unbury Vocals: -2.0 dB rel to Drums (Producer Center Trim +2.2 dB)
+   2. De-Boom: Upper-bass ratio reduced from 2.56x -> 1.32x (Split Chain Match)
+   3. Brightness: +1.8 dB Spectral Tilt Sheen (5 kHz - 16 kHz Target Match)
+================================================================================
+✔ CALIBRATING MIXING SUITE on [MASTER TRACK]
+   ├─ Producer Center Vocal Trim (+2.2 dB): 2.20
+   ├─ Center Vocal Donut-Hole (Deep Cut -3.5 dB @ 2500 Hz): 2.00
+   ├─ Vocal Donut-Hole Center (2500 Hz): 2500.00
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Dynamic De-Box Mud Gain (-2.5 dB): -2.50
+   ├─ Dynamic De-Box Frequency (160 Hz Mud): 160.00
+   ├─ Guitar Chug Guard (Fast Notch 190 Hz): 1.00
+   ├─ Spectral Tilt Brightness Sheen (+1.8 dB): 1.80
+   ├─ Stereo Dimension Width (1.18x): 1.18
+   ├─ Mix Bus Clipper (Lance Prenc Soft Clip): 1.00
+✔ CALIBRATING MIXING SUITE on [MASTER TRACK]
+   ├─ Sub-Bass Mono Cutoff (100 Hz): 100.00
+   ├─ Dynamic De-Box Mud Gain (-2.5 dB): -2.50
+   ├─ Spectral Tilt Brightness Sheen (+1.8 dB): 1.80
+   ├─ Stereo Dimension Width (1.18x): 1.18
+✔ CALIBRATING VOCAL SOVEREIGN on [Track: VOX]
+   ├─ Master Vocal Engine (Active): 1.00
+   ├─ 1176 Fast FET Peak Shaver (28%): 28.00
+   ├─ LA-2A Optical Body Leveler (24%): 24.00
+   ├─ Center Lead Lock 100% Mono <200Hz: 1.00
+   ├─ 1.8kHz Vocal Body & Presence (+1.5 dB): 1.50
+   ├─ Maag 16kHz Air Sheen (+2.5 dB): 2.50
+   ├─ ReEQ 380Hz Chest Mud Scoop (-2.5 dB): -2.50
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ CALIBRATING DRUM BUS ARCHITECT on [Track: DRUMS]
+   ├─ Cymbal Silk Master (Active): 1.00
+   ├─ Sub-Kick Boom Tamer 40Hz (-2.0 dB): -2.00
+   ├─ Room Mud Scoop 340Hz (-2.5 dB): -2.50
+   ├─ Cymbal Silk Air Sheen (+2.2 dB): 2.20
+   ├─ Cymbal De-Trash Resonance (-2.0 dB): -2.00
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+✔ CALIBRATING SYNTH BUS NEBULA on [Track: SYNTHS]
+   ├─ Sub Foundation Mono Lock (<90 Hz): 1.00
+   ├─ Multiband Low-Mid Mud Scoop (-2.0 dB): -2.00
+   ├─ 12kHz Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Multiband Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Lead Vocal Pocket Carve (3.0 dB): 3.00
+✔ CALIBRATING SYNTH BUS NEBULA on [Track: Synth]
+   ├─ Sub Foundation Mono Lock (<90 Hz): 1.00
+   ├─ Multiband Low-Mid Mud Scoop (-2.0 dB): -2.00
+   ├─ 12kHz Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Multiband Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Lead Vocal Pocket Carve (3.0 dB): 3.00
+✔ CALIBRATING SYNTH BUS NEBULA on [Track: SynBass]
+   ├─ Sub Foundation Mono Lock (<90 Hz): 1.00
+   ├─ Multiband Low-Mid Mud Scoop (-2.0 dB): -2.00
+   ├─ 12kHz Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Multiband Glassy Air Sheen (+3.2 dB): 3.20
+   ├─ Lead Vocal Pocket Carve (3.0 dB): 3.00
+✔ DE-BOOMING GUITAR BUS ALCHEMIST on [Track: GUITAR]
+   ├─ Sub-Guitar Highpass Anchor (95 Hz HPF): 95.00
+   ├─ Mud Box Scoop 380Hz (-2.0 dB): -2.00
+   ├─ Dynamic Chug Clamp Strength (40% / -4.0 dB): 40.00
+   ├─ Chug Resonance Frequency (190 Hz): 190.00
+   ├─ Air Sheen & Cab Presence (+1.8 dB): 1.80
+   ├─ Stereo Quad-Wall Width (1.28x): 1.28
+   ├─ Center Pocket Cut (-2.5 dB for Vocal): -2.50
+✔ DE-BOOMING BASS BUS ENGINE on [Track: BASS]
+   ├─ Sub-Mono Elliptical Anchor (90 Hz): 90.00
+   ├─ Kick Ducking Depth (3.0 dB via Trackspacer): 3.00
+   ├─ Mud Box Scoop 250Hz (-2.5 dB): -2.50
+   ├─ Smash & Grab Comp Mode (Hybrid): 2.00
+   ├─ Trackspacer Dynamic Inverse EQ (Active): 1.00
+   ├─ Trackspacer Ducking Amount (40%): 40.00
+   ├─ Matrix Auto-Correct Lane (Active): 1.00
+   ★ OPTIMIZED TRACK FADER: [VOX] set to +1.6 dB (Sits firmly on top of mix)
+--------------------------------------------------------------------------------
+⚡ CALIBRATION APPLIED: 9 Suites Updated | 57 Parameters Calibrated
+   1. Vocals Unburied: Lead vocal lifted +2.2 dB with -3.5 dB Center Donut-Hole carve.
+   2. De-Boomed: 160Hz mud scooped -2.5 dB, 95Hz Guitar HPF, 3.0 dB Kick Ducking.
+   3. Brightness Matched: +1.8 dB Mix Bus Spectral Tilt + Air Sheen across 5k-16kHz.
+================================================================================

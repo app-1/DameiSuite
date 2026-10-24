@@ -10,7 +10,7 @@ import assess_matrix as am
 REF = r"H:\REFERENCES"
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.join(HERE, "fp_cache.json")
-JSFX = os.path.join(HERE, "Damei_AssessmentMatrix.jsfx")
+JSFX = os.path.join(os.path.dirname(HERE), "effects", "Damei_AssessmentMatrix.jsfx")
 
 # producer preset index (Mixing Suite slider39) -> reference file
 PRESET_REF = {
@@ -32,6 +32,9 @@ PRESET_REF = {
     17: "8. Gravity.flac",
     18: "Spiritbox - Keep Sweet.wav",
     19: "Bad Omens - THE DEATH OF PEACE OF MIND.wav",
+    22: "TesseracT - King.wav",
+    23: "heaving. - why are you still dreaming- - 03 carsick.wav",
+    24: "SENNA - Out of The Blue.flac",
 }
 KEYS = ["lufs", "plr", "crest", "lra", "corr", "width"]
 
@@ -55,10 +58,13 @@ LIBRARY = [
     (PRESET_REF[17], "Architects - Gravity", 17),
     (PRESET_REF[18], "Spiritbox - Keep Sweet", 18),
     (PRESET_REF[19], "Bad Omens - Death Of Peace Of Mind", 19),
+    (PRESET_REF[22], "TesseracT - King", 22),
+    (PRESET_REF[23], "heaving. - carsick (Adam Cichocki)", 23),
     ("Northlane - Evian.wav", "Northlane - Evian", -1),
     ("Love Is Noise - All Eyes Shut - Hole In Me (24-bit HD audio) - 02 Hole In Me.wav", "Love Is Noise - Hole In Me", -1),
     ("01 The End of All We Know.flac", "The End Of All We Know", -1),
     ("Flake - Grief.wav", "Flake - Grief", -1),
+    (PRESET_REF[24], "SENNA - Out Of The Blue (Manuel Renner)", 24),
 ]
 BN = [b[0] for b in am.BANDS]
 
@@ -82,7 +88,7 @@ def main():
     avg["bw"] = list(np.mean([r["bw"] for r in rows.values()], axis=0))
 
     lines = []
-    for idx in range(0, 22):
+    for idx in range(0, 25):
         r = rows.get(idx, avg)
         has = 1 if idx in rows else 0
         vals = [r[k] for k in KEYS] + r["pct"] + r["bw"]

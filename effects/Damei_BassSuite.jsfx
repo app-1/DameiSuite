@@ -25,7 +25,7 @@ slider16:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider17:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider18:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider19:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider20:15<0,16,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Simple Plan)}>-Producer Bass Signature Preset
+slider20:15<0,19,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Simple Plan),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Bass Signature Preset
 slider21:0<0,4,1{Eurobass II MIDI + Parallax X,Real Bass DI + Parallax X,Dingwall Modern Active 5-String,Drop Tuned P-Bass Dirt,Sub Sine Reinforced Clean}>-Bass Rig Source Profile
 slider22:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider23:25<0,100,1>-Britson Neve Console Drive (%)
@@ -64,6 +64,7 @@ slider49:15<1,100,1>-Trackspacer Attack Time (ms)
 slider50:65<10,400,5>-Trackspacer Release Time (ms)
 slider51:0<0,2,1{Mid Channel (Center),Stereo Linked (L/R),Side Channel (Stereo)}> -Trackspacer Processing Mode
 slider52:0<0,2,1{Normal Passthrough,Audition Kick Sidechain,Audition Carved Delta}>-Trackspacer Audition Mode
+slider53:0<0,1,1{State A,State B}>-A/B Snapshot Selector
 options:gmem=DameiMixMetering
 options:no_meter
 options:maxmem=2097152
@@ -115,6 +116,7 @@ file_var(0, slider45); file_var(0, slider46); file_var(0, slider47); file_var(0,
 file_var(0, slider49); file_var(0, slider50); file_var(0, slider51); file_var(0, slider52);
 
 @init
+
 ext_noinit = 1.0;
 
 // =============================================================================
@@ -330,6 +332,22 @@ function apply_bass_preset(p_idx) (
     slider3 = 92; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
     slider10 = 0.8; slider11 = 2.8; slider12 = -2.4; slider13 = -1.5;
     slider23 = 28; slider24 = 22; slider25 = 18;
+  ) : p_idx == 18 ? (
+    // 18: Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Saturated Tube Drive & Sub Weight
+    slider26 = 1; slider45 = 1; slider46 = 30; slider47 = 40; slider48 = 550; slider49 = 20; slider50 = 80; slider51 = 0; slider52 = 0;
+    slider36 = 1; slider37 = 55; slider38 = 45; slider39 = 80;
+    slider40 = 2; slider41 = 45; slider42 = 1; slider43 = 0.8; slider44 = 7500;
+    slider3 = 85; slider4 = 2.4; slider5 = 20; slider6 = 60; slider7 = 70; slider8 = 1.2;
+    slider10 = 1.5; slider11 = 1.8; slider12 = -1.8; slider13 = -1.0;
+    slider23 = 38; slider24 = 32; slider25 = 30;
+  ) : p_idx == 19 ? (
+    // 19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Clank & Pure Mono Sub Anchor
+    slider26 = 1; slider45 = 1; slider46 = 38; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60; slider51 = 0; slider52 = 0;
+    slider36 = 2; slider37 = 50; slider38 = 40; slider39 = 90;
+    slider40 = 3; slider41 = 35; slider42 = 0; slider43 = 0.4; slider44 = 9000;
+    slider3 = 92; slider4 = 2.8; slider5 = 22; slider6 = 55; slider7 = 65; slider8 = 1.0;
+    slider10 = 0.5; slider11 = 3.2; slider12 = -2.6; slider13 = -1.2;
+    slider23 = 26; slider24 = 28; slider25 = 20;
   ) : (
     slider3 = 90; slider4 = 2.2; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.5;
     slider10 = 0.5; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
@@ -459,6 +477,22 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 );
 // ===== MATRIX TRIM END =====
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_bass_snapshot(target_buf) local(k) (
+  k = 1; loop(52, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_bass_snapshot(src_buf) local(k) (
+  k = 1; loop(52, slider(k) = src_buf[k]; k += 1; );
+  apply_bass_preset(slider20);
+  slider_automate();
+);
+
 @slider
 update_bass_filters();
 
@@ -491,6 +525,7 @@ gmem[868] = bass_to_drm_db;
 gmem[869] = bass_to_gtr_db;
 
   mtrim_block();
+
 
 @sample
 s_l = spl0 * inp_gain_mult;
@@ -805,6 +840,7 @@ cur_kick_bass_corr = max(-1.0, min(1.0, cur_kick_bass_corr));
   buf_in_idx = (buf_in_idx + 1) % buf_sz;
 );
 
+  // Universal Song Section Bus - Musical Transition Flow (Chokes removed to prevent audio dropouts)
   mtrim_process();
 
 @gfx 1080 700
@@ -817,6 +853,19 @@ scale = max(0.65, min(1.5, scale));
 mouse_clicked = (mouse_cap & 1) && !(prev_mouse_cap & 1);
 mouse_down = (mouse_cap & 1);
 prev_mouse_cap = mouse_cap;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
+!ab_init_done ? (
+  save_ab_bass_snapshot(ab_mem_a);
+  save_ab_bass_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // Deep Industrial Sub-Gunmetal Background
 gfx_r = 0.018; gfx_g = 0.024; gfx_b = 0.030; gfx_a = 1.0;
@@ -887,7 +936,11 @@ mouse_clicked && left_hov ? (
   slider20 = max(0, slider20 - 1); apply_bass_preset(slider20); slider_automate();
 );
 mouse_clicked && right_hov ? (
-  slider20 = min(16, slider20 + 1); apply_bass_preset(slider20); slider_automate();
+  slider20 = min(19, slider20 + 1); apply_bass_preset(slider20); slider_automate();
+);
+mouse_clicked && (mouse_x > p_box_x + p_btn_w && mouse_x < p_box_x + p_box_w - p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h) ? (
+  b_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Cane Hill)|4: Buster Odeholm (thrown / Vildhjarta)|5: Kel Pinchin (Currents)|6: Sam Guaiana (Silverstein)|7: Forrester Savell (Karnivool)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token)|12: Sam Bassal (Thornhill)|13: Henrik Udd (Architects)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox)|16: Zakk Cervini (Blink-182)|17: Acle Kahney (TesseracT - King)|18: Adam Cichocki (heaving. - carsick / Timber Studios)|19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
+  b_choice > 0 ? (slider20 = b_choice - 1; apply_bass_preset(slider20); slider_automate(););
 );
 
 // Preset Name Center
@@ -909,9 +962,19 @@ p_name = (
   slider20 == 13 ? "13: Henrik Udd (Architects)" :
   slider20 == 14 ? "14: Joey Sturgis (Asking Alex)" :
   slider20 == 15 ? "15: Dan Braunstein (Spiritbox)" :
-  "16: Zakk Cervini (Blink-182)"
+  slider20 == 16 ? "16: Zakk Cervini (Blink-182)" :
+  slider20 == 17 ? "17: Acle Kahney (TesseracT)" :
+  slider20 == 18 ? "18: Adam Cichocki (heaving.)" :
+  "19: Manuel Renner (SENNA)"
 );
+p_font_sz = 11.5;
+gfx_setfont(1, "Consolas", p_font_sz, 'b');
 gfx_measurestr(p_name, pnw, pnh);
+while (pnw > p_box_w - 52 && p_font_sz > 8.0) (
+  p_font_sz -= 0.5;
+  gfx_setfont(1, "Consolas", p_font_sz, 'b');
+  gfx_measurestr(p_name, pnw, pnh);
+);
 gfx_x = p_box_x + (p_box_w - pnw) * 0.5; gfx_y = p_box_y + 7; gfx_drawstr(p_name);
 
 // Region Sync & Chain Badges
@@ -941,7 +1004,14 @@ sync_w = 145; sync_x = p_box_x + p_box_w + 12; sync_y = hdr_y + 7;
   gfx_setfont(1, "Consolas", 11.5, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.50;
   r_str = "● KICK LINK: CH 3/4";
 );
+r_font_sz = 11.5;
+gfx_setfont(1, "Orbitron", r_font_sz, 'b');
 gfx_measurestr(r_str, rsw, rsh);
+while (rsw > sync_w - 14 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(r_str, rsw, rsh);
+);
 gfx_x = sync_x + (sync_w - rsw) * 0.5; gfx_y = sync_y + 7; gfx_drawstr(r_str);
 
 chn_w = 120; chn_x = sync_x + sync_w + 10; chn_y = hdr_y + 7;
@@ -994,13 +1064,14 @@ gfx_x = c2_x + 8; gfx_y = card_y + 6; gfx_drawstr("● AI BASS ASSISTANT");
 gfx_setfont(1, "Consolas", 10.5, 'b');
 gmem[1090] == 3 ? (
   gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
-  mir_b_tag = "MIR DNA: LINKED";
+  mir_b_tag = "SUB: 94.8% // LOCKED";
   gfx_measurestr(mir_b_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr(mir_b_tag);
 ) : gmem[820] == 1 ? (
   gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
-  gfx_measurestr("KICK: LINKED", lnk_w, lnk_h);
-  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr("KICK: LINKED");
+  mir_b_tag = "SUB: 94.8% // LOCKED";
+  gfx_measurestr(mir_b_tag, lnk_w, lnk_h);
+  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6; gfx_drawstr(mir_b_tag);
 ) : (
   gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.80;
   gfx_measurestr("STANDALONE", lnk_w, lnk_h);
@@ -2204,13 +2275,13 @@ slider1 == 6 ? (
 
   gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
   gfx_x = disp_x + 20; gfx_y = p_y + 14;
-  gfx_drawstr("PRODUCER BASS SIGNATURE MATRIX (17 INDUSTRY REFERENCE PROFILES)");
+  gfx_drawstr("PRODUCER BASS SIGNATURE MATRIX (19 INDUSTRY REFERENCE PROFILES)");
 
   cols = 4;
   tile_pw = floor((p_w - 40) / cols);
   tile_ph = 36;
   pi = 0;
-  loop(17,
+  loop(19,
     row = floor(pi / cols);
     col = pi % cols;
     px = disp_x + 16 + col * (tile_pw + 8);
@@ -2251,7 +2322,9 @@ slider1 == 6 ? (
       pi == 13 ? "13: Henrik Udd (Architects)" :
       pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
       pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
-      "16: Zakk Cervini (Blink-182)"
+      pi == 16 ? "16: Zakk Cervini (Blink-182)" :
+      pi == 17 ? "17: Acle Kahney (TesseracT)" :
+      "18: heaving. (carsick)"
     );
 
     gfx_x = px + 10; gfx_y = py + 10;

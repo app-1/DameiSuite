@@ -159,6 +159,7 @@ file_var(0, slider64);
 file_var(0, slider65);
 
 @init
+
 buf_sz = 160;
 buf_in_idx = 0;
 buf_wave_arr = 10000;
@@ -692,6 +693,21 @@ function mtrim_process() local(k, yl, yr, mm, ss) (
 );
 // ===== MATRIX TRIM END =====
 
+
+// =============================================================================
+// GLOBAL A/B SNAPSHOT STATE MEMORY & AUDITION ENGINE (END OF @INIT SCOPE)
+// =============================================================================
+ab_state = 0; ab_mem_a = 60000; ab_mem_b = 60100; ab_init_done = 0;
+
+function save_ab_dev_snapshot(target_buf) local(k) (
+  k = 1; loop(24, target_buf[k] = slider(k); k += 1; );
+);
+
+function load_ab_dev_snapshot(src_buf) local(k) (
+  k = 1; loop(24, slider(k) = src_buf[k]; k += 1; );
+  slider_automate();
+);
+
 @slider
 update_devastator_filters();
 update_reeq_and_comp_coefficients();
@@ -828,6 +844,8 @@ gmem[940] = bed_vu > 0.0000000001 ? 10.0 * log10(bed_vu) : -90.0; // Devastator 
 gmem[941] = 20.0 * log10(max(bed_pk, 0.000001));                  // Devastator bed peak hold (dB)
 
   mtrim_block();
+
+
 
 @sample
 spl_l = spl0;
@@ -1159,6 +1177,19 @@ function draw_sound_bay_v37(slot_num, by, bay_x, bay_w, bay_h, title, source_str
 // =============================================================================
 mouse_clicked = (mouse_cap & 1) && !prev_mouse_cap;
 prev_mouse_cap = mouse_cap & 1;
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
+!ab_init_done ? (
+  save_ab_dev_snapshot(ab_mem_a);
+  save_ab_dev_snapshot(ab_mem_b);
+  ab_init_done = 1;
+);
 
 // 1. Carbon Obsidian Background
 gfx_r = 0.024; gfx_g = 0.028; gfx_b = 0.038;

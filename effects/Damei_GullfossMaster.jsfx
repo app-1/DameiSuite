@@ -16,7 +16,8 @@ slider8:18500<5000,20000,250>-Gullfoss High Cutoff Limit (Hz)
 slider9:55<10,100,1>-Gullfoss Auditory Reaction Speed (%)
 slider10:1<0,2,1{Manual Standalone,Tandem Sync (Follow Sankofa / Ozone),Split Chain Signature Master (Robin Schmidt / Grant Berry)}>-Tandem Integration Mode
 slider11:0<-12,12,0.1>-Gullfoss Output Gain (dB)
-slider12:6<0,21,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic)}>-Mastering Engineer Signature Preset
+slider12:6<0,24,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Prenc Audio Master),Scott Seigel (DIESECT Full Production Master),Jonathan Dolese (Mirrorcell / Konkrete Studios Master),Buster Odeholm (thrown / Odeholm Audio Master),Grant Berry (blanket / Love Is Noise / Fader Mastering),Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master),Ted Jensen (Don Broco / Sterling Sound Master),Robin Schmidt (Static Dress / 24-96 Mastering),Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master),Nick Townsend (Heavenward / Townsend Mastering),Randy Merrill (City Of Souls / Sterling Sound Master),Leon Schmidt & Christian Donaldson (SUNBORN Master),Ermin Hamidovic (Systematic Mastering Guide Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose signature),George Lever (Loathe / Sleep Token signature),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bleed From Within signature),Dan Braunstein (Spiritbox / Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens),Jens Bogren (Fascination Street Master),Nolly (Periphery / GGD Systematic),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Mastering Engineer Signature Preset
+slider13:0<0,1,1{Auditory De-Masking Engine,Mastering Engineer Matrix}>-Suite Tab View
 
 options:gmem=DameiMixMetering
 options:maxmem=65536
@@ -54,7 +55,67 @@ function get_engineer_name(p_idx) (
   p_idx == 18 ? "Dan Braunstein (Spiritbox)" :
   p_idx == 19 ? "Zakk Cervini & Erik Ron" :
   p_idx == 20 ? "Jens Bogren (Fascination St.)" :
-  "Nolly (Periphery / GGD)";
+  p_idx == 21 ? "Nolly (Periphery / GGD)" :
+  p_idx == 22 ? "Acle Kahney (TesseracT)" :
+  p_idx == 23 ? "Adam Cichocki (heaving.)" :
+  "Manuel Renner (SENNA)";
+);
+
+
+function get_gullfoss_short_name(p_idx) (
+  p_idx == 0  ? "0: DEFAULT" :
+  p_idx == 1  ? "1: PRENC" :
+  p_idx == 2  ? "2: SEIGEL" :
+  p_idx == 3  ? "3: DOLESE" :
+  p_idx == 4  ? "4: ODEHOLM" :
+  p_idx == 5  ? "5: BERRY" :
+  p_idx == 6  ? "6: SPLITCHAIN" :
+  p_idx == 7  ? "7: JENSEN" :
+  p_idx == 8  ? "8: SCHMIDT" :
+  p_idx == 9  ? "9: KALAJIAN" :
+  p_idx == 10 ? "10: TOWNSEND" :
+  p_idx == 11 ? "11: MERRILL" :
+  p_idx == 12 ? "12: DONALDSON" :
+  p_idx == 13 ? "13: HAMIDOVIC" :
+  p_idx == 14 ? "14: PUTNEY" :
+  p_idx == 15 ? "15: LEVER" :
+  p_idx == 16 ? "16: BASSAL" :
+  p_idx == 17 ? "17: UDD" :
+  p_idx == 18 ? "18: BRAUNSTEIN" :
+  p_idx == 19 ? "19: CERVINI" :
+  p_idx == 20 ? "20: BOGREN" :
+  p_idx == 21 ? "21: NOLLY" :
+  p_idx == 22 ? "22: ACLE" :
+  p_idx == 23 ? "23: CICHOCKI" :
+  "24: RENNER";
+);
+
+function get_gullfoss_preset_notes(p_idx) (
+  p_idx == 0  ? "Pristine auditory neutrality. 20% recover, 20% tame, flat bias. Transparent dynamic clarity." :
+  p_idx == 1  ? "Aggressive Prenc bite: 32% recover, 38% tame, -5% bias, +16% brightness sheen. Fast response." :
+  p_idx == 2  ? "Dense industrial weight: 26% recover, 35% tame, -8% bias, +14% sub weight. Controlled punch." :
+  p_idx == 3  ? "Glossy modern polish: 34% recover, 28% tame, +6% recover bias, +14% brightness air sheen." :
+  p_idx == 4  ? "Buster Odeholm extreme thall clamp: 22% recover, 42% heavy resonance tame, -12% bias, 75% speed." :
+  p_idx == 5  ? "Lush ambient shoegaze unmasking: 25% recover, 22% tame, +4% bias, +15% brightness shimmer." :
+  p_idx == 6  ? "Split Chain master: 28% recover, 32% tame, +8% bias, +12% bright, +10% boost. Reference lock." :
+  p_idx == 7  ? "Sterling Sound arena rock: 30% recover, 26% tame, +5% bias, +15% brightness, 80Hz cut." :
+  p_idx == 8  ? "24-96 post-hardcore raw punch: 30% recover, 34% tame, +10% brightness, +12% low weight." :
+  p_idx == 9  ? "Rogue Planet upfront punch: 35% recover, 30% tame, +8% bias, +18% brightness, 65% speed." :
+  p_idx == 10 ? "Townsend warm analog depth: 24% recover, 20% gentle tame, +10% low weight, 65Hz cut." :
+  p_idx == 11 ? "City of Souls audiophile clarity: 26% recover, 24% tame, +12% brightness, 50% speed." :
+  p_idx == 12 ? "Hyper-modern metalcore: 36% recover, 36% tame, +16% brightness sheen, 70% fast reaction." :
+  p_idx == 13 ? "Systematic Mastering Guide benchmark: 22% recover, 22% tame, 0% bias, linear reference." :
+  p_idx == 14 ? "Putney signature aggression: 28% recover, 40% harshness tame, -10% bias, +8% brightness." :
+  p_idx == 15 ? "Loathe / Sleep Token atmospheric depth: 32% recover, 24% tame, +10% bias, +16% low boost." :
+  p_idx == 16 ? "Thornhill modern alternative: 28% recover, 30% tame, +14% brightness, +8% low boost." :
+  p_idx == 17 ? "Architects massive UK arena: 30% recover, 35% tame, +15% brightness, +10% low weight." :
+  p_idx == 18 ? "Spiritbox modern pop-metal: 34% recover, 28% tame, +18% pristine top-end air, 60% speed." :
+  p_idx == 19 ? "Bad Omens radio polish: 32% recover, 32% tame, +16% brightness, +10% sub boost." :
+  p_idx == 20 ? "Fascination Street Nordic metal: 25% recover, 38% resonance tame, -8% bias, +12% low weight." :
+  p_idx == 21 ? "Nolly clean djent: 30% recover, 35% tame, -5% bias, +14% sheen, 85Hz HPF cut." :
+  p_idx == 22 ? "TesseracT progressive transparency: 28% recover, 26% tame, +12% brightness, 70Hz low cut." :
+  p_idx == 23 ? "Timber Studios grungegaze fuzz bloom: 36% recover, 28% tame, +10% bias, +18% high sheen." :
+  "Uberlarm hyper-modern metalcore: 35% recover, 34% tame, +16% brightness, +12% kick punch, 90Hz mono anchor.";
 );
 
 function apply_gullfoss_master_preset(p_idx) (
@@ -100,6 +161,12 @@ function apply_gullfoss_master_preset(p_idx) (
     slider2 = 22; slider3 = 30; slider4 = -4; slider5 = 8; slider6 = 10; slider7 = 70; slider8 = 18000; slider9 = 48;
   ) : p_idx == 21 ? ( // Nolly (Periphery / GGD)
     slider2 = 28; slider3 = 34; slider4 = 0; slider5 = 12; slider6 = 8; slider7 = 75; slider8 = 18500; slider9 = 60;
+  ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King)
+    slider2 = 30; slider3 = 32; slider4 = -2; slider5 = 14; slider6 = 12; slider7 = 75; slider8 = 19000; slider9 = 62;
+  ) : p_idx == 23 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios)
+    slider2 = 36; slider3 = 28; slider4 = 10; slider5 = 18; slider6 = 15; slider7 = 70; slider8 = 19500; slider9 = 56;
+  ) : p_idx == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)
+    slider2 = 30; slider3 = 34; slider4 = 2; slider5 = 16; slider6 = 10; slider7 = 75; slider8 = 19500; slider9 = 65;
   ) : ( // Default Modern Metal Clean
     slider2 = 24; slider3 = 26; slider4 = 0; slider5 = 8; slider6 = 8; slider7 = 60; slider8 = 18500; slider9 = 50;
   );
@@ -425,7 +492,7 @@ spl1 = (in_r * (1.0 - bp_fade) + out_r * bp_fade) * out_gain_lin;
 
 cur_out_pk = max(abs(spl0), abs(spl1));
 
-@gfx 820 440
+@gfx 840 470
 disp_x = 0; disp_y = 0; disp_w = gfx_w; disp_h = gfx_h;
 
 // Initialize fonts ONCE (Eliminates 660 Windows GDI CreateFont calls/sec!)
@@ -529,11 +596,47 @@ slider1 ? gfx_drawstr("• ACTIVE") : gfx_drawstr("✕ BYPASS");
   slider_automate(1);
 );
 
+
+// Tab Bar Navigation (Auditory Engine vs Mastering Engineer Matrix)
+tab_y = hdr_y + hdr_h + 6;
+tab_h = 24;
+tab_w = floor((disp_w - 24) / 2);
+ti = 0;
+loop(2,
+  tx = disp_x + 12 + ti * tab_w;
+  sel = (slider13 == ti);
+  sel ? (
+    gfx_r = 0.09; gfx_g = 0.14; gfx_b = 0.20;
+  ) : (
+    gfx_r = 0.035; gfx_g = 0.045; gfx_b = 0.060;
+  );
+  gfx_rect(tx, tab_y, tab_w - 4, tab_h);
+  sel ? (
+    gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+    gfx_rect(tx, tab_y + tab_h - 2, tab_w - 4, 2);
+    gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  ) : (
+    gfx_r = 0.55; gfx_g = 0.65; gfx_b = 0.75;
+  );
+  gfx_setfont(2);
+  t_lbl = (ti == 0 ? "AUDITORY DE-MASKING ENGINE" : "MASTERING ENGINEER MATRIX");
+  gfx_measurestr(t_lbl, tlw, tlh);
+  gfx_x = floor(tx + (tab_w - 4 - tlw) * 0.5); gfx_y = tab_y + 5;
+  gfx_drawstr(t_lbl);
+  (mouse_cap & 1) && !prev_mouse_cap && (mouse_x >= tx && mouse_x <= tx + tab_w - 4 && mouse_y >= tab_y && mouse_y <= tab_y + tab_h) ? (
+    slider13 = ti;
+    slider_automate(4096);
+  );
+  ti += 1;
+);
+
+slider13 == 0 ? (
+
 // 2. CENTRAL GULLFOSS AUDITORY EQ GRAPH DISPLAY
 gp_x = disp_x + 8;
-gp_y = hdr_y + hdr_h + 8;
+gp_y = tab_y + tab_h + 6;
 gp_w = disp_w - 16;
-gp_h = 200;
+gp_h = 180;
 gp_cy = gp_y + gp_h * 0.50; // 0 dB line
 
 gfx_r = 0.014; gfx_g = 0.018; gfx_b = 0.026;
@@ -830,21 +933,21 @@ gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(b_next_x, b_sel_y, b_next_w, 
 gfx_setfont(3); gfx_x = b_next_x + 7; gfx_y = b_sel_y + 4; gfx_drawstr(">");
 
 (mouse_cap & 1) && !prev_mouse_cap && hov_prev ? (
-  slider12 = (slider12 - 1 + 22) % 22;
+  slider12 = (slider12 - 1 + 25) % 25;
   slider10 = 0;
   prev_preset = slider12;
   apply_gullfoss_master_preset(slider12);
   slider_automate(2048 | 512);
 );
 (mouse_cap & 1) && !prev_mouse_cap && hov_next ? (
-  slider12 = (slider12 + 1) % 22;
+  slider12 = (slider12 + 1) % 25;
   slider10 = 0;
   prev_preset = slider12;
   apply_gullfoss_master_preset(slider12);
   slider_automate(2048 | 512);
 );
 (mouse_cap & 1) && !prev_mouse_cap && hov_menu ? (
-  m_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)");
+  m_choice = gfx_showmenu("0: Default Modern Metal Clean (2026 Clarity & Punch)|1: Lance Prenc (Alpha Wolf / Prenc Audio Master)|2: Scott Seigel (DIESECT Full Production Master)|3: Jonathan Dolese (Mirrorcell / Konkrete Studios Master)|4: Buster Odeholm (thrown / Odeholm Audio Master)|5: Grant Berry (blanket / Love Is Noise / Fader Mastering)|6: Robin Schmidt & Grant Berry (Split Chain / UK Grunge Master)|7: Ted Jensen (Don Broco / Sterling Sound Master)|8: Robin Schmidt (Static Dress / 24-96 Mastering)|9: Mike Kalajian (Silverstein / Shyeye / Rogue Planet Master)|10: Nick Townsend (Heavenward / Townsend Mastering)|11: Randy Merrill (City Of Souls / Sterling Sound Master)|12: Leon Schmidt & Christian Donaldson (SUNBORN Master)|13: Ermin Hamidovic (Systematic Mastering Guide Benchmark)|14: Will Putney (Fit For An Autopsy / Knocked Loose signature)|15: George Lever (Loathe / Sleep Token signature)|16: Sam Bassal (Thornhill / Ocean Grove)|17: Henrik Udd (Architects / Bleed From Within signature)|18: Dan Braunstein (Spiritbox / Keep Sweet)|19: Zakk Cervini & Erik Ron (Bad Omens)|20: Jens Bogren (Fascination Street Master)|21: Nolly (Periphery / GGD Systematic)|22: Acle Kahney (TesseracT - King)|23: Adam Cichocki (heaving. - carsick / Timber Studios)|24: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
   m_choice > 0 ? (
     slider12 = m_choice - 1;
     slider10 = 0;
@@ -932,5 +1035,79 @@ gfx_x = b_og_p_x + 9; gfx_y = og_y + 1; gfx_drawstr("+");
 
 (mouse_cap & 1) && !prev_mouse_cap && hov_og_m ? (slider11 = max(-12.0, slider11 - 0.5); out_gain_lin = exp(slider11 * 0.11512925); slider_automate(1024););
 (mouse_cap & 1) && !prev_mouse_cap && hov_og_p ? (slider11 = min(12.0, slider11 + 0.5); out_gain_lin = exp(slider11 * 0.11512925); slider_automate(1024););
+
+
+) : (
+  // =============================================================================
+  // TAB 1: MASTERING ENGINEER SIGNATURE MATRIX (25 COMMERCIAL BENCHMARKS)
+  // =============================================================================
+  mat_y = tab_y + tab_h + 8;
+  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_setfont(1, "Orbitron", 14, 'b');
+  gfx_x = disp_x + 14; gfx_y = mat_y;
+  gfx_drawstr("MASTERING ENGINEER SIGNATURE MATRIX // 25 REFERENCE BENCHMARKS");
+
+  // 25 Pills arranged in 4 rows (7 per row for rows 0..2, 4 in row 3)
+  pi = 0;
+  pill_w = floor((disp_w - 32 - 36) / 7);
+  pill_h = 30;
+  loop(25,
+    p_row = floor(pi / 7); p_col = pi % 7;
+    px = disp_x + 12 + p_col * (pill_w + 6);
+    py = mat_y + 26 + p_row * (pill_h + 6);
+    is_sel = (slider12 == pi);
+    p_hov = (mouse_x >= px && mouse_x <= px + pill_w && mouse_y >= py && mouse_y <= py + pill_h);
+
+    gfx_r = is_sel ? 0.16 : (p_hov ? 0.08 : 0.035);
+    gfx_g = is_sel ? 0.26 : (p_hov ? 0.12 : 0.045);
+    gfx_b = is_sel ? 0.36 : (p_hov ? 0.18 : 0.060);
+    gfx_rect(px, py, pill_w, pill_h);
+
+    gfx_r = is_sel ? 0.00 : (p_hov ? 0.40 : 0.18);
+    gfx_g = is_sel ? 0.85 : (p_hov ? 0.50 : 0.24);
+    gfx_b = is_sel ? 1.00 : (p_hov ? 0.65 : 0.32);
+    gfx_rect(px, py, pill_w, pill_h, 0);
+
+    gfx_setfont(3);
+    is_sel ? (gfx_r = 0.00; gfx_g = 0.95; gfx_b = 1.00;) : (gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;);
+    p_sname = get_gullfoss_short_name(pi);
+    gfx_measurestr(p_sname, psw, psh);
+    gfx_x = floor(px + (pill_w - psw) * 0.5); gfx_y = py + 7;
+    gfx_drawstr(p_sname);
+
+    (mouse_cap & 1) && !prev_mouse_cap && p_hov ? (
+      slider12 = pi;
+      slider10 = 0; // Manual select clears tandem lock
+      apply_gullfoss_master_preset(slider12);
+      slider_automate(2048 | 512);
+    );
+    pi += 1;
+  );
+
+  // Active Engineer Profile Plaque
+  plaque_y = mat_y + 174;
+  plaque_w = disp_w - 24;
+  plaque_h = disp_h - plaque_y - 12;
+
+  gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044;
+  gfx_rect(disp_x + 12, plaque_y, plaque_w, plaque_h);
+  gfx_r = 0.14; gfx_g = 0.22; gfx_b = 0.32;
+  gfx_rect(disp_x + 12, plaque_y, plaque_w, plaque_h, 0);
+
+  gfx_setfont(1, "Orbitron", 12, 'b');
+  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_x = disp_x + 24; gfx_y = plaque_y + 10;
+  gfx_printf("ACTIVE SIGNATURE: %02d - %s", slider12, get_engineer_name(slider12));
+
+  gfx_setfont(3);
+  gfx_r = 0.80; gfx_g = 0.88; gfx_b = 0.98;
+  gfx_x = disp_x + 24; gfx_y = plaque_y + 32;
+  gfx_printf("RECOVER: %d%% | TAME: %d%% | BIAS: %+d%% | BRIGHT: %+d%% | BOOST: %d%% | SPEED: %d%% | LIMITS: %dHz - %dkHz",
+    eff_recover, eff_tame, eff_bias, eff_bright, eff_boost, eff_speed, eff_low_limit, eff_high_limit/1000);
+
+  gfx_setfont(4);
+  gfx_r = 0.55; gfx_g = 0.70; gfx_b = 0.85;
+  gfx_x = disp_x + 24; gfx_y = plaque_y + 54;
+  gfx_drawstr(get_gullfoss_preset_notes(slider12));
+);
 
 prev_mouse_cap = mouse_cap;

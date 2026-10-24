@@ -36,7 +36,7 @@ $effectsSrc = Join-Path $scriptRoot "effects"
 $scriptsSrc = Join-Path $scriptRoot "scripts"
 
 Write-Host "`n[1/2] Installing JSFX Effects..." -ForegroundColor Yellow
-$effects = Get-ChildItem -Path $effectsSrc -Filter "*.jsfx"
+$effects = @(Get-ChildItem -Path $effectsSrc -Filter "*.jsfx") + @(Get-ChildItem -Path $effectsSrc -Filter "*.jsfx-inc")
 foreach ($fx in $effects) {
     $target = Join-Path $effectsDst $fx.Name
     Copy-Item -Path $fx.FullName -Destination $target -Force

@@ -1,0 +1,10 @@
+local f = io.open("c:\\Dev\\DameiSuite\\tools\\reaper_diag2.txt", "w")
+local function log(s) f:write(s .. "\n") end
+local proj = reaper.EnumProjects(-1)
+log("undo: " .. tostring(reaper.Undo_CanUndo2(proj)))
+log("redo: " .. tostring(reaper.Undo_CanRedo2(proj)))
+log("dirty: " .. tostring(reaper.IsProjectDirty(proj)))
+log("proj name: '" .. tostring(reaper.GetProjectName(proj, "")) .. "'")
+log("resource path: " .. reaper.GetResourcePath())
+log("tracks: " .. reaper.CountTracks(proj))
+f:close()

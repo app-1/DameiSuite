@@ -40,7 +40,7 @@ slider35:0.0<-6.0,6.0,0.1>-Drum Transient Sustain Tail (dB)
 slider36:-18.0<-36.0,0.0,0.5>-Precision De-Esser Threshold (dB)
 slider37:6500<4500,9000,100>-Precision De-Esser Center Frequency (Hz)
 slider38:0<0,2,1{Off,Split-Band Precision Clamp,Wideband Smooth De-Esser}>-Precision De-Esser Mode
-slider39:0<0,21,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Lewis Johns (Love Is Noise / blanket),Kel Pinchin (Split Chain),Dan Lancaster & Jason Perry (Don Broco / BMTH),Erik Bickerstaffe (Static Dress / Loathe),Sam Guaiana (Shyeye / Silverstein),Zach Tuch (Heavenward / Hundredth),Forrester Savell (City Of Souls / Karnivool),Leon Schmidt (SUNBORN - Nebula),Ermin Hamidovic Systematic Reference,Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Loathe / Sleep Token),Sam Bassal (Thornhill - nerv / Ocean Grove),Henrik Udd (Architects - Gravity / Bleed From Within),Dan Braunstein (Spiritbox - Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND),Jens Bogren (Fascination Street Studios),Adam Nolly Getgood (Periphery / GGD)}>-Producer Signature Mix Preset
+slider39:0<0,24,1{Default Modern Metal Clean (2026 Clarity & Punch),Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Lewis Johns (Love Is Noise / blanket),Kel Pinchin (Split Chain),Dan Lancaster & Jason Perry (Don Broco / BMTH),Erik Bickerstaffe (Static Dress / Loathe),Sam Guaiana (Shyeye / Silverstein),Zach Tuch (Heavenward / Hundredth),Forrester Savell (City Of Souls / Karnivool),Leon Schmidt (SUNBORN - Nebula),Ermin Hamidovic Systematic Reference,Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Loathe / Sleep Token),Sam Bassal (Thornhill - nerv / Ocean Grove),Henrik Udd (Architects - Gravity / Bleed From Within),Dan Braunstein (Spiritbox - Keep Sweet),Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND),Jens Bogren (Fascination Street Studios),Adam Nolly Getgood (Periphery / GGD),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Signature Mix Preset
 slider40:0<0,2,1{Transparent Linear Headroom,Smooth Musical Bus Clipper (Lance Prenc),Hard Converter Clip}>-Mix Bus Headroom & Clipping Mode
 slider41:0.0<-6.0,6.0,0.1>-Producer Center Vocal Level Trim (dB)
 slider42:0<0,3,1{Dry Upfront Punch,Stereo 3D Halo,Ambient Shoegaze Bloom,Vintage Tape Slap}>-Producer Vocal Space & Ambience Halo
@@ -516,6 +516,7 @@ update_mix_filters();
 function apply_mix_preset(p_idx) (
   slider3 = -6.0; // Pre-Master Export Target Ceiling ALWAYS locked to -6.0 dBTP
   slider4 = 1;    // Strict -6.0 dBTP Headroom Guardian Leveler ACTIVE
+  slider44 = 1;   // Default Song Structure & Chorus Impact AI: Active (Tasteful Auto-Impact)
   
   // Real-time pre-master trim alignment: Attenuate loud mixes down to -6.0 dBTP, clamp max boost to +0.5 dB
   cur_true_peak > -75.0 ? (
@@ -770,6 +771,7 @@ function apply_mix_preset(p_idx) (
     slider41 = 0.8;   // Vocal Level: +0.8dB (clear lyric intelligibility over grunge fuzz)
     slider42 = 3;     // Space: Vintage Tape Slap
     slider43 = 1.5;   // Vocal Bite: +1.5dB Grunge Fuzz
+    slider44 = 2;     // Commercial Drop Slam (+0.16x Width / +1.4dB Punch on chorus drops)
     slider6  = 100;    // Sub Mono: 95 Hz
     slider7  = 1.14;  // Dimension: 1.14x
     
@@ -1404,6 +1406,90 @@ function apply_mix_preset(p_idx) (
     tb_tgt_lmid_min = 26.0; tb_tgt_lmid_max = 31.0;
     tb_tgt_hmid_min = 11.0; tb_tgt_hmid_max = 16.0;
     tb_tgt_high_min = 1.4;  tb_tgt_high_max = 2.6;
+  ) : p_idx == 22 ? (
+    // Acle Kahney (TesseracT - King / 4D Sounds)
+    // Reference: TesseracT - King (LUFS: -9.77, PLR: 9.47, Crest: 13.65, Corr: 0.517, Width: 0.565)
+    // Sonic Signature: Progressive djent articulation, massive dynamic range, uncrushed transients, pristine stereo space
+    slider8  = 0;     // British VCA
+    slider9  = -8.5;  // Relaxed threshold preserving 13+ dB crest factor
+    slider10 = 0;     // 1.5:1 ratio (transparent audiophile glue, zero pumping)
+    slider11 = 30.0;  // 30ms punch attack (maximum transient snap)
+    slider12 = 0;     // Auto release
+    slider13 = 125.0; // 125Hz SC HPF protects sub bass articulation
+    slider14 = 0.2;   // Makeup: +0.2 dB
+    slider15 = 100;
+    slider16 = 0.9;   // Air Sheen: +0.9 dB (crystal 16kHz air)
+    slider17 = -2.0;  // De-Box Mud Scoop: -2.0 dB at 330 Hz
+    slider18 = 330;
+    slider19 = 0.0;   // Transparent high-mids (no harshness)
+    slider20 = 4000;
+    slider21 = 0.8;   // Subtle Triode Warmth (+0.8 dB)
+    slider22 = 0;     // Warm Triode
+    slider23 = 1;     // Tape sheen
+    slider24 = 0;
+    slider27 = 0;
+    slider28 = 1;     // Vocal Donut Hole: -1.5 dB at 2.8 kHz
+    slider29 = 2800;
+    slider30 = 1;     // Palm-Mute Chug Guard: 185 Hz (8-string drop-A precision)
+    slider31 = 185;
+    slider33 = 1;     // Bass Crossover: Sub DI (<80Hz) + clean mid punch
+    slider34 = 1.6;   // Drum Attack Punch: +1.6 dB (punchy natural snare/kick)
+    slider35 = 0.0;   // Drum Transient Sustain: 0.0 dB
+    slider36 = -18.0;
+    slider38 = 1;     // Precision De-Esser Active
+    slider40 = 0;     // Transparent Linear Headroom (no clipping / open dynamics)
+    slider41 = 0.8;   // Vocal Level: +0.8 dB
+    slider42 = 1;     // Space: Stereo 3D Halo (ethereal prog atmosphere)
+    slider43 = 0.6;   // Vocal Bite: +0.6 dB
+    slider6  = 90;    // Sub-Bass Mono: 90 Hz
+    slider7  = 1.15;  // Dimension: 1.15x Expansive Stereo Width
+    
+    tb_tgt_low_min = 46.0; tb_tgt_low_max = 52.0;
+    tb_tgt_lmid_min = 21.0; tb_tgt_lmid_max = 26.0;
+    tb_tgt_hmid_min = 18.0; tb_tgt_hmid_max = 24.0;
+    tb_tgt_high_min = 1.6;  tb_tgt_high_max = 2.8;
+  ) : p_idx == 23 ? (
+    // heaving. (carsick / Grungegaze / Post-Hardcore)
+    // Reference: heaving. - carsick (LUFS: -5.55, PLR: 6.59, Crest: 10.45, Corr: 0.630, Width: 0.476)
+    // Sonic Signature: Saturated wall of fuzz, heavy shoegaze room wash, aggressive tape drive, embedded vocal
+    slider8  = 0;     // British VCA
+    slider9  = -6.5;  // Firm threshold for dense, glued wall-of-sound
+    slider10 = 2;     // 4:1 ratio (heavy compression & room breathing)
+    slider11 = 10.0;  // 10ms fast attack (crunching transients into fuzz)
+    slider12 = 0;     // Auto release
+    slider13 = 110.0; // 110Hz SC HPF
+    slider14 = 0.8;   // Makeup: +0.8 dB
+    slider15 = 100;
+    slider16 = 0.5;   // Vintage warm tilt: +0.5 dB
+    slider17 = -2.8;  // De-Box: -2.8 dB at 320 Hz
+    slider18 = 320;
+    slider19 = 0.0;
+    slider20 = 3800;
+    slider21 = 2.2;   // Heavy Pentode / Tape Overdrive (+2.2 dB)
+    slider22 = 1;     // Punchy Pentode Overdrive
+    slider23 = 1;     // Tape sheen
+    slider24 = 0;
+    slider27 = 0;
+    slider28 = 1;     // Vocal Donut Hole: -2.2 dB at 2.5 kHz (embeds vocal in fuzz)
+    slider29 = 2500;
+    slider30 = 1;     // Chug guard 195 Hz
+    slider31 = 195;
+    slider33 = 2;     // Bass Crossover: Tractor Grind Aggressive
+    slider34 = 1.0;   // Drum Attack: +1.0 dB
+    slider35 = 1.4;   // Drum Tail / Room Wash: +1.4 dB (massive ambient room snap)
+    slider36 = -18.0;
+    slider38 = 1;     // Precision De-Esser Active
+    slider40 = 1;     // Smooth Musical Bus Clipper (maximizes wall-of-sound energy)
+    slider41 = 0.4;   // Vocal Level: +0.4 dB (dreamy, embedded vocal)
+    slider42 = 2;     // Space: Ambient Shoegaze Bloom
+    slider43 = 1.2;   // Vocal Bite / Saturation: +1.2 dB
+    slider6  = 100;   // Sub-Bass Mono: 100 Hz
+    slider7  = 1.10;  // Dimension: 1.10x
+    
+    tb_tgt_low_min = 50.0; tb_tgt_low_max = 56.0;
+    tb_tgt_lmid_min = 23.0; tb_tgt_lmid_max = 28.0;
+    tb_tgt_hmid_min = 20.0; tb_tgt_hmid_max = 26.0;
+    tb_tgt_high_min = 2.5;  tb_tgt_high_max = 4.2;
   ) : (
         // Default Modern Metal Clean: THE USER'S SIGNATURE SOUND (2026 BENCHMARK)
     // Synthesized from all 13 reference producers:
@@ -2128,6 +2214,86 @@ function solve_mixing_chorus_impact() (
       ai_status_l3 = sprintf(#, "SURGICAL GLUE: 2:1 VCA | 130Hz SC HPF | 350Hz Mud Clearance");
       ai_status_l4 = sprintf(#, "FIDELITY     : +1.2dB Triode Tape | Tight 1.10x Stereo Stage");
       ai_status_l5 = sprintf(#, "HEADROOM CAL : Strict -6.0 dBTP Pre-Master Locked");
+    ) : p_idx == 22 ? (
+      // 22. ACLE KAHNEY (TesseracT - King / 4D Sounds)
+      slider8  = 0;     // British VCA
+      slider9  = max(-28.0, min(-14.0, c_rms_db + 3.0));
+      slider10 = 0;     // 1.5:1 Ratio (open audiophile dynamics)
+      slider11 = 30.0;  // 30ms Transient Snap
+      slider12 = 0;
+      slider13 = 125.0; // 125Hz SC HPF
+      slider14 = 0.5;
+      slider34 = 1.6;   // +1.6dB Drum Attack Punch
+      slider28 = 1;
+      slider29 = 2800;
+      slider41 = 0.8;
+      slider30 = 1;
+      slider31 = 185;
+      slider17 = -2.0;  // -2.0dB Mud Scoop at 330Hz
+      slider18 = 330;
+      slider21 = 0.8;   // +0.8dB Triode Warmth
+      slider22 = 0;
+      slider7  = 1.15;  // 1.15x Expansive Stereo Field
+      slider6  = 90;    // 90Hz Sub Mono Anchor
+      ai_status_l1 = sprintf(#, "ACLE IMPACT   : Audiophile Djent Dynamics (+1.6dB Snare) & 125Hz Shield");
+      ai_status_l2 = sprintf(#, "CHORUS LIFT  : +%.1fdB (V:%.1f -> C:%.1f dBFS)", dyn_lift, v_rms_db, c_rms_db);
+      ai_status_l3 = sprintf(#, "DYNAMIC GLUE : 1.5:1 VCA | 125Hz SC HPF | 330Hz Mud Clearance");
+      ai_status_l4 = sprintf(#, "SPACE        : Pristine 1.15x Stereo Stage | Crystal 16kHz Air");
+      ai_status_l5 = sprintf(#, "HEADROOM CAL : Strict -6.0 dBTP Pre-Master Locked");
+    ) : p_idx == 23 ? (
+      // 23. HEAVING. (carsick / Grungegaze)
+      slider8  = 0;     // British VCA
+      slider9  = max(-24.0, min(-10.0, c_rms_db + 1.5));
+      slider10 = 2;     // 4:1 Ratio (wall of fuzz glue)
+      slider11 = 10.0;  // 10ms fast crunch attack
+      slider12 = 0;
+      slider13 = 110.0;
+      slider14 = 1.3;
+      slider34 = 1.0;
+      slider35 = 1.4;   // +1.4dB Drum Tail / Room Wash
+      slider28 = 1;
+      slider29 = 2500;
+      slider41 = 0.4;
+      slider30 = 1;
+      slider31 = 195;
+      slider17 = -2.8;  // -2.8dB Mud Scoop at 320Hz
+      slider18 = 320;
+      slider21 = 2.2;   // +2.2dB Pentode Overdrive
+      slider22 = 1;
+      slider7  = 1.10;
+      slider6  = 100;
+      ai_status_l1 = sprintf(#, "ADAM CICHOCKI (heaving.): Saturated Wall of Fuzz & Room Wash Slam (+2.2dB Drive)");
+      ai_status_l2 = sprintf(#, "CHORUS LIFT  : +%.1fdB (V:%.1f -> C:%.1f dBFS)", dyn_lift, v_rms_db, c_rms_db);
+      ai_status_l3 = sprintf(#, "FUZZ GLUE    : 4:1 VCA Crunch | 110Hz SC HPF | Heavy Tape Warmth");
+      ai_status_l4 = sprintf(#, "EMBEDDED VOX : -2.2dB @ 2.5kHz Donut Hole | Ambient Bloom");
+      ai_status_l5 = sprintf(#, "HEADROOM CAL : Strict -6.0 dBTP Pre-Master Locked");
+    ) : p_idx == 24 ? (
+      // 24. MANUEL RENNER (SENNA - Out Of The Blue / Überlärm Studios)
+      slider8  = 0;     // British VCA Glue
+      slider9  = max(-24.0, min(-12.0, c_rms_db + 2.0));
+      slider10 = 2;     // 4:1 Ratio
+      slider11 = 30.0;  // 30ms Attack
+      slider12 = 0;     // Auto Release
+      slider13 = 120.0; // 120Hz SC HPF Detector
+      slider14 = 1.3;
+      slider34 = 1.6;   // +1.6dB Snare & Kick Transient Snap
+      slider35 = 0.8;
+      slider28 = 1;
+      slider29 = 2600;  // 2.6kHz Vocal Pocket Notch
+      slider41 = 0.8;
+      slider30 = 1;
+      slider31 = 185;
+      slider17 = -3.2;  // -3.2dB Mud Scoop @ 280Hz
+      slider18 = 280;
+      slider21 = 1.8;   // +1.8dB Discrete Desk Drive
+      slider22 = 1;
+      slider7  = 1.15;  // 115% Stereo Width
+      slider6  = 100;
+      ai_status_l1 = sprintf(#, "SENNA IMPACT: Hyper-Modern German Metalcore Punch & Polished Clarity");
+      ai_status_l2 = sprintf(#, "CHORUS LIFT  : +%.1fdB (V:%.1f -> C:%.1f dBFS)", dyn_lift, v_rms_db, c_rms_db);
+      ai_status_l3 = sprintf(#, "VCA GLUE     : 4:1 Ratio | 30ms Att / Auto Rel | 120Hz SC HPF");
+      ai_status_l4 = sprintf(#, "SUB ANCHOR   : 90Hz Mono Anchor (0.9704 Correlation) | 115%% Width");
+      ai_status_l5 = sprintf(#, "HEADROOM CAL : Strict -6.0 dBTP Pre-Master Locked");
     ) : (
       // 0. DEFAULT MODERN METAL CLEAN (2026 Clarity & Punch)
       slider8  = 0;     // British VCA
@@ -2261,7 +2427,7 @@ slider44 > 0 ? (
   use_regions ? (
     g_sec_id == 3 ? (
       struct_state = 3;
-    ) : (g_sec_id == 2 || (g_to_chorus > 0.0 && g_to_chorus <= 0.8)) ? (
+    ) : g_sec_id == 2 ? (
       struct_state = 2;
     ) : (g_sec_id == 1 || (g_to_chorus > 0.0 && g_to_chorus < 5.0)) ? (
       struct_state = 1;
@@ -2433,6 +2599,18 @@ slider44 > 0 ? (
       target_drive_boost =  0.40 * scale_mult;
       target_vocal_boost =  0.90 * scale_mult;
       struct_status_str = "CHORUS IMPACT // NOLLY SURGICAL GGD IMPACT";
+    ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King)
+      target_width_boost =  0.18 * scale_mult;
+      target_punch_boost =  1.45 * scale_mult;
+      target_drive_boost =  0.25 * scale_mult;
+      target_vocal_boost =  0.85 * scale_mult;
+      struct_status_str = "CHORUS IMPACT // ACLE PROG DJENT EXPLOSION";
+    ) : p_idx == 23 ? ( // heaving. (carsick / Grungegaze)
+      target_width_boost =  0.12 * scale_mult;
+      target_punch_boost =  1.10 * scale_mult;
+      target_drive_boost =  0.70 * scale_mult;
+      target_vocal_boost =  0.60 * scale_mult;
+      struct_status_str = "CHORUS IMPACT // HEAVING WALL OF FUZZ SLAM";
     ) : (
       target_width_boost =  0.10 * scale_mult;
       target_punch_boost =  0.80 * scale_mult;
@@ -3483,6 +3661,14 @@ h = gfx_h;
 
 mouse_clicked = (mouse_cap & 1) && !prev_mouse_down;
 mouse_down = (mouse_cap & 1);
+shift_down = (mouse_cap & 8);
+ctrl_down = (mouse_cap & 4);
+is_double_click = 0;
+mouse_clicked ? (
+  (time_precise() - last_click_t < 0.28) ? ( is_double_click = 1; );
+  last_click_t = time_precise();
+);
+m_wheel = mouse_wheel; mouse_wheel = 0;
 
 crt_margin = 8;
 crt_x = crt_margin;
@@ -3539,6 +3725,71 @@ gmem[1098] == 1 ? (
   gfx_drawstr(raw_str);
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SHOOTOUT MONITOR TOGGLE (Syncs with Sankofa Oracle via gmem[1158])
+// ─────────────────────────────────────────────────────────────────────────────
+gmem[1160] == 1 ? (
+  sh_x = crt_x + 575;
+  sh_w = 145;
+  sh_h = 30;
+  sh_mode = gmem[1158]; // 0=Mix, 1=Ref Matched, 2=Ref Raw, 3=Null Diff
+  sh_hov = (mouse_x >= sh_x && mouse_x <= sh_x + sh_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
+  sh_clk = sh_hov && (mouse_cap & 1) && !prev_mouse_down;
+  sh_clk ? (
+    sh_mode = (sh_mode == 0 ? 1 : (sh_mode == 1 ? 3 : 0));
+    gmem[1158] = sh_mode;
+  );
+  sh_mode == 0 ? (
+    gfx_r = 0.05; gfx_g = 0.20; gfx_b = 0.15; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h);
+    gfx_r = 0.20; gfx_g = 0.92; gfx_b = 0.62; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h, 0);
+    gfx_setfont(1, "Bahnschrift", 11, 'b');
+    gfx_r = 0.20; gfx_g = 0.92; gfx_b = 0.62;
+    sh_lbl = "● SHOOTOUT: MIX";
+  ) : sh_mode == 1 ? (
+    gfx_r = 0.05; gfx_g = 0.18; gfx_b = 0.25; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h);
+    gfx_r = 0.00; gfx_g = 0.96; gfx_b = 0.83; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h, 0);
+    gfx_setfont(1, "Bahnschrift", 11, 'b');
+    gfx_r = 0.00; gfx_g = 0.96; gfx_b = 0.83;
+    sh_lbl = "* SHOOTOUT: REF";
+  ) : (
+    gfx_r = 0.25; gfx_g = 0.05; gfx_b = 0.10; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h);
+    gfx_r = 1.00; gfx_g = 0.35; gfx_b = 0.55; gfx_rect(sh_x, crt_y + 9, sh_w, sh_h, 0);
+    gfx_setfont(1, "Bahnschrift", 11, 'b');
+    gfx_r = 1.00; gfx_g = 0.35; gfx_b = 0.55;
+    sh_lbl = "[NULL DIFF]";
+  );
+  gfx_measurestr(sh_lbl, shw, shh);
+  gfx_x = sh_x + (sh_w - shw) * 0.5; gfx_y = crt_y + 16;
+  gfx_drawstr(sh_lbl);
+
+  // Static Calibration Lock & 1-Click Trigger
+  cal_x = sh_x + sh_w + 8;
+  cal_w = 148;
+  cal_h = 30;
+  cal_st = gmem[1159]; // 1 = Locked, 0 = Pending
+  cal_hov = (mouse_x >= cal_x && mouse_x <= cal_x + cal_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
+  cal_clk = cal_hov && (mouse_cap & 1) && !prev_mouse_down;
+  cal_clk ? (
+    gmem[1096] = 1; // Trigger apply_splitchain_static_calibration.lua
+  );
+  cal_st == 1 ? (
+    gfx_r = 0.05; gfx_g = 0.18; gfx_b = 0.22; gfx_rect(cal_x, crt_y + 9, cal_w, cal_h);
+    gfx_r = 0.00; gfx_g = 0.90; gfx_b = 0.75; gfx_rect(cal_x, crt_y + 9, cal_w, cal_h, 0);
+    gfx_setfont(1, "Bahnschrift", 11, 'b');
+    gfx_r = 0.00; gfx_g = 0.90; gfx_b = 0.75;
+    cal_lbl = "[STATIC LOCKED]";
+  ) : (
+    gfx_r = 0.22; gfx_g = 0.16; gfx_b = 0.05; gfx_rect(cal_x, crt_y + 9, cal_w, cal_h);
+    gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20; gfx_rect(cal_x, crt_y + 9, cal_w, cal_h, 0);
+    gfx_setfont(1, "Bahnschrift", 11, 'b');
+    gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20;
+    cal_lbl = "[APPLY CAL]";
+  );
+  gfx_measurestr(cal_lbl, clw, clh);
+  gfx_x = cal_x + (cal_w - clw) * 0.5; gfx_y = crt_y + 16;
+  gfx_drawstr(cal_lbl);
+);
+
 // Right Header Zone: Pinned to right edge, laid out right-to-left
 right_edge_x = crt_x + crt_w - 12;
 
@@ -3555,12 +3806,12 @@ gfx_r = is_car_on ? 1.00 : 0.22; gfx_g = is_car_on ? 0.75 : 0.28; gfx_b = is_car
 gfx_rect(car_btn_x, crt_y + 9, car_w, 30, 0);
 gfx_r = is_car_on ? 1.00 : 0.85; gfx_g = is_car_on ? 0.85 : 0.90; gfx_b = is_car_on ? 0.30 : 0.95;
 gfx_setfont(1, "Bahnschrift", 12, 'b');
-car_lbl = (slider46 == 1 ? "★ CAR TEST" : (slider46 == 2 ? "★ PHONE" : (slider46 == 3 ? "★ CLUB SUB" : "CAR TEST")));
+car_lbl = (slider46 == 1 ? "[CAR TEST]" : (slider46 == 2 ? "[PHONE]" : (slider46 == 3 ? "[CLUB SUB]" : "CAR TEST")));
 gfx_measurestr(car_lbl, clw, clh);
 gfx_x = car_btn_x + (car_w - clw) * 0.5; gfx_y = crt_y + 16;
 gfx_drawstr(car_lbl);
 mouse_clicked && car_hov ? (
-  menu_car = gfx_showmenu("1. FLAT (Mix Reference)|2. 🚗 CAR TEST (Cabin Acoustics & Glass Reflection)|3. 📱 PHONE TEST (Mono Small Speaker Bandpass)|4. 🔊 CLUB SUB CHECK (95Hz Low-Pass Mono)");
+  menu_car = gfx_showmenu("1. FLAT (Mix Reference)|2. CAR TEST (Cabin Acoustics & Glass Reflection)|3. PHONE TEST (Mono Small Speaker Bandpass)|4. CLUB SUB CHECK (95Hz Low-Pass Mono)");
   menu_car > 0 ? (
     slider46 = menu_car - 1;
     slider_automate(70368744177664); // slider46 mask
@@ -3642,7 +3893,14 @@ disp_state == 3 ? (
   gfx_setfont(1, "Orbitron", 11, 'b');
   rgn_str = sprintf(#, "● SYNC: %d REGIONS", g_num_regions_live > 0 ? g_num_regions_live : 20);
 );
+r_font_sz = 11.0;
+gfx_setfont(1, "Orbitron", r_font_sz, 'b');
 gfx_measurestr(rgn_str, rsw, rsh);
+while (rsw > rgn_pill_w - 14 && r_font_sz > 8.0) (
+  r_font_sz -= 0.5;
+  gfx_setfont(1, "Orbitron", r_font_sz, 'b');
+  gfx_measurestr(rgn_str, rsw, rsh);
+);
 gfx_x = floor(rgn_pill_x + (rgn_pill_w - rsw) * 0.5); gfx_y = crt_y + 17;
 gfx_drawstr(rgn_str);
 
@@ -3702,8 +3960,19 @@ p_title = (slider39==0  ? "DEFAULT 2026 CLEAN" :
           (slider39==18 ? "DAN BRAUNSTEIN (Spiritbox)" :
           (slider39==19 ? "ZAKK CERVINI (Bad Omens)" :
           (slider39==20 ? "JENS BOGREN (Fascination)" :
-                          "NOLLY GETGOOD (Periphery)")))))))))))))))))))));
+          (slider39==21 ? "NOLLY GETGOOD (Periphery)" :
+          (slider39==22 ? "ACLE KAHNEY (TesseracT)" :
+          (slider39==23 ? "ADAM CICHOCKI (heaving.)" :
+                          "MANUEL RENNER (SENNA)"))))))))))))))))))))))));
 is_user_customized ? (p_title = sprintf(#, "%s [C]", p_title););
+pt_sz = 12.0;
+gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+gfx_measurestr(p_title, ptw, pth);
+while (ptw > bar_w - 22 && pt_sz > 8.0) (
+  pt_sz -= 0.5;
+  gfx_setfont(1, "Segoe UI", pt_sz, 'b');
+  gfx_measurestr(p_title, ptw, pth);
+);
 gfx_drawstr(p_title);
 
 // Downward Chevron Indicator
@@ -3727,19 +3996,19 @@ gfx_drawstr(">");
 // Interactive Click Handlers: Prev, Next, and Native Dropdown Popup
 mouse_clicked && (mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39) ? (
   mouse_x >= btn_l_x && mouse_x <= btn_l_x + btn_w ? (
-    slider39 = (slider39 - 1 + 22) % 22;
+    slider39 = (slider39 - 1 + 25) % 25;
     apply_mix_preset(slider39);
     is_user_customized = 0;
     slider_automate();
   ) :
   mouse_x >= btn_r_x && mouse_x <= btn_r_x + btn_w ? (
-    slider39 = (slider39 + 1) % 22;
+    slider39 = (slider39 + 1) % 25;
     apply_mix_preset(slider39);
     is_user_customized = 0;
     slider_automate();
   ) :
   mouse_x >= bar_x && mouse_x <= bar_x + bar_w ? (
-    menu_choice = gfx_showmenu("Default Modern Metal Clean (2026 Clarity & Punch)|Lance Prenc (Alpha Wolf / Polaris)|Scott Seigel (DIESECT)|Jonathan Dolese (Mirrorcell / Cane Hill)|Buster Odeholm (thrown / Northlane)|Lewis Johns (Love Is Noise / blanket)|Kel Pinchin (Split Chain)|Dan Lancaster & Jason Perry (Don Broco / BMTH)|Erik Bickerstaffe (Static Dress / Loathe)|Sam Guaiana (Shyeye / Silverstein)|Zach Tuch (Heavenward / Hundredth)|Forrester Savell (City Of Souls / Karnivool)|Leon Schmidt (SUNBORN - Nebula)|Ermin Hamidovic Systematic Reference|Will Putney (Fit For An Autopsy / Knocked Loose)|George Lever (Loathe / Sleep Token)|Sam Bassal (Thornhill - nerv / Ocean Grove)|Henrik Udd (Architects - Gravity / Bleed From Within)|Dan Braunstein (Spiritbox - Keep Sweet)|Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND)|Jens Bogren (Fascination Street Studios)|Adam Nolly Getgood (Periphery / GGD)");
+    menu_choice = gfx_showmenu("Default Modern Metal Clean (2026 Clarity & Punch)|Lance Prenc (Alpha Wolf / Polaris)|Scott Seigel (DIESECT)|Jonathan Dolese (Mirrorcell / Cane Hill)|Buster Odeholm (thrown / Northlane)|Lewis Johns (Love Is Noise / blanket)|Kel Pinchin (Split Chain)|Dan Lancaster & Jason Perry (Don Broco / BMTH)|Erik Bickerstaffe (Static Dress / Loathe)|Sam Guaiana (Shyeye / Silverstein)|Zach Tuch (Heavenward / Hundredth)|Forrester Savell (City Of Souls / Karnivool)|Leon Schmidt (SUNBORN - Nebula)|Ermin Hamidovic Systematic Reference|Will Putney (Fit For An Autopsy / Knocked Loose)|George Lever (Loathe / Sleep Token)|Sam Bassal (Thornhill - nerv / Ocean Grove)|Henrik Udd (Architects - Gravity / Bleed From Within)|Dan Braunstein (Spiritbox - Keep Sweet)|Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND)|Jens Bogren (Fascination Street Studios)|Adam Nolly Getgood (Periphery / GGD)|Acle Kahney (TesseracT - King)|Adam Cichocki (heaving. - carsick / Timber Studios)|Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
     menu_choice > 0 ? (
       slider39 = menu_choice - 1;
       apply_mix_preset(slider39);
