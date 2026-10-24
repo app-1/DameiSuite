@@ -9,7 +9,7 @@ desc:Damei Instrumental Bus Conclave (Collective Summing & Harmonic Imperium)
 slider1:0<0,7,1{0: OVERVIEW, 1: TONAL EQ, 2: BUS GLUE, 3: CRUCIBLE, 4: STEREO, 5: POCKET, 6: PRODUCER MATRIX, 7: EAR CANDY DOCK}>-Active Navigation Tab
 slider2:6<0,24,1{00: Unity Baseline (1:1 Transparent Pass), 01: Lance Prenc (Alpha Wolf - 60cm Of Steel), 02: Scott Seigel (DIESECT - TOO MANY SCARS), 03: Jonathan Dolese (Mirrorcell - U(phoria)), 04: Buster Odeholm (thrown / Northlane - Evian), 05: Lewis Johns (Love Is Noise / blanket - Blur), 06: Kel Pinchin (Split Chain - I'm Not Dying To Be Here), 07: Dan Lancaster & Jason Perry (Don Broco - Endorphins), 08: Erik Bickerstaffe (Static Dress - face..), 09: Sam Guaiana (Shyeye feat. Showing Teeth - Knot), 10: Zach Tuch (Heavenward - Tangerine), 11: Forrester Savell (City Of Souls - Cruelty / Karnivool), 12: Leon Schmidt (SUNBORN - Nebula), 13: Ermin Hamidovic (Systematic / 01 The End of All We Know), 14: Will Putney (Fit For An Autopsy - Walk With Me In Hell), 15: George Lever (Loathe - Agressive Evolution / Sleep Token), 16: Sam Bassal (Thornhill - nerv), 17: Henrik Udd (Architects - 8. Gravity), 18: Dan Braunstein (Spiritbox - Keep Sweet), 19: Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND), 20: Jens Bogren (Fascination Street Studios Benchmark), 21: Adam Nolly Getgood (Periphery / GGD Modern Metal Target), 22: Acle Kahney (TesseracT - King), 23: Adam Cichocki (heaving. - carsick), 24: Manuel Renner (SENNA - Out Of The Blue)}>-Producer Reference Benchmark
 slider3:0<-6.0,6.0,0.1>-Input Calibration Gain (dB)
-slider4:-2.1<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
+slider4:-2.2<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
 slider5:0<0,2,1{-3.0 dBTP Staging Lock (Legacy Parity), -6.0 dBTP Pre-Master Lock, Free Uncapped Pass}>-Headroom Guardian Mode
 slider6:80<40,160,1>-Sub-Bass Mono Anchor Cutoff (Hz)
 slider7:1<0,1,1{Bypass, Active Sentry}>-Kick/Bass Transient Sentry
@@ -442,7 +442,7 @@ function apply_producer_preset(idx) (
     slider23 = 0; slider24 = 0.0; slider25 = 1.00; slider31 = 0.0;
   ) : idx == 6 ? ( // Kel Pinchin (Split Chain Target) - Forensic Replicate of Track 15 Legacy Chain
     slider3 = 0.0;
-    slider4 = -2.1;   // Headroom Staging Calibrated for 1:1 Bit-Exact Legacy Chain Mix Balance Parity!
+    slider4 = -2.2;   // Headroom Staging Calibrated for Bit-Exact Legacy Chain RMS & Peak Parity!
     slider5 = 0;      // -3.0 dBTP Strict Legacy Staging Ceiling Lock
     slider6 = 80;     // Sub-Bass Anchor Cutoff
     slider7 = 1;      // Transient Sentry Active
@@ -450,7 +450,7 @@ function apply_producer_preset(idx) (
     slider9 = 0;      // Static Flat Wire Bypass (Zero Dynamic Modulation)
     slider10 = 1;     // Bus Glue Engaged
     slider11 = 0;     // British VCA Punch (SSL 4000G / BUSTERse Feedback Topology)
-    slider12 = -13.0; // Threshold calibrated for bit-exact legacy BUSTERse compression match!
+    slider12 = -12.0; // Threshold calibrated for bit-exact legacy BUSTERse compression match!
     slider13 = 2;     // 4:1 Modern Punch (matches BUSTERse 4:1)
     slider14 = 10.0;  // Attack 10 ms (matches BUSTERse 10 ms)
     slider15 = 2;     // Release 600 ms (matches BUSTERse .6 sec)
@@ -677,43 +677,40 @@ dk_ctx = dk_r_idx == 4 ? 1.15 : (dk_r_idx == 3 ? 0.90 : (dk_r_idx == 5 ? 0.85 : 
 dk_amt = slider49 * 0.01;
 dk_auto = (slider48 == 1 && slider37 == 1);
 
+// =============================================================================
+// STATIC EAR-CANDY IMPLEMENTATION (ZERO DYNAMIC DRIFT / ZERO SECTION PUMPING)
+// Like the legacy chain, all processes are applied statically to preserve mix balance!
+// =============================================================================
 slider48 == 0 ? (
-  // PURE STATIC PASS: All dynamic section tricks locked strictly to 0
+  // PURE STATIC PASS: All ear candy tricks locked strictly to 0
   dk_env0 = 0.0; dk_env1 = 0.0; dk_env2 = 0.0; dk_env3 = 0.0;
   dk_env4 = 0.0; dk_env5 = 0.0; dk_env6 = 0.0; dk_env7 = 0.0;
 ) : (
-  // Creative Audition Mode
-  // Trick 0: Chorus Stereo Bloom
-  dk_trg0 = (dk_auto && dk_r_idx == 4) || slider33;
-  dk_env0 += ((dk_trg0 ? 1.0 : 0.0) - dk_env0) * 0.008;
+  // STATIC EAR CANDY PROFILE:
+  // Processes apply as constant, static harmonic/spatial colorations without time-varying envelopes!
+  // Trick 0: Static Stereo Air Bloom
+  dk_env0 = ((slider50 & 1) || slider33) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 1: Pre-Drop Tape Choke
-  dk_trg1 = (dk_auto && dk_r_idx == 3 && gmem[105] > 0.85 && dk_fast_db > -18.0) || slider34;
-  dk_env1 += ((dk_trg1 ? 1.0 : 0.0) - dk_env1) * 0.015;
+  // Trick 1: Static Analog Tape Head Saturation (zero volume ducking)
+  dk_env1 = ((slider50 & 2) || slider34) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 2: Sub-Drop Ground-Slam (Dynamic transient punch on section entry)
-  dk_trg2 = (dk_auto && dk_r_idx == 4 && inst_peak > 0.42) || slider35;
-  dk_env2 += ((dk_trg2 ? 1.0 : 0.0) - dk_env2) * 0.020;
+  // Trick 2: Static Sub Foundation Weight
+  dk_env2 = ((slider50 & 4) || slider35) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 3: Breakdown Desk Lift
-  dk_trg3 = (dk_auto && (dk_r_idx == 2 || dk_r_idx == 5) && dk_fast_db < -20.0) || slider36;
-  dk_env3 += ((dk_trg3 ? 1.0 : 0.0) - dk_env3) * 0.005;
+  // Trick 3: Static Desk Transformer Warmth (+0.3dB Neve desk drive)
+  dk_env3 = ((slider50 & 8) || slider36) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 4: Snare Sidechain Snap
-  dk_trg4 = (slider16 <= 42);
-  dk_env4 += ((dk_trg4 ? 1.0 : 0.0) - dk_env4) * 0.050;
+  // Trick 4: Static Snare Sidechain Snap (39Hz Detector HPF)
+  dk_env4 = (slider50 & 16) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 5: Air Sheen Bloom
-  dk_trg5 = (dk_auto && dk_r_idx == 4);
-  dk_env5 += ((dk_trg5 ? 1.0 : 0.0) - dk_env5) * 0.008;
+  // Trick 5: Static Air Sheen (+0.3dB Silk Air Shelf)
+  dk_env5 = (slider50 & 32) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 6: Kick Decoupling Anchor
-  dk_trg6 = (slider16 >= 55);
-  dk_env6 += ((dk_trg6 ? 1.0 : 0.0) - dk_env6) * 0.050;
+  // Trick 6: Static Kick Decoupling Anchor (60Hz Detector HPF)
+  dk_env6 = (slider50 & 64) ? (dk_amt * 1.0) : 0.0;
 
-  // Trick 7: Haas Wall Widener
-  dk_trg7 = (dk_auto && dk_r_idx == 5);
-  dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
+  // Trick 7: Static Spatial Air Decorrelation
+  dk_env7 = (slider50 & 128) ? (dk_amt * 1.0) : 0.0;
 );
 
 // 1:1 Complete Bit-Exact Transparent Pass if Suite Bypassed OR Preset 00
@@ -729,7 +726,7 @@ slider48 == 0 ? (
   // STAGE 1: HARMONIC CRUCIBLE CONSOLE DESK SATURATION (BRITSON BUSS PARITY)
   // Replicates Britson Buss at Stage 1: warms the raw multi-track sum BEFORE EQ!
   // ===========================================================================
-  active_drive = slider24;
+  active_drive = slider24 + (dk_env3 * 0.3);
   slider23 == 1 ? ( // Neve 8014 Iron Desk (Even/Odd Console Saturation - Britson Emulation)
     desk_l = in_l + 0.015 * in_l * abs(in_l) - 0.025 * in_l * in_l * in_l;
     desk_r = in_r + 0.015 * in_r * abs(in_r) - 0.025 * in_r * in_r * in_r;
