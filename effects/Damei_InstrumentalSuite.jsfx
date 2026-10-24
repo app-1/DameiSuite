@@ -1,15 +1,15 @@
-desc:Damei Instrumental Bus Alchemist (Harmonic Crucible & Summing Matrix)
+desc:Damei Instrumental Bus Conclave (Collective Summing & Harmonic Imperium)
 // =============================================================================
 // DAMEI SUITE // 2026 REAPER MASTER SUMMING INFRASTRUCTURE
 // ARCHETYPE: FUNTUNFUNEFU-DENKYEMFUNEFU (Collective Summing & Unified Destiny)
 // FLAGSHIP AFRO-CYBERNETIC LUXURY CONSOLE SURFACE ARCHITECTURE (@gfx 1080 720)
-// V8.2 FLAGSHIP: 8 DEDICATED TABS, SILENT IDLE GATE, RICH HUD PANELS & PRODUCER PLAYBOOK
+// V9.0 CONCLAVE: IMPERIAL SAPPHIRE & ROSE-GOLD TITANIUM PALETTE, ADINKRA SIGILS & H:\REFERENCES REVERSE-ENGINEERING
 // =============================================================================
 
 slider1:0<0,7,1{0: OVERVIEW, 1: TONAL EQ, 2: BUS GLUE, 3: CRUCIBLE, 4: STEREO, 5: POCKET, 6: PRODUCER MATRIX, 7: EAR CANDY DOCK}>-Active Navigation Tab
 slider2:6<0,24,1{00: Unity Baseline (1:1 Transparent Pass), 01: Lance Prenc (Alpha Wolf - 60cm Of Steel), 02: Scott Seigel (DIESECT - TOO MANY SCARS), 03: Jonathan Dolese (Mirrorcell - U(phoria)), 04: Buster Odeholm (thrown / Northlane - Evian), 05: Lewis Johns (Love Is Noise / blanket - Blur), 06: Kel Pinchin (Split Chain - I'm Not Dying To Be Here), 07: Dan Lancaster & Jason Perry (Don Broco - Endorphins), 08: Erik Bickerstaffe (Static Dress - face..), 09: Sam Guaiana (Silverstein - Misery Made Me), 10: Zach Tuch (Heavenward - Tangerine), 11: Forrester Savell (City Of Souls - Cruelty / Karnivool), 12: Leon Schmidt (SUNBORN - Nebula), 13: Ermin Hamidovic (Systematic / 01 The End of All We Know), 14: Will Putney (Fit For An Autopsy - Walk With Me In Hell), 15: George Lever (Loathe - Agressive Evolution / Sleep Token), 16: Sam Bassal (Thornhill - nerv), 17: Henrik Udd (Architects - 8. Gravity), 18: Dan Braunstein (Spiritbox - Keep Sweet), 19: Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND), 20: Jens Bogren (Fascination Street Studios Benchmark), 21: Adam Nolly Getgood (Periphery / GGD Modern Metal Target), 22: Acle Kahney (TesseracT - King), 23: Adam Cichocki (heaving. - carsick), 24: Manuel Renner (SENNA - Out Of The Blue)}>-Producer Reference Benchmark
 slider3:0<-6.0,6.0,0.1>-Input Calibration Gain (dB)
-slider4:-1.8<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
+slider4:-2.1<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
 slider5:0<0,1,1{Free Output, -6.0 dBTP Strict Pre-Master Lock}>-Headroom Guardian Mode
 slider6:80<40,160,1>-Sub-Bass Mono Anchor Cutoff (Hz)
 slider7:1<0,1,1{Bypass, Active Sentry}>-Kick/Bass Transient Sentry
@@ -324,8 +324,14 @@ function clamp(x, lo, hi) (
   max(lo, min(hi, x));
 );
 
-function fast_shape(x) (
-  x / (1.0 + abs(x));
+function fast_shape(x) local(ax, s) (
+  ax = abs(x);
+  ax < 0.7 ? (
+    x - 0.08 * x * ax
+  ) : (
+    s = x > 0 ? 1.0 : -1.0;
+    s * (0.7 + 0.3 * (ax - 0.7) / (1.0 + (ax - 0.7)))
+  );
 );
 
 function update_filters() local(w0, alpha, cos_w0, sin_w0, A, beta, drv_k) (
@@ -741,19 +747,15 @@ dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
   active_drive = slider24 + (dk_env3 * dk_amt * 1.8);
   sat_drive = exp(active_drive * 0.1151292546);
 
-  slider23 == 1 ? ( // Neve 8014 Iron Desk (Even/Odd Console Saturation - Bounded)
-    sat_l = fast_shape(pock_l * sat_drive);
-    sat_r = fast_shape(pock_r * sat_drive);
-    sat_out_l = (sat_l - 0.08 * sat_l * abs(sat_l)) / sat_drive;
-    sat_out_r = (sat_r - 0.08 * sat_r * abs(sat_r)) / sat_drive;
+  slider23 == 1 ? ( // Neve 8014 Iron Desk (Even/Odd Console Saturation - Britson Emulation)
+    sat_out_l = pock_l + 0.025 * pock_l * abs(pock_l) - 0.05 * pock_l * pock_l * pock_l;
+    sat_out_r = pock_r + 0.025 * pock_r * abs(pock_r) - 0.05 * pock_r * pock_r * pock_r;
   ) : slider23 == 2 ? ( // Studer A800 Tape Saturation
-    sat_out_l = fast_shape(pock_l * sat_drive) / sat_drive;
-    sat_out_r = fast_shape(pock_r * sat_drive) / sat_drive;
+    sat_out_l = fast_shape(pock_l * 1.05) / 1.05;
+    sat_out_r = fast_shape(pock_r * 1.05) / 1.05;
   ) : slider23 == 3 ? ( // Triode Tube Crucible
-    sat_l = fast_shape(pock_l * sat_drive);
-    sat_r = fast_shape(pock_r * sat_drive);
-    sat_out_l = (sat_l / (1.0 + 0.4 * abs(sat_l))) / sat_drive;
-    sat_out_r = (sat_r / (1.0 + 0.4 * abs(sat_r))) / sat_drive;
+    sat_out_l = pock_l - 0.08 * pock_l * pock_l * pock_l;
+    sat_out_r = pock_r - 0.08 * pock_r * pock_r * pock_r;
   ) : (
     sat_out_l = pock_l; sat_out_r = pock_r;
   );
@@ -903,9 +905,113 @@ dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
 );
 
 @gfx 1080 720
-gfx_clear = 0x07090D;
+gfx_clear = 0x070B12; // Deep midnight sapphire obsidian
 mouse_down = (mouse_cap & 1);
 mouse_clicked = mouse_down && !prev_mouse_down;
+
+// =============================================================================
+// AUTHENTIC DAMEI AFRO-CYBERNETIC LUXURY ADINKRA SIGIL ENGINE (CONCLAVE SPEC)
+// =============================================================================
+
+function draw_adinkrahene_sigil(cx, cy, sz) (
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; // Burnished Rose Gold
+  gfx_circle(cx, cy, sz, 0);
+  gfx_circle(cx, cy, sz * 0.68, 0);
+  gfx_circle(cx, cy, sz * 0.36, 1);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; // Electric Sapphire
+  gfx_circle(cx, cy, 2, 1);
+);
+
+function draw_funtunfunefu_sigil(cx, cy, sz) local(d) (
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  d = sz * 0.65;
+  // Central shared stomach (unity of all stems into one bus)
+  gfx_circle(cx, cy, sz * 0.35, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_circle(cx, cy, sz * 0.18, 1);
+  // 4 crocodile heads/limbs
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  gfx_line(cx - d, cy - d, cx - sz * 0.3, cy - sz * 0.3);
+  gfx_line(cx + d, cy - d, cx + sz * 0.3, cy - sz * 0.3);
+  gfx_line(cx - d, cy + d, cx - sz * 0.3, cy + sz * 0.3);
+  gfx_line(cx + d, cy + d, cx + sz * 0.3, cy + sz * 0.3);
+  gfx_circle(cx - d, cy - d, 2.5, 1);
+  gfx_circle(cx + d, cy - d, 2.5, 1);
+  gfx_circle(cx - d, cy + d, 2.5, 1);
+  gfx_circle(cx + d, cy + d, 2.5, 1);
+);
+
+function draw_mpatapo_sigil(cx, cy, sz) local(d) (
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; // Knot of reconciliation / Bus Glue
+  d = sz * 0.48;
+  gfx_circle(cx - d * 0.5, cy, d, 0);
+  gfx_circle(cx + d * 0.5, cy, d, 0);
+  gfx_circle(cx, cy - d * 0.5, d, 0);
+  gfx_circle(cx, cy + d * 0.5, d, 0);
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68; // Celestial Mint
+  gfx_circle(cx, cy, 3, 1);
+);
+
+function draw_sankofa_sigil(cx, cy, sz) local(r) (
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; // Wisdom / Reference Alignment
+  r = sz * 0.45;
+  gfx_circle(cx - r * 0.5, cy - r * 0.3, r, 0);
+  gfx_circle(cx + r * 0.5, cy - r * 0.3, r, 0);
+  gfx_line(cx - r * 1.5, cy, cx, cy + sz * 0.8);
+  gfx_line(cx + r * 1.5, cy, cx, cy + sz * 0.8);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_circle(cx, cy - r * 0.2, 3, 1);
+);
+
+function draw_dwennimmen_sigil(cx, cy, sz) local(r1, r2) (
+  r1 = sz * 0.48; r2 = sz * 0.26;
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_circle(cx - r1 * 0.65, cy, r1, 0);
+  gfx_circle(cx + r1 * 0.65, cy, r1, 0);
+  gfx_circle(cx - r1 * 0.65, cy, r2, 0);
+  gfx_circle(cx + r1 * 0.65, cy, r2, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  gfx_line(cx, cy - sz * 0.65, cx, cy + sz * 0.65);
+);
+
+function draw_matemasie_sigil(cx, cy, sz) local(d) (
+  d = sz * 0.52;
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
+  gfx_line(cx - d, cy - d, cx + d, cy + d);
+  gfx_line(cx - d, cy + d, cx + d, cy - d);
+  gfx_circle(cx - d, cy - d, sz * 0.36, 0);
+  gfx_circle(cx + d, cy - d, sz * 0.36, 0);
+  gfx_circle(cx - d, cy + d, sz * 0.36, 0);
+  gfx_circle(cx + d, cy + d, sz * 0.36, 0);
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_circle(cx, cy, 3, 1);
+);
+
+function draw_aya_sigil(cx, cy, sz) local(i, dy) (
+  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_line(cx, cy - sz, cx, cy + sz);
+  i = -2;
+  loop(5,
+    dy = cy + i * (sz * 0.3);
+    gfx_line(cx, dy, cx - sz * 0.5, dy - sz * 0.15);
+    gfx_line(cx, dy, cx + sz * 0.5, dy - sz * 0.15);
+    i += 1;
+  );
+);
+
+function draw_adinkra_watermark(cx, cy, cw, ch, sigil_type) local(cen_x, cen_y, sz) (
+  cen_x = cx + cw * 0.5; cen_y = cy + ch * 0.5;
+  sz = min(cw, ch) * 0.38;
+  gfx_a = 0.045; // Subtle luxury illumination
+  sigil_type == 1 ? draw_adinkrahene_sigil(cen_x, cen_y, sz) :
+  sigil_type == 2 ? draw_funtunfunefu_sigil(cen_x, cen_y, sz) :
+  sigil_type == 3 ? draw_mpatapo_sigil(cen_x, cen_y, sz) :
+  sigil_type == 4 ? draw_sankofa_sigil(cen_x, cen_y, sz) :
+  sigil_type == 5 ? draw_dwennimmen_sigil(cen_x, cen_y, sz) :
+  sigil_type == 6 ? draw_matemasie_sigil(cen_x, cen_y, sz) :
+  draw_aya_sigil(cen_x, cen_y, sz);
+  gfx_a = 1.0;
+);
 
 function get_producer_name(idx) (
   idx == 0 ? "00: Unity Transparent Pass" :
@@ -965,11 +1071,11 @@ function get_producer_ref_track(idx) (
 
 function draw_eq_fader(f_idx, f_x, f_y, f_w, f_h, title, freq_lbl, val, min_v, max_v, s_idx) local(v_str, trk_y, trk_h, trk_x, f_frac, th_y, hov, new_frac) (
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(f_x, f_y, f_w - 6, f_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(f_x, f_y, f_w - 6, f_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(f_x, f_y, f_w - 6, f_h, 0);
 
-  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = f_x + 10; gfx_y = f_y + 10; gfx_drawstr(title);
-  gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = f_x + 10; gfx_y = f_y + 28; gfx_drawstr(freq_lbl);
 
   v_str = sprintf(#, "%+3.1f dB", val);
@@ -985,7 +1091,7 @@ function draw_eq_fader(f_idx, f_x, f_y, f_w, f_h, title, freq_lbl, val, min_v, m
   f_frac = clamp((val - min_v) / (max_v - min_v), 0.0, 1.0);
   th_y = trk_y + trk_h - floor(f_frac * trk_h);
 
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
   gfx_rect(trk_x - 14, th_y - 8, 34, 16);
   gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0; gfx_rect(trk_x - 14, th_y - 8, 34, 16, 0);
 
@@ -1003,13 +1109,13 @@ function draw_eq_fader(f_idx, f_x, f_y, f_w, f_h, title, freq_lbl, val, min_v, m
 function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glue, accent_r, accent_g, accent_b) local(plate_x, plate_y, plate_w, plate_h, piv_x, piv_y, radius_arc, radius_needle, ang_min, ang_max, a_span, a_frac, cur_a, ax, ay, ai, arc_steps, prev_ax, prev_ay, t_a, m_db, f_val, nx1, ny1, nx2, ny2, tw, th, t_str, badge_str, b_w, b_h, frac, cur_ang, tip_x, tip_y, base_x, base_y) (
   gfx_r = 0.055; gfx_g = 0.065; gfx_b = 0.080; gfx_rect(mx, my, mw, mh);
   gfx_r = 0.020; gfx_g = 0.024; gfx_b = 0.032; gfx_rect(mx + 2, my + 2, mw - 4, mh - 4);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(mx, my, mw, mh, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(mx, my, mw, mh, 0);
   gfx_r = accent_r * 0.6; gfx_g = accent_g * 0.6; gfx_b = accent_b * 0.6; gfx_rect(mx + 2, my + 2, mw - 4, mh - 4, 0);
 
   plate_x = mx + 6; plate_y = my + 6;
   plate_w = mw - 12; plate_h = mh - 12;
   gfx_r = 0.035; gfx_g = 0.045; gfx_b = 0.060; gfx_rect(plate_x, plate_y, plate_w, plate_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(plate_x, plate_y, plate_w, plate_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(plate_x, plate_y, plate_w, plate_h, 0);
 
   piv_x = plate_x + plate_w * 0.5;
   piv_y = plate_y + plate_h - 16;
@@ -1022,7 +1128,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   gfx_circle(piv_x, piv_y - radius_arc * 0.45, floor(radius_arc * 0.6), 1);
   gfx_a = 1.0;
 
-  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = plate_x + 12; gfx_y = plate_y + 8; gfx_drawstr(title_str);
 
   gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = accent_r; gfx_g = accent_g; gfx_b = accent_b;
@@ -1039,7 +1145,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
     ay = piv_y - cos(cur_a) * radius_arc;
     ai > 0 ? (
       is_glue ? (
-        a_frac > 0.65 ? (gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;) : (gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;)
+        a_frac > 0.65 ? (gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;) : (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;)
       ) : (
         a_frac > 0.87 ? (gfx_r = 0.98; gfx_g = 0.22; gfx_b = 0.22;) : (gfx_r = 0.95; gfx_g = 0.75; gfx_b = 0.20;)
       );
@@ -1087,7 +1193,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   );
 
   gfx_setfont(1, "Orbitron", 13, 'b');
-  is_glue ? (gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;) : (gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;);
+  is_glue ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;);
   center_badge = is_glue ? "[ GR ]" : "[ VU ]";
   gfx_measurestr(center_badge, tw, th);
   gfx_x = floor(plate_x + (plate_w - tw) * 0.5);
@@ -1101,7 +1207,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   base_x = piv_x + sin(cur_ang) * 14;
   base_y = piv_y - cos(cur_ang) * 14;
 
-  is_glue ? (gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;) : (gfx_r = 1.00; gfx_g = 0.80; gfx_b = 0.22;);
+  is_glue ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 1.00; gfx_g = 0.80; gfx_b = 0.22;);
   gfx_line(base_x - 0.7, base_y, tip_x - 0.7, tip_y);
   gfx_line(base_x + 0.7, base_y, tip_x + 0.7, tip_y);
   gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
@@ -1109,11 +1215,11 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
 
   gfx_r = 0.98; gfx_g = 0.25; gfx_b = 0.22; gfx_circle(tip_x, tip_y, 2.5, 1);
   gfx_r = 0.08; gfx_g = 0.10; gfx_b = 0.14; gfx_circle(piv_x, piv_y, 16, 1);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_circle(piv_x, piv_y, 16, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_circle(piv_x, piv_y, 16, 0);
 
   gfx_setfont(3, "Consolas", 10.5, 'b');
   is_glue ? (
-    gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+    gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
     gfx_x = plate_x + 14; gfx_y = plate_y + plate_h - 22;
     gfx_printf("GR: %4.1f dB", glue_gr_db);
     gfx_x = plate_x + plate_w - 78; gfx_y = plate_y + plate_h - 22;
@@ -1122,7 +1228,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
     gfx_r = 0.00; gfx_g = 0.85; gfx_b = 0.45;
     gfx_x = plate_x + 14; gfx_y = plate_y + plate_h - 22;
     gfx_printf("RMS: %4.1f dBFS", inst_rms);
-    gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+    gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
     gfx_x = plate_x + plate_w - 110; gfx_y = plate_y + plate_h - 22;
     gfx_drawstr("0 VU = -18 dBFS");
   );
@@ -1137,23 +1243,23 @@ sifam_needle_gr += (glue_gr_db - sifam_needle_gr) * 0.35;
 // ─────────────────────────────────────────────────────────────────────────────
 hdr_h = 58;
 gfx_r = 0.015; gfx_g = 0.020; gfx_b = 0.028; gfx_rect(0, 0, gfx_w, hdr_h);
-gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_line(0, hdr_h - 1, gfx_w, hdr_h - 1);
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_line(0, hdr_h, gfx_w, hdr_h);
+gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_line(0, hdr_h - 1, gfx_w, hdr_h - 1);
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_line(0, hdr_h, gfx_w, hdr_h);
 
 // Golden Adinkra Insignia & Flagship Branding
 gfx_setfont(1, "Orbitron", 17, 'b'); gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;
 gfx_x = 18; gfx_y = 12;
-gfx_drawstr("DAMEI INSTRUMENTAL BUS ALCHEMIST");
+gfx_drawstr("DAMEI INSTRUMENTAL BUS CONCLAVE");
 
 gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;
 gfx_x = 18; gfx_y = 35;
-gfx_drawstr("FUNTUNFUNEFU-DENKYEMFUNEFU // COLLECTIVE SUMMING & PRODUCER DYNAMICS ENGINE");
+gfx_drawstr("FUNTUNFUNEFU-DENKYEMFUNEFU // COLLECTIVE SUMMING & HARMONIC CONCLAVE");
 
 // Live Master Status Badges
 badge_x = gfx_w - 380;
 gfx_r = 0.02; gfx_g = 0.03; gfx_b = 0.04; gfx_rect(badge_x, 10, 180, 38);
-gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(badge_x, 10, 180, 38, 0);
-gfx_setfont(2, "Consolas", 9.5, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(badge_x, 10, 180, 38, 0);
+gfx_setfont(2, "Consolas", 9.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
 gfx_x = badge_x + 8; gfx_y = 14; gfx_drawstr("PRE-MASTER LOCK");
 gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
 gfx_x = badge_x + 8; gfx_y = 28;
@@ -1182,27 +1288,27 @@ card_w = floor((gfx_w - 28 - 18) / 4);
 // Card 1: Forensic Producer Benchmark
 c1_x = 14;
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c1_x, card_y, card_w, card_h);
-gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(c1_x, card_y, card_w, card_h, 0);
-gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c1_x, card_y, card_w, card_h, 0);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
 gfx_x = c1_x + 8; gfx_y = card_y + 6; gfx_drawstr("PRODUCER TARGET BENCHMARK");
-gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 p_name = get_producer_name(slider2);
 gfx_x = c1_x + 8; gfx_y = card_y + 22; gfx_drawstr(p_name);
-gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 gfx_x = c1_x + 8; gfx_y = card_y + 42;
 gfx_printf("TRIM: %+3.1fdB | HPF: %dHz", slider4, slider16);
 
 // Card 2: AI Mix Assistant Status & Safe Calibrate
 c2_x = c1_x + card_w + 6;
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c2_x, card_y, card_w, card_h);
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(c2_x, card_y, card_w, card_h, 0);
-gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(c2_x, card_y, card_w, card_h, 0);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 gfx_x = c2_x + 8; gfx_y = card_y + 6; gfx_drawstr("AI TACTICIAN // ENERGY RADAR");
 
 ai_btn_hov = (mouse_x >= c2_x + 8 && mouse_x <= c2_x + card_w - 8 && mouse_y >= card_y + 20 && mouse_y <= card_y + 40);
 gfx_r = ai_btn_hov ? 0.08 : 0.03; gfx_g = ai_btn_hov ? 0.20 : 0.07; gfx_b = ai_btn_hov ? 0.28 : 0.11;
 gfx_rect(c2_x + 8, card_y + 20, card_w - 16, 20);
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(c2_x + 8, card_y + 20, card_w - 16, 20, 0);
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(c2_x + 8, card_y + 20, card_w - 16, 20, 0);
 gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 1.0; gfx_g = 0.9; gfx_b = 0.5;
 gfx_x = c2_x + 14; gfx_y = card_y + 24;
 ai_txt = slider32 == 1 ? "★ AI COGNITIVE SENTRY: ACTIVE" : "⚡ CLICK: SAFE AUTO-CALIBRATE";
@@ -1216,27 +1322,27 @@ gfx_printf("STATUS: %s (CTX: %.2f)", dk_tn[dk_r_idx], dk_ctx);
 // Card 3: Studio Bus Glue Telemetry
 c3_x = c2_x + card_w + 6;
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c3_x, card_y, card_w, card_h);
-gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(c3_x, card_y, card_w, card_h, 0);
-gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c3_x, card_y, card_w, card_h, 0);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
 gfx_x = c3_x + 8; gfx_y = card_y + 6; gfx_drawstr("STUDIO BUS GLUE (BUSTERse)");
 gfx_setfont(1, "Orbitron", 16, 'b'); gfx_x = c3_x + 8; gfx_y = card_y + 20;
 gfx_r = glue_gr_db > 0.1 ? 0.00 : 0.70; gfx_g = glue_gr_db > 0.1 ? 0.85 : 0.75; gfx_b = glue_gr_db > 0.1 ? 1.00 : 0.80;
 gfx_printf("GR: %3.1f dB", glue_gr_db);
 gfx_setfont(2, "Consolas", 10, 'b'); gfx_x = c3_x + 8; gfx_y = card_y + 42;
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 gfx_printf("%d:1 PUNCH | 10ms | %dHz SC", slider13 == 0 ? 1.5 : (slider13 == 1 ? 2 : (slider13 == 2 ? 4 : 8)), slider16);
 
 // Card 4: Vocal Corridor & Stereo
 c4_x = c3_x + card_w + 6;
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c4_x, card_y, card_w, card_h);
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(c4_x, card_y, card_w, card_h, 0);
-gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(c4_x, card_y, card_w, card_h, 0);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 gfx_x = c4_x + 8; gfx_y = card_y + 6; gfx_drawstr("VOCAL POCKET & STEREO");
 gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
 gfx_setfont(1, "Orbitron", 16, 'b'); gfx_x = c4_x + 8; gfx_y = card_y + 20;
 gfx_printf("POCKET: -%3.1f dB", pocket_depth);
 gfx_setfont(2, "Consolas", 10, 'b'); gfx_x = c4_x + 8; gfx_y = card_y + 42;
-gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
 gfx_printf("WIDTH: %.2fx | SUB: %dHz", active_width, slider6);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1258,7 +1364,7 @@ while (t_i < 8) (
   gfx_rect(tx, tab_y, tab_w, tab_h);
 
   is_sel ? (
-    gfx_r = 0.95; gfx_g = 0.70; gfx_b = 0.20;
+    gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
     gfx_rect(tx, tab_y, tab_w, tab_h, 0);
     gfx_rect(tx + 1, tab_y + 1, tab_w - 2, tab_h - 2, 0);
   ) : (
@@ -1267,7 +1373,7 @@ while (t_i < 8) (
   );
 
   gfx_setfont(1, "Orbitron", 10.5, 'b');
-  is_sel ? (gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;) : (gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;);
+  is_sel ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;);
   t_lbl = t_i == 0 ? "OVERVIEW" :
           t_i == 1 ? "TONAL EQ" :
           t_i == 2 ? "BUS GLUE" :
@@ -1296,18 +1402,18 @@ gfx_r = 0.25; gfx_g = 0.35; gfx_b = 0.48; gfx_rect(ws_x, ws_y, ws_w, ws_h, 0);
 
 function draw_component_header(title, mission, role, signal_path) (
   gfx_r = 0.018; gfx_g = 0.024; gfx_b = 0.034; gfx_rect(ws_x + 8, ws_y + 8, ws_w - 16, 52);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(ws_x + 8, ws_y + 8, ws_w - 16, 52, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ws_x + 8, ws_y + 8, ws_w - 16, 52, 0);
 
   gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;
   gfx_x = ws_x + 18; gfx_y = ws_y + 14; gfx_drawstr(title);
 
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 18; gfx_y = ws_y + 32; gfx_drawstr("MISSION: ");
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_drawstr(mission);
 
   gfx_x = ws_x + ws_w - 480; gfx_y = ws_y + 14; gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
   gfx_drawstr("SIGNAL PATH: "); gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.85; gfx_drawstr(signal_path);
-  gfx_x = ws_x + ws_w - 480; gfx_y = ws_y + 32; gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+  gfx_x = ws_x + ws_w - 480; gfx_y = ws_y + 32; gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
   gfx_drawstr("MIXING ROLE: "); gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.85; gfx_drawstr(role);
 );
 
@@ -1331,9 +1437,9 @@ slider1 == 0 ? (
   // Stereo Phase & Lissajous Radar with Phosphor Trails
   sc_x = ws_x + 24 + meter_w * 2; sc_y = dash_y;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(sc_x, sc_y, scope_w, top_row_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(sc_x, sc_y, scope_w, top_row_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(sc_x, sc_y, scope_w, top_row_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = sc_x + 14; gfx_y = sc_y + 10; gfx_drawstr("STEREO PHASE RADAR");
 
   r_cx = sc_x + scope_w * 0.5; r_cy = sc_y + 115;
@@ -1378,9 +1484,9 @@ slider1 == 0 ? (
   bot_y = dash_y + top_row_h + 12;
   bot_h = ws_h - 68 - top_row_h - 20;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(ws_x + 8, bot_y, ws_w - 16, bot_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(ws_x + 8, bot_y, ws_w - 16, bot_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ws_x + 8, bot_y, ws_w - 16, bot_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 20; gfx_y = bot_y + 12; gfx_drawstr("FLAGSHIP BUS INTEGRATION // MISSION TELEMETRY");
 
   gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
@@ -1408,9 +1514,9 @@ slider1 == 1 ? (
 
   sp_w = ws_w - 24; sp_h = 160;
   gfx_r = 0.012; gfx_g = 0.016; gfx_b = 0.024; gfx_rect(ws_x + 12, eq_view_y, sp_w, sp_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ws_x + 12, eq_view_y, sp_w, sp_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(ws_x + 12, eq_view_y, sp_w, sp_h, 0);
 
-  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 24; gfx_y = eq_view_y + 10;
   gfx_drawstr("REAL-TIME 64-BAND LOGARITHMIC SPECTRUM ANALYZER & ReEQ ALIGNMENT");
 
@@ -1426,7 +1532,7 @@ slider1 == 1 ? (
     bh = floor(b_val * (sp_h - 30));
     by = eq_view_y + sp_h - bh - 6;
 
-    gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_a = 0.65;
+    gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_a = 0.65;
     gfx_rect(bx, by, bin_w - 1, bh);
     spec_bins[sp_i] *= 0.88;
     sp_i += 1;
@@ -1462,9 +1568,9 @@ slider1 == 2 ? (
 
   gr_strip_y = glue_y + 248; gr_strip_h = glue_h - 248;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(ws_x + 12, gr_strip_y, glue_w, gr_strip_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ws_x + 12, gr_strip_y, glue_w, gr_strip_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(ws_x + 12, gr_strip_y, glue_w, gr_strip_h, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 22; gfx_y = gr_strip_y + 8; gfx_drawstr("SCROLLING GAIN REDUCTION TELEMETRY (128 FRAMES)");
 
   hist_i = 0; step_x = glue_w / 128.0;
@@ -1486,15 +1592,15 @@ slider1 == 2 ? (
   ctrl_x = ws_x + 20 + glue_w;
   ctrl_w = ws_w - 32 - glue_w;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(ctrl_x, glue_y, ctrl_w, glue_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(ctrl_x, glue_y, ctrl_w, glue_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ctrl_x, glue_y, ctrl_w, glue_h, 0);
 
-  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ctrl_x + 16; gfx_y = glue_y + 14; gfx_drawstr("BUSTERse VCA GLUE CALIBRATION");
 
   gfx_setfont(2, "Consolas", 11, 'b');
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = ctrl_x + 16; gfx_y = glue_y + 44;
   gfx_printf("• BUS GLUE THRESHOLD : %4.1f dB", slider12);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_x = ctrl_x + 16; gfx_y = glue_y + 60;
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_x = ctrl_x + 16; gfx_y = glue_y + 60;
   gfx_drawstr("  [Target: 1.4 to 1.8 dB GR on Chorus Hits]");
 
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = ctrl_x + 16; gfx_y = glue_y + 88;
@@ -1598,9 +1704,9 @@ slider1 == 3 ? (
 
   // Non-linear Transfer Curve Display
   gfx_r = 0.014; gfx_g = 0.018; gfx_b = 0.026; gfx_rect(ws_x + 16, mid_y, curve_w, mid_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ws_x + 16, mid_y, curve_w, mid_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(ws_x + 16, mid_y, curve_w, mid_h, 0);
 
-  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 28; gfx_y = mid_y + 12;
   gfx_drawstr("HARMONIC TRANSFER FUNCTION // NON-LINEAR SATURATION CURVE");
 
@@ -1635,7 +1741,7 @@ slider1 == 3 ? (
     py = c_cy - (y_out / 2.0) * c_span;
 
     crv_i > -30 ? (
-      gfx_r = 0.95; gfx_g = 0.70; gfx_b = 0.20;
+      gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
       gfx_line(prev_px, prev_py, px, py);
     );
     prev_px = px; prev_py = py;
@@ -1655,9 +1761,9 @@ slider1 == 3 ? (
   cir_x = ws_x + 28 + curve_w;
   cir_w = ws_w - 44 - curve_w;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(cir_x, mid_y, cir_w, mid_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(cir_x, mid_y, cir_w, mid_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(cir_x, mid_y, cir_w, mid_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = cir_x + 16; gfx_y = mid_y + 14;
   gfx_drawstr("ANALOG CONSOLE COLORATION HUD");
 
@@ -1673,7 +1779,7 @@ slider1 == 3 ? (
   gfx_r = 0.08; gfx_g = 0.12; gfx_b = 0.18; gfx_rect(cir_x + 16, mid_y + 120, cir_w - 32, 80);
   gfx_r = 0.25; gfx_g = 0.35; gfx_b = 0.45; gfx_rect(cir_x + 16, mid_y + 120, cir_w - 32, 80, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = cir_x + 24; gfx_y = mid_y + 128; gfx_drawstr("HARMONIC DISTRIBUTION PROFILE");
 
   gfx_setfont(2, "Consolas", 10, 'b');
@@ -1702,9 +1808,9 @@ slider1 == 4 ? (
 
   // Left Panel: Polar Vector Phase Scope & Goniometer
   gfx_r = 0.014; gfx_g = 0.018; gfx_b = 0.026; gfx_rect(ws_x + 12, st_y, st_half_w, st_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(ws_x + 12, st_y, st_half_w, st_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(ws_x + 12, st_y, st_half_w, st_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 24; gfx_y = st_y + 14;
   gfx_drawstr("POLAR VECTOR GONIOMETER & M/S RADAR");
 
@@ -1740,7 +1846,7 @@ slider1 == 4 ? (
   c_bar_y = st_y + st_h - 40;
   c_bar_w = st_half_w - 32;
   gfx_r = 0.03; gfx_g = 0.04; gfx_b = 0.06; gfx_rect(ws_x + 28, c_bar_y, c_bar_w, 16);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(ws_x + 28, c_bar_y, c_bar_w, 16, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ws_x + 28, c_bar_y, c_bar_w, 16, 0);
   cm_mid = ws_x + 28 + c_bar_w * 0.5;
   gfx_line(cm_mid, c_bar_y - 2, cm_mid, c_bar_y + 18);
 
@@ -1760,21 +1866,21 @@ slider1 == 4 ? (
   // Right Panel: Mid/Side Balancer & Hardware Width Controls
   r_panel_x = ws_x + 20 + st_half_w;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(r_panel_x, st_y, st_half_w, st_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(r_panel_x, st_y, st_half_w, st_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(r_panel_x, st_y, st_half_w, st_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = r_panel_x + 16; gfx_y = st_y + 14;
   gfx_drawstr("SPATIAL DISCIPLINE & SUB-BASS ANCHOR HUD");
 
   gfx_setfont(2, "Consolas", 11, 'b');
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = r_panel_x + 16; gfx_y = st_y + 44;
   gfx_printf("• SUB-BASS MONO ANCHOR : %d Hz (Elliptic Side Highpass)", slider6);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_x = r_panel_x + 16; gfx_y = st_y + 60;
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_x = r_panel_x + 16; gfx_y = st_y + 60;
   gfx_drawstr("  [Protects low-end vinyl/club translation by folding sub to pure mono]");
 
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = r_panel_x + 16; gfx_y = st_y + 88;
   gfx_printf("• STEREO IMAGER WIDTH  : %4.2f x (Active Width)", active_width);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_x = r_panel_x + 16; gfx_y = st_y + 104;
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_x = r_panel_x + 16; gfx_y = st_y + 104;
   gfx_printf("  [Base Width: %4.2fx | Chorus Bloom: %s]", slider25, dk_env0 > 0.05 ? "+12% Active" : "Standby");
 
   // Sub-Mono Frequency Response Curve Plaque
@@ -1784,7 +1890,7 @@ slider1 == 4 ? (
   gfx_r = 0.012; gfx_g = 0.016; gfx_b = 0.024; gfx_rect(r_panel_x + 16, sm_crv_y, sm_crv_w, sm_crv_h);
   gfx_r = 0.25; gfx_g = 0.35; gfx_b = 0.45; gfx_rect(r_panel_x + 16, sm_crv_y, sm_crv_w, sm_crv_h, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = r_panel_x + 24; gfx_y = sm_crv_y + 8;
   gfx_drawstr("SIDE CHANNEL HIGHPASS ATTENUATION PROFILE");
 
@@ -1804,7 +1910,7 @@ slider1 == 4 ? (
     ci += 1;
   );
 
-  gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+  gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
   gfx_x = r_panel_x + 24; gfx_y = sm_crv_y + sm_crv_h - 16;
   gfx_printf("CUTOFF: %d Hz // 100%% MONO BELOW CUTOFF", slider6);
 );
@@ -1852,7 +1958,7 @@ slider1 == 5 ? (
   );
 
   // Center Marker at 2.2 kHz
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
   notch_x = ws_x + 24 + 0.55 * pw_span;
   gfx_line(notch_x, p_cy - 40, notch_x, p_cy + 60);
   gfx_setfont(1, "Orbitron", 10.5, 'b');
@@ -1862,9 +1968,9 @@ slider1 == 5 ? (
   // Right Panel: Vocal Activity Telemetry HUD
   r_poc_x = ws_x + 20 + poc_half_w;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(r_poc_x, poc_y, poc_half_w, poc_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(r_poc_x, poc_y, poc_half_w, poc_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(r_poc_x, poc_y, poc_half_w, poc_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = r_poc_x + 16; gfx_y = poc_y + 14;
   gfx_drawstr("INTER-SUITE VOCAL RADAR & HEADROOM SENTRY");
 
@@ -1895,9 +2001,9 @@ slider1 == 5 ? (
 
   // Pre-Master Ceiling Guardian Plaque
   gfx_r = 0.08; gfx_g = 0.12; gfx_b = 0.18; gfx_rect(r_poc_x + 16, poc_y + 190, poc_half_w - 32, 70);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(r_poc_x + 16, poc_y + 190, poc_half_w - 32, 70, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(r_poc_x + 16, poc_y + 190, poc_half_w - 32, 70, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
   gfx_x = r_poc_x + 24; gfx_y = poc_y + 198;
   gfx_drawstr("ANALOG SOFT-DIODE CEILING GUARDIAN");
 
@@ -1940,7 +2046,7 @@ slider1 == 6 ? (
     gfx_rect(bx, by, btn_w, btn_h);
 
     p_sel ? (
-      gfx_r = 0.95; gfx_g = 0.70; gfx_b = 0.20;
+      gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
       gfx_rect(bx, by, btn_w, btn_h, 0);
     ) : (
       gfx_r = 0.25; gfx_g = 0.32; gfx_b = 0.42;
@@ -1988,20 +2094,35 @@ slider1 == 6 ? (
   bp_x = ws_x + 24 + grid_w;
   bp_w = pm_w - grid_w - 24;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(bp_x, pm_y + 14, bp_w, pm_h - 28);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(bp_x, pm_y + 14, bp_w, pm_h - 28, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(bp_x, pm_y + 14, bp_w, pm_h - 28, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bp_x + 14; gfx_y = pm_y + 26;
   gfx_drawstr("FORENSIC BENCHMARK BLUEPRINT");
 
-  gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bp_x + 14; gfx_y = pm_y + 50;
   gfx_printf("TARGET: %s", get_producer_name(slider2));
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = bp_x + 14; gfx_y = pm_y + 68;
   gfx_printf("REF   : %s", get_producer_ref_track(slider2));
+  draw_adinkra_watermark(bp_x, pm_y + 14, bp_w, pm_h - 28, 4); // Sankofa Benchmark Watermark
 
+  gfx_setfont(2, "Consolas", 9.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_x = bp_x + 14; gfx_y = pm_y + 84;
+  slider2 == 6 ? gfx_drawstr("H:\\REFERENCES: RMS -9.6dB | Crest 9.3dB | S/M -4.2dB") :
+  slider2 == 21 ? gfx_drawstr("H:\\REFERENCES: RMS -10.6dB | Crest 10.5dB | S/M -6.4dB") :
+  slider2 == 4 ? gfx_drawstr("H:\\REFERENCES: RMS -6.8dB | Crest 6.8dB | S/M -5.3dB") :
+  slider2 == 9 ? gfx_drawstr("H:\\REFERENCES: RMS -7.4dB | Crest 7.4dB | S/M -4.4dB") :
+  slider2 == 19 ? gfx_drawstr("H:\\REFERENCES: RMS -8.0dB | Crest 7.7dB | S/M -4.9dB") :
+  slider2 == 14 ? gfx_drawstr("H:\\REFERENCES: RMS -7.4dB | Crest 7.2dB | S/M -5.8dB") :
+  slider2 == 1 ? gfx_drawstr("H:\\REFERENCES: RMS -7.3dB | Crest 7.2dB | S/M -6.1dB") :
+  slider2 == 15 ? gfx_drawstr("H:\\REFERENCES: RMS -9.9dB | Crest 9.6dB | S/M -9.6dB") :
+  slider2 == 22 ? gfx_drawstr("H:\\REFERENCES: RMS -11.0dB | Crest 10.7dB | S/M -5.2dB") :
+  gfx_drawstr("H:\\REFERENCES: Forensic Reference Data Active");
+
+  gfx_setfont(2, "Consolas", 10, '');
   gfx_r = 0.70; gfx_g = 0.75; gfx_b = 0.85;
-  gfx_x = bp_x + 14; gfx_y = pm_y + 94;
+  gfx_x = bp_x + 14; gfx_y = pm_y + 102;
   gfx_printf("• Output Trim  : %+3.1f dB (DeeGain Match)", slider4);
   gfx_x = bp_x + 14; gfx_y = pm_y + 114;
   gfx_printf("• Tonal EQ     : 80Hz +%3.1fdB | 202Hz -%3.1fdB", slider19, abs(slider20));
@@ -2044,9 +2165,9 @@ slider1 == 7 ? (
   // Left Column: Ear-Candy Director & Trick Palette Dock
   lx = ws_x + 12;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(lx, ec_y, col_w, ec_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(lx, ec_y, col_w, ec_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(lx, ec_y, col_w, ec_h, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = lx + 16; gfx_y = ec_y + 12;
   gfx_drawstr("EAR-CANDY DIRECTOR // DYNAMIC PALETTE");
 
@@ -2070,9 +2191,9 @@ slider1 == 7 ? (
   gfx_x = lx + 16; gfx_y = is_y; gfx_printf("EAR-CANDY INTENSITY AMOUNT: %d %%", slider49);
 
   gfx_r = 0.03; gfx_g = 0.04; gfx_b = 0.06; gfx_rect(lx + 16, is_y + 16, col_w - 32, 12);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(lx + 16, is_y + 16, col_w - 32, 12, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(lx + 16, is_y + 16, col_w - 32, 12, 0);
   fill_w = floor((slider49 / 100.0) * (col_w - 34));
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(lx + 17, is_y + 17, fill_w, 10);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(lx + 17, is_y + 17, fill_w, 10);
 
   (mouse_cap & 1) && (mouse_x >= lx + 16 && mouse_x <= lx + col_w - 16 && mouse_y >= is_y + 12 && mouse_y <= is_y + 32) ? (
     slider49 = clamp(floor(((mouse_x - (lx + 16)) / (col_w - 32)) * 100), 0, 100);
@@ -2093,7 +2214,7 @@ slider1 == 7 ? (
     cur_env = k_i == 0 ? dk_env0 : (k_i == 1 ? dk_env1 : (k_i == 2 ? dk_env2 : (k_i == 3 ? dk_env3 : (k_i == 4 ? dk_env4 : (k_i == 5 ? dk_env5 : (k_i == 6 ? dk_env6 : dk_env7))))));
     act_w = floor(cur_env * (col_w - 34));
     act_w > 0 ? (
-      gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_a = 0.40;
+      gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_a = 0.40;
       gfx_rect(lx + 17, ty + 1, act_w, tr_h - 2);
       gfx_a = 1.0;
     );
@@ -2119,9 +2240,9 @@ slider1 == 7 ? (
   log_y = tr_y + 8 * (tr_h + 4) + 6;
   log_h = ec_h - (log_y - ec_y) - 12;
   gfx_r = 0.010; gfx_g = 0.014; gfx_b = 0.020; gfx_rect(lx + 16, log_y, col_w - 32, log_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(lx + 16, log_y, col_w - 32, log_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(lx + 16, log_y, col_w - 32, log_h, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = lx + 24; gfx_y = log_y + 8;
   gfx_drawstr("DIRECTOR REASONING LOG // REAL-TIME TELEMETRY");
 
@@ -2141,10 +2262,10 @@ slider1 == 7 ? (
   // Right Column: Producer Playbook Carousel & Craft Heuristics
   rx = ws_x + 20 + col_w;
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(rx, ec_y, col_w, ec_h);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(rx, ec_y, col_w, ec_h, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(rx, ec_y, col_w, ec_h, 0);
 
   gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(rx + 16, ec_y + 12, col_w - 32, 34);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(rx + 16, ec_y + 12, col_w - 32, 34, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(rx + 16, ec_y + 12, col_w - 32, 34, 0);
 
   prev_hov = (mouse_x >= rx + 20 && mouse_x <= rx + 52 && mouse_y >= ec_y + 14 && mouse_y <= ec_y + 44);
   gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = prev_hov ? 1.0 : 0.85; gfx_g = prev_hov ? 1.0 : 0.70; gfx_b = prev_hov ? 1.0 : 0.22;
@@ -2153,7 +2274,7 @@ slider1 == 7 ? (
 
   p_title = get_producer_name(dg_pbi);
   gfx_measurestr(p_title, ptw, pth);
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.0; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = rx + 16 + floor((col_w - 32 - ptw) * 0.5); gfx_y = ec_y + 20;
   gfx_drawstr(p_title);
 
@@ -2163,7 +2284,7 @@ slider1 == 7 ? (
   mouse_clicked && next_hov ? (dg_pbi = (dg_pbi + 1) % 25;);
 
   ch_y = ec_y + 56;
-  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = rx + 18; gfx_y = ch_y; gfx_drawstr("PRODUCER CRAFT HEURISTICS (AUTHENTIC REFERENCE RECIPE):");
 
   gfx_setfont(2, "Consolas", 11, 'b');
@@ -2171,7 +2292,7 @@ slider1 == 7 ? (
   ti = 0;
   while (ti < 4) (
     t_row_y = ch_y + 22 + ti * 26;
-    ti == 0 ? (gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;) :
+    ti == 0 ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) :
     ti == 1 ? (gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;) :
     ti == 2 ? (gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;) : (gfx_r = 0.95; gfx_g = 0.55; gfx_b = 0.90;);
     gfx_x = rx + 20; gfx_y = t_row_y;
@@ -2184,7 +2305,7 @@ slider1 == 7 ? (
   load_hov = (mouse_x >= rx + 16 && mouse_x <= rx + col_w - 16 && mouse_y >= load_y && mouse_y <= load_y + 32);
   gfx_r = load_hov ? 0.10 : 0.04; gfx_g = load_hov ? 0.25 : 0.10; gfx_b = load_hov ? 0.35 : 0.15;
   gfx_rect(rx + 16, load_y, col_w - 32, 32);
-  gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(rx + 16, load_y, col_w - 32, 32, 0);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(rx + 16, load_y, col_w - 32, 32, 0);
 
   gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 1.0; gfx_g = 0.9; gfx_b = 0.5;
   btn_lbl = "LOAD THIS PALETTE INTO THE DIRECTOR";
@@ -2216,9 +2337,9 @@ slider1 == 7 ? (
   pl_y = af_y + 38;
   pl_h = ec_h - (pl_y - ec_y) - 12;
   gfx_r = 0.010; gfx_g = 0.014; gfx_b = 0.020; gfx_rect(rx + 16, pl_y, col_w - 32, pl_h);
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_rect(rx + 16, pl_y, col_w - 32, pl_h, 0);
+  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36; gfx_rect(rx + 16, pl_y, col_w - 32, pl_h, 0);
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = rx + 24; gfx_y = pl_y + 8; gfx_drawstr("SIGNATURE REFERENCE SPECIFICATIONS:");
 
   gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
