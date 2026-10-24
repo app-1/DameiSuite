@@ -509,9 +509,12 @@ drm_active = (gmem[820] == 1 && gmem[823] > -80.0);
 drm_rms_live = drm_active ? gmem[823] : -18.0;
 gtr_active = (gmem[840] == 1 && gmem[843] > -80.0);
 gtr_rms_live = gtr_active ? gmem[843] : -19.5;
+inst_active = (gmem[960] == 1);
+inst_rms_live = inst_active ? gmem[963] : -18.0;
 
 bass_to_drm_db = cur_vu_rms - drm_rms_live;
 bass_to_gtr_db = cur_vu_rms - gtr_rms_live;
+bass_to_inst_db = cur_vu_rms - inst_rms_live;
 
 gmem[860] = 1;
 gmem[861] = slider20;

@@ -1064,6 +1064,11 @@ target_dev_carve = dev_sub_firing ? exp(-slider20 * (log(10.0) / 20.0)) : 1.0;
 smooth_dev_carve = smooth_dev_carve * 0.82 + target_dev_carve * 0.18;
 live_dev_carve_db = 20.0 * log10(max(0.01, smooth_dev_carve));
 
+// 4b. Read Instrumental Bus Telemetry (gmem 960..975)
+inst_active = (gmem[960] == 1);
+inst_rms = inst_active ? gmem[963] : -90.0;
+syn_to_inst_db = cur_vu_rms - inst_rms;
+
 // 5. Project Region Awareness & Bridge Climax Engine
 g_bridge_active = (gmem[100] == 1);
 g_sec = g_bridge_active ? gmem[101] : 0;

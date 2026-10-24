@@ -731,6 +731,9 @@ gtr_active = (gmem[840] == 1);
 gtr_rms = gtr_active ? gmem[843] : -90.0;
 gtr_roaring = (gtr_rms > -22.0);
 
+inst_active = (gmem[960] == 1);
+inst_rms = inst_active ? gmem[963] : -90.0;
+
 // Command port: gmem[995] = 1 fire Sub Divebomb, 2 fire Reversed Suck-Back (cleared after use)
 gmem[995] == 1 ? (trigger_sub_divebomb(); gmem[995] = 0;);
 gmem[995] == 2 ? (trigger_reversed_suckback(); gmem[995] = 0;);

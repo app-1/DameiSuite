@@ -1360,6 +1360,9 @@ is_breakdown = (g_sec == 4 || g_rgn_type == 5 || g_rgn == 8);
 // Handshake Telemetry Broadcast
 mst_rms_live = (gmem[800] > -80.0) ? gmem[800] : -18.0;
 drm_rms_live = (gmem[820] == 1 && gmem[823] > -80.0) ? gmem[823] : (mst_rms_live - 1.0);
+inst_active = (gmem[960] == 1);
+inst_rms_live = inst_active ? gmem[963] : (mst_rms_live - 0.5);
+gtr_to_inst_db = cur_vu_rms - inst_rms_live;
 gtr_to_mix_db = cur_vu_rms - mst_rms_live;
 gtr_to_drm_db = cur_vu_rms - drm_rms_live;
 
