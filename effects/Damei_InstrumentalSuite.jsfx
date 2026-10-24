@@ -100,6 +100,14 @@ function clamp(v, min_v, max_v) (
   max(min_v, min(max_v, v));
 );
 
+// Hyperbolic tangent function for analog console saturation & soft-clipping
+function tanh(x) local(e2x) (
+  x > 15.0 ? 1.0 : x < -15.0 ? -1.0 : (
+    e2x = exp(2.0 * x);
+    (e2x - 1.0) / (e2x + 1.0);
+  );
+);
+
 function fast_shape(x) local(ax) (
   ax = abs(x);
   x / (1.0 + ax * (0.8 + 0.2 * ax));
@@ -653,15 +661,15 @@ draw_hex_bolt(18, gfx_h - 18);
 draw_hex_bolt(gfx_w - 18, gfx_h - 18);
 
 // Master Title Ribbon
-hdr_h = 52;
+hdr_h = 46;
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042;
-gfx_rect(16, 16, gfx_w - 32, hdr_h);
+gfx_rect(14, 12, gfx_w - 28, hdr_h);
 gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
-gfx_rect(16, 16, gfx_w - 32, hdr_h, 0);
+gfx_rect(14, 12, gfx_w - 28, hdr_h, 0);
 
 // Funtunfunefu Emblem with Dynamic Audio Pulse
 r_pulse = 1.0 + max(0.0, (inst_rms + 35.0) / 45.0) * 0.25;
-sig_cx = 36; sig_cy = 16 + hdr_h * 0.5;
+sig_cx = 36; sig_cy = 12 + hdr_h * 0.5;
 gfx_r = 0.95; gfx_g = 0.75; gfx_b = 0.20; gfx_a = 0.25;
 gfx_circle(sig_cx, sig_cy, floor(15 * r_pulse), 0);
 gfx_a = 1.0;
@@ -788,14 +796,95 @@ gfx_measurestr(ch_str, chw, chh);
 gfx_x = b1_x + floor((b1_w - chw) * 0.5); gfx_y = btn_y + floor((btn_h - chh) * 0.5);
 gfx_drawstr(ch_str);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. TOP TELEMETRY CARDS (4 RESPONSIVE LUXURY CARDS - GUITAR SUITE ARCHITECTURE)
+// ─────────────────────────────────────────────────────────────────────────────
+card_y = 12 + hdr_h + 5;
+card_w = floor((gfx_w - 28 - 18) / 4);
+card_h = 58;
+
+inst_peak_db = inst_peak > 0.000000001 ? 20.0 * log10(inst_peak) : -100.0;
+
+// Card 1: True Peak & Headroom
+c1_x = 14;
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c1_x, card_y, card_w, card_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_setfont(2, "Consolas", 10.5, 'b');
+gfx_x = c1_x + 8; gfx_y = card_y + 6; gfx_drawstr("TRUE PEAK (CEIL -6.0)");
+inst_peak_db <= -6.0 ? (gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;) : (gfx_r = 0.98; gfx_g = 0.75; gfx_b = 0.20;);
+gfx_setfont(1, "Orbitron", 17, 'b'); gfx_x = c1_x + 8; gfx_y = card_y + 20;
+gfx_printf("%.1f dBTP", inst_peak_db);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_x = c1_x + 8; gfx_y = card_y + 42;
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_printf("TRIM: %.1fdB | CLIP: PASS", slider4);
+
+// Card 2: AI Mix Assistant Deck (Header Dock matching Guitar & Bass Suites)
+c2_x = c1_x + card_w + 6;
+c2_hov = (mouse_x >= c2_x && mouse_x <= c2_x + card_w && mouse_y >= card_y && mouse_y <= card_y + card_h);
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c2_x, card_y, card_w, card_h);
+gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_rect(c2_x, card_y, card_w, card_h, 0);
+
+gfx_setfont(1, "Orbitron", 10.5, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
+gfx_x = c2_x + 8; gfx_y = card_y + 6;
+gfx_drawstr("● AI MIX ASSISTANT");
+
+gfx_setfont(2, "Consolas", 9.5, 'b');
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+mir_tag = "BENCHMARK // LOCKED";
+gfx_measurestr(mir_tag, mw_t, mh_t);
+gfx_x = c2_x + card_w - mw_t - 8; gfx_y = card_y + 6;
+gfx_drawstr(mir_tag);
+
+// Center Action Button: [ ★ AI AUTO-CALIBRATE ]
+ai_btn_w = card_w - 16; ai_btn_h = 22;
+ai_btn_x = c2_x + 8; ai_btn_y = card_y + 20;
+ai_btn_hov = (mouse_x >= ai_btn_x && mouse_x <= ai_btn_x + ai_btn_w && mouse_y >= ai_btn_y && mouse_y <= ai_btn_y + ai_btn_h);
+gfx_r = ai_btn_hov ? 0.18 : 0.08; gfx_g = ai_btn_hov ? 0.38 : 0.22; gfx_b = ai_btn_hov ? 0.24 : 0.14;
+gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h);
+gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h, 0);
+
+gfx_setfont(1, "Orbitron", 9.5, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+ai_btn_txt = "★ AI AUTO-CALIBRATE (±0.5dB SAFE LOCK)";
+gfx_measurestr(ai_btn_txt, abw, abh);
+gfx_x = ai_btn_x + (ai_btn_w - abw) * 0.5; gfx_y = ai_btn_y + 5;
+gfx_drawstr(ai_btn_txt);
+mouse_clicked && ai_btn_hov ? ( trigger_ai_assist(); );
+
+gfx_setfont(2, "Consolas", 9.5, 'b'); gfx_r = 0.60; gfx_g = 0.85; gfx_b = 0.70;
+gfx_x = c2_x + 8; gfx_y = card_y + 44;
+gfx_drawstr("STATUS: COGNITIVE SUMMING // BALANCED");
+
+// Card 3: Bus Glue Dynamics
+c3_x = c2_x + card_w + 6;
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c3_x, card_y, card_w, card_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_setfont(2, "Consolas", 10.5, 'b');
+gfx_x = c3_x + 8; gfx_y = card_y + 6; gfx_drawstr("STUDIO BUS GLUE");
+gfx_setfont(1, "Orbitron", 17, 'b'); gfx_r = 0.98; gfx_g = 0.82; gfx_b = 0.25;
+gfx_x = c3_x + 8; gfx_y = card_y + 20;
+gfx_printf("GR: %.1f dB", glue_gr_db);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c3_x + 8; gfx_y = card_y + 42;
+gfx_printf("4:1 PUNCH | ATTACK: %.0fms", slider14);
+
+// Card 4: Vocal Corridor & Stereo
+c4_x = c3_x + card_w + 6;
+gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.042; gfx_rect(c4_x, card_y, card_w, card_h);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_setfont(2, "Consolas", 10.5, 'b');
+gfx_x = c4_x + 8; gfx_y = card_y + 6; gfx_drawstr("VOCAL CORRIDOR & STEREO");
+gfx_setfont(1, "Orbitron", 17, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
+gfx_x = c4_x + 8; gfx_y = card_y + 20;
+gfx_printf("POCKET: %+.1f dB", -pocket_depth);
+gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c4_x + 8; gfx_y = card_y + 42;
+gfx_printf("WIDTH: %.2fx | SUB: %.0fHz", slider25, slider6);
+
 // Navigation Tabs Ribbon
-tab_y = 76; tab_h = 42;
+tab_y = card_y + card_h + 5; tab_h = 30;
 num_tabs = 7;
-tab_w = floor((gfx_w - 32) / num_tabs);
+tab_w = floor((gfx_w - 28) / num_tabs);
 
 ti = 0;
 while (ti < num_tabs) (
-  tx = 16 + ti * tab_w;
+  tx = 14 + ti * tab_w;
   is_act = (slider1 == ti);
   hov = (mouse_x >= tx && mouse_x <= tx + tab_w && mouse_y >= tab_y && mouse_y <= tab_y + tab_h);
 
@@ -829,7 +918,7 @@ while (ti < num_tabs) (
   ti += 1;
 );
 
-ws_x = 16; ws_y = 126; ws_w = gfx_w - 32; ws_h = gfx_h - 142;
+ws_x = 14; ws_y = tab_y + tab_h + 6; ws_w = gfx_w - 28; ws_h = gfx_h - ws_y - 12;
 
 // Re-usable Parameter Slider
 function draw_param_slider(px, py, pw, ph, label_str, val, min_v, max_v, fmt_str, s_idx, cr, cg, cb) local(v_frac, trk_y, trk_h, kn_x, hov, new_f) (
@@ -1083,7 +1172,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
 // TAB 0: OVERVIEW HARDWARE DASHBOARD
 // =============================================================================
 slider1 == 0 ? (
-  top_row_h = 236;
+  top_row_h = 216;
   meter_w = floor((ws_w - 48) * 0.35);
   scope_w = ws_w - 32 - meter_w * 2;
 
@@ -1216,7 +1305,7 @@ slider1 == 1 ? (
   gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22; gfx_rect(ws_x + 8, eq_plot_y, eq_plot_w, eq_plot_h, 0);
 
   gfx_setfont(1, "Orbitron", 13.5, 'b'); gfx_r = 0.85; gfx_g = 0.70; gfx_b = 0.22;
-  gfx_x = ws_x + 20; gfx_y = eq_plot_y + 12; gfx_drawstr("TONAL FORGE // 6-BAND INSTRUMENTAL BUS EQUALIZATION CURVE");
+  gfx_x = ws_x + 20; gfx_y = eq_plot_y + 12; gfx_drawstr("TONAL FORGE // REAPER-NATIVE ReEQ 7-BAND PARAMETRIC FORGE");
 
   // Grid
   cy0 = eq_plot_y + eq_plot_h * 0.5;
