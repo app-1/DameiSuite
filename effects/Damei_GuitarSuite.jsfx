@@ -1473,19 +1473,10 @@ mid_carve_x2 = mid_carve_x1; mid_carve_x1 = mid; mid_carve_y2 = mid_carve_y1; mi
 vox_online = (gmem[880] == 1);
 vox_rms_live = vox_online ? gmem[883] : -90.0;
 vox_act = vox_online ? max(0.0, min(1.0, (vox_rms_live + 42.0) / 22.0)) : 0.0;
-target_vox_duck = vox_act * 0.3; // subtle 0.3 dB gentle pocket unmasking (imperceptible volume change)
-
-vox_duck_env = (target_vox_duck > vox_duck_env) ?
-  (vox_duck_env * vox_duck_att + target_vox_duck * (1.0 - vox_duck_att)) :
-  (vox_duck_env * vox_duck_rel + target_vox_duck * (1.0 - vox_duck_rel));
-
-vox_duck_env > 0.005 ? (
-  vox_duck_gain = 1.0 - exp(-vox_duck_env * (log(10.0) / 20.0));
-  vbp_s = vbp_b0 * mid_carved + vbp_b2 * vbp_x2 - vbp_a1 * vbp_y1 - vbp_a2 * vbp_y2;
-  vbp_x2 = vbp_x1; vbp_x1 = mid_carved;
-  vbp_y2 = vbp_y1; vbp_y1 = vbp_s;
-  mid_carved -= vbp_s * vox_duck_gain;
-);
+// ZERO VOCAL DUCKING: Preserves solid, unyielding rhythm guitar presence across all sections!
+target_vox_duck = 0.0;
+vox_duck_env = 0.0;
+// Static pocket relies purely on mid-scoop EQ, zero dynamic volume drop when vocals enter
 
 side_scaled = side * slider16;
 
