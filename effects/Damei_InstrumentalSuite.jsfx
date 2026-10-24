@@ -10,7 +10,7 @@ slider1:0<0,7,1{0: OVERVIEW, 1: TONAL EQ, 2: BUS GLUE, 3: CRUCIBLE, 4: STEREO, 5
 slider2:6<0,24,1{00: Unity Baseline (1:1 Transparent Pass), 01: Lance Prenc (Alpha Wolf - 60cm Of Steel), 02: Scott Seigel (DIESECT - TOO MANY SCARS), 03: Jonathan Dolese (Mirrorcell - U(phoria)), 04: Buster Odeholm (thrown / Northlane - Evian), 05: Lewis Johns (Love Is Noise / blanket - Blur), 06: Kel Pinchin (Split Chain - I'm Not Dying To Be Here), 07: Dan Lancaster & Jason Perry (Don Broco - Endorphins), 08: Erik Bickerstaffe (Static Dress - face..), 09: Sam Guaiana (Shyeye feat. Showing Teeth - Knot), 10: Zach Tuch (Heavenward - Tangerine), 11: Forrester Savell (City Of Souls - Cruelty / Karnivool), 12: Leon Schmidt (SUNBORN - Nebula), 13: Ermin Hamidovic (Systematic / 01 The End of All We Know), 14: Will Putney (Fit For An Autopsy - Walk With Me In Hell), 15: George Lever (Loathe - Agressive Evolution / Sleep Token), 16: Sam Bassal (Thornhill - nerv), 17: Henrik Udd (Architects - 8. Gravity), 18: Dan Braunstein (Spiritbox - Keep Sweet), 19: Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND), 20: Jens Bogren (Fascination Street Studios Benchmark), 21: Adam Nolly Getgood (Periphery / GGD Modern Metal Target), 22: Acle Kahney (TesseracT - King), 23: Adam Cichocki (heaving. - carsick), 24: Manuel Renner (SENNA - Out Of The Blue)}>-Producer Reference Benchmark
 slider3:0<-6.0,6.0,0.1>-Input Calibration Gain (dB)
 slider4:-2.1<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
-slider5:0<0,1,1{Free Output, -6.0 dBTP Strict Pre-Master Lock}>-Headroom Guardian Mode
+slider5:0<0,2,1{-3.0 dBTP Staging Lock (Legacy Parity), -6.0 dBTP Pre-Master Lock, Free Uncapped Pass}>-Headroom Guardian Mode
 slider6:80<40,160,1>-Sub-Bass Mono Anchor Cutoff (Hz)
 slider7:1<0,1,1{Bypass, Active Sentry}>-Kick/Bass Transient Sentry
 slider8:0.0<0.0,3.0,0.1>-Static Vocal Pocket Notch Depth (dB)
@@ -907,13 +907,13 @@ slider48 == 0 ? (
   final_l = out_sum_l * trim_gain;
   final_r = out_sum_r * trim_gain;
 
-  // Analog Soft-Diode Peak Catcher
-  lim_th = 0.98; // -0.18 dBFS
+  // Analog Soft-Diode Peak Catcher (Strict -3.0 dBTP Legacy Ceiling Lock)
+  lim_th = slider5 == 1 ? 0.501187 : (slider5 == 2 ? 0.98 : 0.707946); // 0 = -3.0 dBTP, 1 = -6.0 dBTP, 2 = Free Pass
   abs(final_l) > lim_th ? (
-    final_l = sign(final_l) * (lim_th + (abs(final_l) - lim_th) / (1.0 + sqr(abs(final_l) - lim_th)));
+    final_l = sign(final_l) * (lim_th + (abs(final_l) - lim_th) / (1.0 + sqr((abs(final_l) - lim_th) * 4.0)));
   );
   abs(final_r) > lim_th ? (
-    final_r = sign(final_r) * (lim_th + (abs(final_r) - lim_th) / (1.0 + sqr(abs(final_r) - lim_th)));
+    final_r = sign(final_r) * (lim_th + (abs(final_r) - lim_th) / (1.0 + sqr((abs(final_r) - lim_th) * 4.0)));
   );
 
   // =============================================================================
@@ -1488,7 +1488,7 @@ gfx_setfont(2, "Consolas", 9.5, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
 gfx_x = badge_x + 8; gfx_y = 14; gfx_drawstr("PRE-MASTER LOCK");
 gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
 gfx_x = badge_x + 8; gfx_y = 28;
-slider5 ? gfx_drawstr("STRICT -6.0 dBTP") : gfx_drawstr("FREE CREST PASS");
+slider5 == 1 ? gfx_drawstr("STRICT -6.0 dBTP") : (slider5 == 2 ? gfx_drawstr("FREE CREST PASS") : gfx_drawstr("-3.0 dBTP CEILING LOCK"));
 
 // Master Bypass Toggle
 byp_x = gfx_w - 180;
@@ -2259,7 +2259,7 @@ slider1 == 5 ? (
   gfx_x = r_poc_x + 24; gfx_y = poc_y + 208;
   gfx_drawstr("Peak Catcher active at -0.18 dBFS. Ensures clean, zero-overshoot pre-master pass.");
   gfx_x = r_poc_x + 24; gfx_y = poc_y + 224;
-  gfx_printf("STRICT LOCK: %s  |  OUTPUT PEAK: %4.2f dBFS", slider5 ? "-6.0 dBTP Strict" : "Free Crest Pass", 20.0 * log10(max(0.00001, inst_peak)));
+  gfx_printf("STRICT LOCK: %s  |  OUTPUT PEAK: %4.2f dBFS", slider5 == 1 ? "-6.0 dBTP Strict" : (slider5 == 2 ? "Free Crest Pass" : "-3.0 dBTP Strict Lock"), 20.0 * log10(max(0.00001, inst_peak)));
 
   // Stem Ecosystem Handshake Plaque
   sh_y = poc_y + 252;
