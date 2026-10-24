@@ -2347,10 +2347,12 @@ function solve_mixing_chorus_impact() (
 function publish_project_state() (
   pb_dr = (gmem[820] == 1); pb_gt = (gmem[840] == 1); pb_bs = (gmem[860] == 1);
   pb_vx = (gmem[880] == 1); pb_sy = (gmem[920] == 1); pb_dv = (gmem[900] == 1);
+  pb_in = (gmem[940] == 1);
   gmem[1000] = 1;
-  gmem[1001] = 1 + pb_dr + pb_gt + pb_bs + pb_vx + pb_sy + pb_dv;
+  gmem[1001] = 1 + pb_dr + pb_gt + pb_bs + pb_vx + pb_sy + pb_dv + pb_in;
   gmem[1002] = pb_dr; gmem[1003] = pb_gt; gmem[1004] = pb_bs;
   gmem[1005] = pb_vx; gmem[1006] = pb_sy; gmem[1007] = pb_dv;
+  gmem[1040] = pb_in;
   gmem[1008] = slider39;
   gmem[1009] = pb_dv ? gmem[901] : -1;
   // Producer coherence: Devastator blueprint vs Mixing preset (1 match, 0 mismatch, -1 n/a)

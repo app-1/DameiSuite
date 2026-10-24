@@ -1122,29 +1122,32 @@ sprintf(#hdr, "Reference: %s   |   Source: %s   |   Stage: %s",
 gfx_setfont(2); col(0.60, 0.65, 0.75); txt(24, 66, #hdr);
 
 // Live Suite Interlock Telemetry Badges
-s_mix = (gmem[1000] == 1);
-s_vox = (gmem[880] == 1);
-s_drm = (gmem[820] == 1);
-s_bas = (gmem[860] == 1);
-s_gtr = (gmem[840] == 1);
-s_syn = (gmem[920] == 1);
+s_mix  = (gmem[1000] == 1);
+s_inst = (gmem[940] == 1 && (time_precise() - gmem[955]) < 3.0);
+s_vox  = (gmem[880] == 1);
+s_drm  = (gmem[820] == 1);
+s_bas  = (gmem[860] == 1);
+s_gtr  = (gmem[840] == 1);
+s_syn  = (gmem[920] == 1);
 
 function draw_suite_badge(bx, by, bw, bh, name, is_on) (
   col(0.04, 0.05, 0.08); rct(bx, by, bw, bh);
   is_on ? col(0.12, 0.55, 0.35) : col(0.20, 0.22, 0.28); rcto(bx, by, bw, bh);
   is_on ? col(0.20, 0.95, 0.55) : col(0.35, 0.38, 0.45);
-  cir(bx + 10, by + bh*0.5, 3.5);
+  cir(bx + 9, by + bh*0.5, 3.5);
   gfx_setfont(3);
   is_on ? col(0.85, 0.95, 0.90) : col(0.40, 0.45, 0.52);
-  txt(bx + 18, by + (bh - 10)*0.5, name);
+  txt(bx + 16, by + (bh - 10)*0.5, name);
 );
 
-draw_suite_badge(542, 62, 70, 19, "MIX", s_mix);
-draw_suite_badge(618, 62, 70, 19, "VOX", s_vox);
-draw_suite_badge(694, 62, 70, 19, "DRM", s_drm);
-draw_suite_badge(770, 62, 70, 19, "BAS", s_bas);
-draw_suite_badge(846, 62, 70, 19, "GTR", s_gtr);
-draw_suite_badge(922, 62, 70, 19, "SYN", s_syn);
+bw = 62; bgap = 6; bx0 = 542;
+draw_suite_badge(bx0 + 0*(bw+bgap), 62, bw, 19, "MIX", s_mix);
+draw_suite_badge(bx0 + 1*(bw+bgap), 62, bw, 19, "INST", s_inst);
+draw_suite_badge(bx0 + 2*(bw+bgap), 62, bw, 19, "VOX", s_vox);
+draw_suite_badge(bx0 + 3*(bw+bgap), 62, bw, 19, "DRM", s_drm);
+draw_suite_badge(bx0 + 4*(bw+bgap), 62, bw, 19, "BAS", s_bas);
+draw_suite_badge(bx0 + 5*(bw+bgap), 62, bw, 19, "GTR", s_gtr);
+draw_suite_badge(bx0 + 6*(bw+bgap), 62, bw, 19, "SYN", s_syn);
 
 tmx = 0; s_i = 0;
 loop(6, tm = 0; b_i = 0; loop(7, tm = max(tm, abs(TT[s_i*7 + b_i])); b_i += 1; ); tm = max(tm, abs(TW[s_i])); TMV[s_i] = tm; s_i += 1; );

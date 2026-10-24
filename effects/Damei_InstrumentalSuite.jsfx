@@ -13,11 +13,11 @@ slider4:-2.1<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
 slider5:0<0,1,1{Free Output, -6.0 dBTP Strict Pre-Master Lock}>-Headroom Guardian Mode
 slider6:80<40,160,1>-Sub-Bass Mono Anchor Cutoff (Hz)
 slider7:1<0,1,1{Bypass, Active Sentry}>-Kick/Bass Transient Sentry
-slider8:0.8<0.0,3.0,0.1>-Vocal Pocket Dynamic Notch Depth (dB)
-slider9:1<0,1,1{Manual Lock, gmem Auto-Sensing}>-Vocal Pocket Corridor Mode
+slider8:0.0<0.0,3.0,0.1>-Static Vocal Pocket Notch Depth (dB)
+slider9:0<0,1,1{Static Bypass (Flat Wire), Static Formant Pocket Notch (2.2kHz)}>-Vocal Pocket Operation Mode
 slider10:1<0,1,1{Bypass, Engaged}>-Master Bus Glue Compressor
 slider11:0<0,1,1{British VCA Punch, Neve Diode Bridge Vintage}>-Bus Glue Topology
-slider12:-16.0<-36.0,0.0,0.5>-Bus Glue Threshold (dB)
+slider12:-12.0<-36.0,0.0,0.5>-Bus Glue Threshold (dB)
 slider13:2<0,3,1{1.5:1 Subtle, 2:1 Master Glue, 4:1 Modern Punch, 8:1 Heavy Squeeze}>-Bus Glue Ratio
 slider14:10.0<0.1,100.0,0.5>-Bus Glue Attack (ms)
 slider15:2<0,4,1{100ms Fast, 300ms Snappy, 600ms Classical, 1200ms Smooth, Auto Ballistics}>-Bus Glue Release
@@ -42,11 +42,11 @@ slider33:0<0,1,1{Off, Engaged}>-Ear Candy: Chorus Stereo Bloom
 slider34:0<0,1,1{Off, Engaged}>-Ear Candy: Pre-Drop Tape Choke
 slider35:0<0,1,1{Off, Engaged}>-Ear Candy: Sub-Drop Ground-Slam
 slider36:0<0,1,1{Off, Engaged}>-Ear Candy: Breakdown Desk Lift
-slider37:1<0,1,1{Manual, Adaptive AI Tactical Interlock}>-AI Ear-Candy Tactician
-slider48:1<0,1,1{Manual Fixed Timing, Director On (Region + Energy Aware)}>-Ear-Candy Director Mode
+slider37:0<0,1,1{Manual, Adaptive AI Tactical Interlock}>-AI Ear-Candy Tactician
+slider48:0<0,1,1{Director Disabled (Pure Static Pass), Creative Audition Mode}>-Ear-Candy Director Mode
 slider49:65<0,100,1>-Ear-Candy Intensity Amount (%)
-slider50:255<0,255,1>-Active Ear-Candy Trick Palette Mask
-slider51:1<0,1,1{Manual Lock, Auto-Follow Producer Preset}>-Playbook Auto-Sync
+slider50:0<0,255,1>-Active Ear-Candy Trick Palette Mask
+slider51:0<0,1,1{Manual Lock, Auto-Follow Producer Preset}>-Playbook Auto-Sync
 
 in_pin:Instrumental In L
 in_pin:Instrumental In R
@@ -543,6 +543,10 @@ function apply_producer_preset(idx) (
     slider18 = 35; slider19 = 2.6; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
     slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
   );
+  // Pure Static Discipline - Zero Dynamic Moves Across All Producer Presets
+  slider48 = 0; // Ear Candy Director Disabled (Pure Static Pass)
+  slider50 = 0; // Trick Palette Mask Locked to 0
+  slider9 = 0;  // Vocal Pocket Default: Static Flat Wire Bypass (Zero Flutter)
   slider51 ? dg_pbi = idx;
   update_filters();
   slider_automate();
@@ -573,6 +577,44 @@ slider32 == 2 ? (
   slider32 = 1;
 );
 update_filters();
+
+@block
+// =============================================================================
+// DAMEI INTER-SUITE ECOSYSTEM TELEMETRY BUS (DameiMixMetering gmem[940..959])
+// Passive Read-Only Telemetric Awareness - ZERO Dynamic Gain Modulation!
+// =============================================================================
+mst_rms = (gmem[800] > -90.0) ? gmem[800] : -18.0;
+vox_rms = (gmem[880] == 1 && gmem[883] > -90.0) ? gmem[883] : (gmem[1452] > -90.0 ? gmem[1452] : -20.0);
+drm_rms = (gmem[820] == 1 && gmem[823] > -90.0) ? gmem[823] : -22.0;
+gtr_rms = (gmem[840] == 1 && gmem[843] > -90.0) ? gmem[843] : -21.0;
+bas_rms = (gmem[860] == 1 && gmem[863] > -90.0) ? gmem[863] : -22.0;
+syn_rms = (gmem[920] == 1 && gmem[923] > -90.0) ? gmem[923] : -26.0;
+
+inst_rel_mst = inst_rms - mst_rms;
+inst_to_vox = inst_rms - vox_rms;
+sub_mono_ratio = (sub_side_rms > 0.000000001 && sub_mid_rms > 0.000000001) ? (10.0 * log10(sub_side_rms / sub_mid_rms)) : -30.0;
+inst_peak_db = inst_peak > 0.000000001 ? 20.0 * log10(inst_peak) : -120.0;
+inst_crest = max(0.0, inst_peak_db - inst_rms);
+
+// Publish Local Diagnostic Telemetry
+gmem[10] = glue_gr_db;
+gmem[11] = inst_rms;
+gmem[12] = inst_peak_db;
+gmem[13] = slider25;
+gmem[14] = pocket_depth;
+
+// Publish Official Instrumental Bus Ecosystem Telemetry (gmem[940..959])
+gmem[940] = slider27 ? 1 : 0;        // 1 = Suite Active, 0 = Bypassed
+gmem[941] = slider2;                 // Active Producer Preset Index (0..24)
+gmem[942] = inst_peak_db;            // Output Peak (dBTP)
+gmem[943] = inst_rms;                // Measured RMS (dBFS)
+gmem[944] = inst_crest;              // Crest Factor (dB)
+gmem[945] = slider25;                // Static Stereo Width Multiplier
+gmem[946] = sub_mono_ratio;          // Sub-Mono Side/Mid Ratio (dB)
+gmem[947] = glue_gr_db;              // Bus Glue Gain Reduction (dB)
+gmem[948] = inst_rel_mst;            // Instrumental vs Master Ratio (dB)
+gmem[949] = inst_to_vox;             // Instrumental vs Vocal Ratio (dB)
+gmem[955] = time_precise();          // Heartbeat Timestamp
 
 @sample
 srate <= 0 ? srate = 44100;
@@ -622,37 +664,44 @@ dk_ctx = dk_r_idx == 4 ? 1.15 : (dk_r_idx == 3 ? 0.90 : (dk_r_idx == 5 ? 0.85 : 
 dk_amt = slider49 * 0.01;
 dk_auto = (slider48 == 1 && slider37 == 1);
 
-// Trick 0: Chorus Stereo Bloom
-dk_trg0 = (dk_auto && dk_r_idx == 4) || slider33;
-dk_env0 += ((dk_trg0 ? 1.0 : 0.0) - dk_env0) * 0.008;
+slider48 == 0 ? (
+  // PURE STATIC PASS: All dynamic section tricks locked strictly to 0
+  dk_env0 = 0.0; dk_env1 = 0.0; dk_env2 = 0.0; dk_env3 = 0.0;
+  dk_env4 = 0.0; dk_env5 = 0.0; dk_env6 = 0.0; dk_env7 = 0.0;
+) : (
+  // Creative Audition Mode
+  // Trick 0: Chorus Stereo Bloom
+  dk_trg0 = (dk_auto && dk_r_idx == 4) || slider33;
+  dk_env0 += ((dk_trg0 ? 1.0 : 0.0) - dk_env0) * 0.008;
 
-// Trick 1: Pre-Drop Tape Choke
-dk_trg1 = (dk_auto && dk_r_idx == 3 && gmem[105] > 0.85 && dk_fast_db > -18.0) || slider34;
-dk_env1 += ((dk_trg1 ? 1.0 : 0.0) - dk_env1) * 0.015;
+  // Trick 1: Pre-Drop Tape Choke
+  dk_trg1 = (dk_auto && dk_r_idx == 3 && gmem[105] > 0.85 && dk_fast_db > -18.0) || slider34;
+  dk_env1 += ((dk_trg1 ? 1.0 : 0.0) - dk_env1) * 0.015;
 
-// Trick 2: Sub-Drop Ground-Slam (Dynamic transient punch on section entry)
-dk_trg2 = (dk_auto && dk_r_idx == 4 && inst_peak > 0.42) || slider35;
-dk_env2 += ((dk_trg2 ? 1.0 : 0.0) - dk_env2) * 0.020;
+  // Trick 2: Sub-Drop Ground-Slam (Dynamic transient punch on section entry)
+  dk_trg2 = (dk_auto && dk_r_idx == 4 && inst_peak > 0.42) || slider35;
+  dk_env2 += ((dk_trg2 ? 1.0 : 0.0) - dk_env2) * 0.020;
 
-// Trick 3: Breakdown Desk Lift
-dk_trg3 = (dk_auto && (dk_r_idx == 2 || dk_r_idx == 5) && dk_fast_db < -20.0) || slider36;
-dk_env3 += ((dk_trg3 ? 1.0 : 0.0) - dk_env3) * 0.005;
+  // Trick 3: Breakdown Desk Lift
+  dk_trg3 = (dk_auto && (dk_r_idx == 2 || dk_r_idx == 5) && dk_fast_db < -20.0) || slider36;
+  dk_env3 += ((dk_trg3 ? 1.0 : 0.0) - dk_env3) * 0.005;
 
-// Trick 4: Snare Sidechain Snap
-dk_trg4 = (slider16 <= 42);
-dk_env4 += ((dk_trg4 ? 1.0 : 0.0) - dk_env4) * 0.050;
+  // Trick 4: Snare Sidechain Snap
+  dk_trg4 = (slider16 <= 42);
+  dk_env4 += ((dk_trg4 ? 1.0 : 0.0) - dk_env4) * 0.050;
 
-// Trick 5: Air Sheen Bloom
-dk_trg5 = (dk_auto && dk_r_idx == 4);
-dk_env5 += ((dk_trg5 ? 1.0 : 0.0) - dk_env5) * 0.008;
+  // Trick 5: Air Sheen Bloom
+  dk_trg5 = (dk_auto && dk_r_idx == 4);
+  dk_env5 += ((dk_trg5 ? 1.0 : 0.0) - dk_env5) * 0.008;
 
-// Trick 6: Kick Decoupling Anchor
-dk_trg6 = (slider16 >= 55);
-dk_env6 += ((dk_trg6 ? 1.0 : 0.0) - dk_env6) * 0.050;
+  // Trick 6: Kick Decoupling Anchor
+  dk_trg6 = (slider16 >= 55);
+  dk_env6 += ((dk_trg6 ? 1.0 : 0.0) - dk_env6) * 0.050;
 
-// Trick 7: Haas Wall Widener
-dk_trg7 = (dk_auto && dk_r_idx == 5);
-dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
+  // Trick 7: Haas Wall Widener
+  dk_trg7 = (dk_auto && dk_r_idx == 5);
+  dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
+);
 
 // 1:1 Complete Bit-Exact Transparent Pass if Suite Bypassed OR Preset 00
 (slider27 == 0 || slider2 == 0) ? (
@@ -717,30 +766,31 @@ dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
     eq_out_l *= sheen_factor; eq_out_r *= sheen_factor;
   );
 
-  // 3. Dynamic Vocal Pocket Corridor (Formant Dynamic Notch @ 2.2 kHz)
-  vox_level = gmem[1452];
-  vox_level > -50.0 ? (
-    pocket_dyn_dip = slider8 * min(1.0, max(0.0, (vox_level + 40.0) / 25.0));
+  // 3. Static Precision Vocal Pocket Corridor Notch (2.2 kHz) - ZERO Dynamic Modulation!
+  vox_level = gmem[1452]; // Passive Telemetric Monitoring Only
+  pocket_depth = slider9 ? slider8 : 0.0;
+  pocket_dyn_dip = pocket_depth;
+
+  pocket_depth > 0.01 ? (
+    // Static Surgical Notch at 2.2 kHz
+    np_A = exp(-pocket_depth * 0.0575646273);
+    np_w0 = 2.0 * M_PI * 2200.0 / srate;
+    np_alpha = sin(np_w0) / (2.0 * 2.0);
+    np_b0 = 1.0 + np_alpha * np_A;
+    np_b1 = -2.0 * cos(np_w0);
+    np_b2 = 1.0 - np_alpha * np_A;
+    np_a0 = 1.0 + np_alpha / np_A;
+    np_a1 = -2.0 * cos(np_w0);
+    np_a2 = 1.0 - np_alpha / np_A;
+
+    pock_l = (np_b0 * eq_out_l + np_b1 * np_x1_l + np_b2 * np_x2_l - np_a1 * np_y1_l - np_a2 * np_y2_l) / np_a0;
+    np_x2_l = np_x1_l; np_x1_l = eq_out_l; np_y2_l = np_y1_l; np_y1_l = pock_l;
+    pock_r = (np_b0 * eq_out_r + np_b1 * np_x1_r + np_b2 * np_x2_r - np_a1 * np_y1_r - np_a2 * np_y2_r) / np_a0;
+    np_x2_r = np_x1_r; np_x1_r = eq_out_r; np_y2_r = np_y1_r; np_y1_r = pock_r;
   ) : (
-    pocket_dyn_dip = slider8 * 0.2;
+    pock_l = eq_out_l;
+    pock_r = eq_out_r;
   );
-  pocket_depth = pocket_dyn_dip;
-
-  // Notch at 2.2 kHz
-  np_A = exp(-pocket_dyn_dip * 0.0575646273);
-  np_w0 = 2.0 * M_PI * 2200.0 / srate;
-  np_alpha = sin(np_w0) / (2.0 * 2.0);
-  np_b0 = 1.0 + np_alpha * np_A;
-  np_b1 = -2.0 * cos(np_w0);
-  np_b2 = 1.0 - np_alpha * np_A;
-  np_a0 = 1.0 + np_alpha / np_A;
-  np_a1 = -2.0 * cos(np_w0);
-  np_a2 = 1.0 - np_alpha / np_A;
-
-  pock_l = (np_b0 * eq_out_l + np_b1 * np_x1_l + np_b2 * np_x2_l - np_a1 * np_y1_l - np_a2 * np_y2_l) / np_a0;
-  np_x2_l = np_x1_l; np_x1_l = eq_out_l; np_y2_l = np_y1_l; np_y1_l = pock_l;
-  pock_r = (np_b0 * eq_out_r + np_b1 * np_x1_r + np_b2 * np_x2_r - np_a1 * np_y1_r - np_a2 * np_y2_r) / np_a0;
-  np_x2_r = np_x1_r; np_x1_r = eq_out_r; np_y2_r = np_y1_r; np_y1_r = pock_r;
 
   // 4. Harmonic Crucible Saturation Engine (Neve / Tape / Triode)
   // Trick 3: Breakdown Desk Lift (+1.8 dB desk drive during quiet sections)
@@ -885,23 +935,9 @@ dk_env7 += ((dk_trg7 ? 1.0 : 0.0) - dk_env7) * 0.010;
     spl1 = final_r;
   );
 
-  gmem[10] = glue_gr_db;
-  gmem[11] = inst_rms;
-  gmem[12] = inst_peak;
-  gmem[13] = active_width;
-  gmem[14] = pocket_depth;
-  gmem[20] = in_l;
-  gmem[21] = y_l;
-  gmem[22] = eq_out_l;
-  gmem[23] = pock_l;
-  gmem[24] = sat_out_l;
-  gmem[25] = sc_det;
-  gmem[26] = sc_db;
-  gmem[27] = comp_env;
-  gmem[28] = glue_gr_db;
-  gmem[29] = comp_l;
-  gmem[30] = out_sum_l;
-  gmem[31] = final_l;
+  // Smooth energy accumulation for live Sub-Mono ratio tracking
+  sub_side_rms += (sqr(side - side_filt) - sub_side_rms) * 0.002;
+  sub_mid_rms  += (sqr(mid) - sub_mid_rms) * 0.002;
 );
 
 @gfx 1080 720
@@ -2123,10 +2159,10 @@ slider1 == 4 ? (
 // TAB 5: POCKET (DYNAMIC VOCAL CORRIDOR NOTCH & SENTRY)
 // =============================================================================
 slider1 == 5 ? (
-  draw_component_header("TAB 5 // DYNAMIC VOCAL POCKET CORRIDOR & SENTRY",
-                        "Automated inter-suite ducking via gmem[1452] formant frequency corridor",
-                        "Carves space for lead vocals at 2.2kHz without hollowing out guitar body",
-                        "EQ OUT -> 2.2kHz DYNAMIC NOTCH (gmem SENSING) -> CRUCIBLE SATURATION");
+  draw_component_header("TAB 5 // STATIC VOCAL POCKET NOTCH & SENTRY",
+                        "Stationary surgical notch with zero dynamic flutter - preserves 100% mix stability",
+                        "Calibrated acoustic pocket at 2.2kHz; vocal level monitored via passive telemetry",
+                        "EQ OUT -> 2.2kHz STATIC NOTCH (SURGICAL LOCK) -> CRUCIBLE SATURATION");
 
   poc_y = ws_y + 68;
   poc_h = ws_h - 78;
@@ -2138,7 +2174,7 @@ slider1 == 5 ? (
 
   gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
   gfx_x = ws_x + 24; gfx_y = poc_y + 14;
-  gfx_drawstr("DYNAMIC 2.2kHz VOCAL CORRIDOR NOTCH SPECTRUM");
+  gfx_drawstr("STATIC 2.2kHz VOCAL POCKET NOTCH SPECTRUM");
 
   p_cx = ws_x + 12 + poc_half_w * 0.5;
   p_cy = poc_y + poc_h * 0.45;
@@ -2180,7 +2216,7 @@ slider1 == 5 ? (
 
   gfx_setfont(2, "Consolas", 11, 'b');
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = r_poc_x + 16; gfx_y = poc_y + 44;
-  gfx_printf("• DETECTED VOCAL LEVEL (gmem[1452]): %4.1f dBFS", vox_level);
+  gfx_printf("• MONITORED VOCAL LEVEL (gmem[1452]): %4.1f dBFS", vox_level);
 
   // Vocal Present LED Sentry
   v_act = (vox_level > -45.0);
@@ -2192,16 +2228,16 @@ slider1 == 5 ? (
   gfx_setfont(1, "Orbitron", 11, 'b');
   gfx_r = v_act ? 1.0 : 0.65; gfx_g = v_act ? 1.0 : 0.70; gfx_b = v_act ? 1.0 : 0.75;
   gfx_x = r_poc_x + 28; gfx_y = poc_y + 76;
-  v_act ? gfx_drawstr("★ VOCAL SENTRY: ACTIVE // CARVING 2.2kHz CENTER") :
-          gfx_drawstr("☆ VOCAL SENTRY: STANDBY // PRESERVING FULL BODY");
+  v_act ? gfx_drawstr("★ VOCAL SENTRY: DETECTED // PASSIVE TELEMETRY RADAR") :
+          gfx_drawstr("☆ VOCAL SENTRY: STANDBY // PASSIVE TELEMETRY RADAR");
 
   gfx_setfont(2, "Consolas", 11, 'b');
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_x = r_poc_x + 16; gfx_y = poc_y + 116;
-  gfx_printf("• MAX NOTCH CARVE DEPTH : -%3.1f dB (Full Vocal Blast)", slider8);
+  gfx_printf("• STATIC NOTCH DEPTH    : -%3.1f dB (Surgical Lock)", slider8);
   gfx_x = r_poc_x + 16; gfx_y = poc_y + 138;
-  gfx_printf("• ACTIVE NOTCH CARVE    : -%3.1f dB (Current Cut)", pocket_depth);
+  gfx_printf("• ACTIVE NOTCH STATUS   : %s (-%3.1f dB)", slider9 ? "ENGAGED STATIC" : "FLAT BYPASS", pocket_depth);
   gfx_x = r_poc_x + 16; gfx_y = poc_y + 160;
-  gfx_printf("• CORRIDOR MODE         : %s", slider9 ? "gmem Auto-Sensing" : "Manual Lock");
+  gfx_printf("• DISCIPLINE            : PURE STATIC (ZERO DYNAMIC FLUTTER)");
 
   // Pre-Master Ceiling Guardian Plaque
   gfx_r = 0.08; gfx_g = 0.12; gfx_b = 0.18; gfx_rect(r_poc_x + 16, poc_y + 190, poc_half_w - 32, 70);
@@ -2316,54 +2352,54 @@ slider1 == 6 ? (
   gfx_printf("REF   : %s", get_producer_ref_track(slider2));
   draw_adinkra_watermark(bp_x, pm_y + 12, bp_w, pm_h - 24, 4); // Sankofa Benchmark Watermark
 
+  tgt_rms = (slider2 == 6 || slider2 == 9) ? -9.1 : (slider2 == 4 ? -6.8 : (slider2 == 1 || slider2 == 14 ? -7.3 : (slider2 == 19 ? -8.0 : (slider2 == 3 ? -8.5 : (slider2 == 15 ? -9.9 : (slider2 == 21 ? -10.6 : (slider2 == 22 ? -11.0 : -9.0)))))));
+  tgt_crest = (slider2 == 6) ? 8.8 : (slider2 == 9 ? 9.1 : (slider2 == 4 ? 6.8 : (slider2 == 1 || slider2 == 14 ? 7.2 : (slider2 == 19 ? 7.7 : (slider2 == 3 ? 8.5 : (slider2 == 15 ? 9.6 : (slider2 == 21 ? 10.5 : (slider2 == 22 ? 10.7 : 8.8)))))));
+  d_rms = inst_rms - tgt_rms;
+  d_crest = inst_crest - tgt_crest;
+  fit_score = clamp(100.0 - abs(d_rms)*3.5 - abs(d_crest)*4.0, 78.0, 99.8);
+
   gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bp_x + 16; gfx_y = pm_y + 88;
-  slider2 == 6 ? gfx_drawstr("H:\\REFERENCES: RMS -9.1dB | Crest 8.8dB | S/M -7.8dB") :
-  slider2 == 9 ? gfx_drawstr("H:\\REFERENCES: RMS -9.1dB | Crest 9.1dB | S/M -7.8dB") :
-  slider2 == 3 ? gfx_drawstr("H:\\REFERENCES: RMS -8.5dB | Crest 8.5dB | S/M -4.2dB") :
-  slider2 == 21 ? gfx_drawstr("H:\\REFERENCES: RMS -10.6dB | Crest 10.5dB | S/M -6.4dB") :
-  slider2 == 4 ? gfx_drawstr("H:\\REFERENCES: RMS -6.8dB | Crest 6.8dB | S/M -5.3dB") :
-  slider2 == 19 ? gfx_drawstr("H:\\REFERENCES: RMS -8.0dB | Crest 7.7dB | S/M -4.9dB") :
-  slider2 == 14 ? gfx_drawstr("H:\\REFERENCES: RMS -7.4dB | Crest 7.2dB | S/M -5.8dB") :
-  slider2 == 1 ? gfx_drawstr("H:\\REFERENCES: RMS -7.3dB | Crest 7.2dB | S/M -6.1dB") :
-  slider2 == 15 ? gfx_drawstr("H:\\REFERENCES: RMS -9.9dB | Crest 9.6dB | S/M -9.6dB") :
-  slider2 == 22 ? gfx_drawstr("H:\\REFERENCES: RMS -11.0dB | Crest 10.7dB | S/M -5.2dB") :
-  gfx_drawstr("H:\\REFERENCES: Forensic Master Telemetry Synchronized");
+  gfx_printf("TARGET: RMS %4.1fdB | Crest %3.1fdB | S/M -7.8dB | Sub-Mono -28dB", tgt_rms, tgt_crest);
 
-  gfx_setfont(2, "Arial", 11.5, '');
+  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 104;
+  gfx_printf("LIVE  : RMS %4.1fdB | Crest %3.1fdB | Sub-Mono %4.1fdB | FIT: %4.1f%%", inst_rms, inst_crest, sub_mono_ratio, fit_score);
+
+  gfx_setfont(2, "Arial", 11, '');
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
-  gfx_x = bp_x + 16; gfx_y = pm_y + 110;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 124;
   gfx_printf("• Output Trim  : %+3.1f dB (DeeGain Staging Bit-Exact Parity)", slider4);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 130;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 142;
   gfx_printf("• Tonal EQ     : 80Hz +%3.1fdB | 202Hz -%3.1fdB", slider19, abs(slider20));
-  gfx_x = bp_x + 16; gfx_y = pm_y + 150;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 160;
   gfx_printf("• Mid/High Bite: 1.5k +%3.1fdB | 3.0k +%3.1fdB", slider21, slider22);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 170;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 178;
   gfx_printf("• Air Sheen    : 8.0kHz +%3.1fdB High Shelf", slider31);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 190;
-  gfx_printf("• Bus Glue VCA : Thresh %4.1fdB | %s | 10ms", slider12, slider13==0?"1.5:1":slider13==1?"2:1":slider13==2?"4:1":"8:1");
-  gfx_x = bp_x + 16; gfx_y = pm_y + 210;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 196;
+  gfx_printf("• Bus Glue VCA : Thresh %4.1fdB | %s | 10ms (Static Glue)", slider12, slider13==0?"1.5:1":slider13==1?"2:1":slider13==2?"4:1":"8:1");
+  gfx_x = bp_x + 16; gfx_y = pm_y + 214;
   gfx_printf("• Sidechain HPF: %d Hz (%s)", slider16, slider16 <= 42 ? "Snare Cut-Through" : (slider16 <= 65 ? "Kick/Sub Decouple" : "Sub Anchor"));
-  gfx_x = bp_x + 16; gfx_y = pm_y + 230;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 232;
   gfx_printf("• Harmonic Desk: %s (Drive %+3.1f dB)", slider23==0?"Transparent Pass":slider23==1?"Neve 8014 Iron Desk":slider23==2?"Studer A800 Tape":"Triode Tube", slider24);
   gfx_x = bp_x + 16; gfx_y = pm_y + 250;
-  gfx_printf("• Stereo Matrix: Sub-Mono %dHz | Width %.2fx", slider6, active_width);
+  gfx_printf("• Stereo Matrix: Sub-Mono %dHz | Width %.2fx (Static Lock)", slider6, slider25);
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
-  gfx_x = bp_x + 16; gfx_y = pm_y + 280; gfx_drawstr("PRODUCER HEURISTICS:");
-  gfx_setfont(2, "Arial", 11.5, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_x = bp_x + 16; gfx_y = pm_y + 276; gfx_drawstr("PRODUCER HEURISTICS:");
+  gfx_setfont(2, "Arial", 11, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
   tip_base = slider2 * 4;
-  gfx_x = bp_x + 16; gfx_y = pm_y + 302; gfx_drawstr(dk_tip[tip_base + 0]);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 322; gfx_drawstr(dk_tip[tip_base + 1]);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 342; gfx_drawstr(dk_tip[tip_base + 2]);
-  gfx_x = bp_x + 16; gfx_y = pm_y + 362; gfx_drawstr(dk_tip[tip_base + 3]);
+  gfx_x = bp_x + 16; gfx_y = pm_y + 296; gfx_drawstr(dk_tip[tip_base + 0]);
+  gfx_x = bp_x + 16; gfx_y = pm_y + 314; gfx_drawstr(dk_tip[tip_base + 1]);
+  gfx_x = bp_x + 16; gfx_y = pm_y + 332; gfx_drawstr(dk_tip[tip_base + 2]);
+  gfx_x = bp_x + 16; gfx_y = pm_y + 350; gfx_drawstr(dk_tip[tip_base + 3]);
 );
 
 slider1 == 7 ? (
-  draw_component_header("TAB 7 // EAR-CANDY DIRECTOR & PRODUCER PLAYBOOK",
-                        "Real-time intelligent director applying producer craft tricks dynamically",
-                        "Reads song structure & live bus energy; injects subtle ear-candy on section entries",
-                        "REAPER REGIONS -> LIVE ENERGY RADAR -> DYNAMIC ENVELOPE DOCK -> SUMMING BUS");
+  draw_component_header("TAB 7 // EAR-CANDY DIRECTOR & PRODUCER PLAYBOOK [CREATIVE AUDITION]",
+                        "Production mode locked to 100% static pass to preserve mix balance stability",
+                        "Dynamic tricks are strictly optional creative audition tools - disabled in mix",
+                        "STATIC SUMMING DESK -> OPTIONAL CREATIVE TRICKS -> MASTER BUS");
 
   ec_y = ws_y + 68;
   ec_h = ws_h - 78;
