@@ -566,6 +566,9 @@ function trigger_ai_assist() local(delta_trim) (
 
 update_filters();
 apply_producer_preset(slider2);
+gmem[960] = slider27 ? 1 : 0;
+gmem[961] = slider2;
+gmem[975] = time_precise();
 
 @slider
 prev_preset != slider2 ? (
@@ -577,6 +580,9 @@ slider32 == 2 ? (
   slider32 = 1;
 );
 update_filters();
+gmem[960] = slider27 ? 1 : 0;
+gmem[961] = slider2;
+gmem[975] = time_precise();
 
 @block
 // =============================================================================
@@ -1266,13 +1272,13 @@ function draw_eq_fader(f_idx, f_x, f_y, f_w, f_h, title, freq_lbl, val, min_v, m
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(f_x, f_y, f_w - 6, f_h);
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(f_x, f_y, f_w - 6, f_h, 0);
 
-  gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = f_x + 10; gfx_y = f_y + 10; gfx_drawstr(title);
-  gfx_setfont(2, "Consolas", 10, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = f_x + 10; gfx_y = f_y + 28; gfx_drawstr(freq_lbl);
 
   v_str = sprintf(#, "%+3.1f dB", val);
-  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
+  gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
   gfx_x = f_x + 10; gfx_y = f_y + 48; gfx_drawstr(v_str);
 
   // Track & Thumb
@@ -1309,6 +1315,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   plate_w = mw - 12; plate_h = mh - 12;
   gfx_r = 0.035; gfx_g = 0.045; gfx_b = 0.060; gfx_rect(plate_x, plate_y, plate_w, plate_h);
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(plate_x, plate_y, plate_w, plate_h, 0);
+  draw_adinkra_watermark(plate_x, plate_y, plate_w, plate_h, 2);
 
   piv_x = plate_x + plate_w * 0.5;
   piv_y = plate_y + plate_h - 16;
@@ -1321,10 +1328,10 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   gfx_circle(piv_x, piv_y - radius_arc * 0.45, floor(radius_arc * 0.6), 1);
   gfx_a = 1.0;
 
-  gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = plate_x + 12; gfx_y = plate_y + 8; gfx_drawstr(title_str);
 
-  gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = accent_r; gfx_g = accent_g; gfx_b = accent_b;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = accent_r; gfx_g = accent_g; gfx_b = accent_b;
   badge_str = is_glue ? "STUDIO GR" : "STUDIO VU";
   gfx_measurestr(badge_str, b_w, b_h);
   gfx_x = plate_x + plate_w - b_w - 12; gfx_y = plate_y + 8; gfx_drawstr(badge_str);
@@ -1348,7 +1355,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
     ai += 1;
   );
 
-  gfx_setfont(3, "Consolas", 10, 'b');
+  gfx_setfont(3, "Consolas", 11, 'b');
   is_glue ? (
     m_i = 0;
     while (m_i < 6) (
@@ -1385,7 +1392,7 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
     );
   );
 
-  gfx_setfont(1, "Orbitron", 13, 'b');
+  gfx_setfont(1, "Orbitron", 13.5, 'b');
   is_glue ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;);
   center_badge = is_glue ? "[ GR ]" : "[ VU ]";
   gfx_measurestr(center_badge, tw, th);
@@ -1407,28 +1414,32 @@ function draw_sifam_meter(mx, my, mw, mh, title_str, needle_val, max_val, is_glu
   gfx_line(base_x, base_y, tip_x, tip_y);
 
   gfx_r = 0.98; gfx_g = 0.25; gfx_b = 0.22; gfx_circle(tip_x, tip_y, 2.5, 1);
-  gfx_r = 0.08; gfx_g = 0.10; gfx_b = 0.14; gfx_circle(piv_x, piv_y, 16, 1);
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_circle(piv_x, piv_y, 16, 0);
+  gfx_r = 0.08; gfx_g = 0.10; gfx_b = 0.14; gfx_circle(piv_x, piv_y, 14, 1);
+  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_circle(piv_x, piv_y, 14, 0);
 
-  gfx_setfont(3, "Consolas", 10.5, 'b');
+  gfx_setfont(3, "Consolas", 11.5, 'b');
   is_glue ? (
     gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
     gfx_x = plate_x + 14; gfx_y = plate_y + plate_h - 22;
     gfx_printf("GR: %4.1f dB", glue_gr_db);
-    gfx_x = plate_x + plate_w - 78; gfx_y = plate_y + plate_h - 22;
+    gfx_x = plate_x + plate_w - 84; gfx_y = plate_y + plate_h - 22;
     gfx_drawstr("PEAK HOLD");
   ) : (
-    gfx_r = 0.00; gfx_g = 0.85; gfx_b = 0.45;
+    gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
     gfx_x = plate_x + 14; gfx_y = plate_y + plate_h - 22;
     gfx_printf("RMS: %4.1f dBFS", inst_rms);
     gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
-    gfx_x = plate_x + plate_w - 110; gfx_y = plate_y + plate_h - 22;
+    gfx_x = plate_x + plate_w - 116; gfx_y = plate_y + plate_h - 22;
     gfx_drawstr("0 VU = -18 dBFS");
   );
 );
 
-// Ballistic Needle Damping
-sifam_needle_vu += (inst_rms - sifam_needle_vu) * 0.25;
+// Ballistic Needle Damping & Ecosystem Heartbeat Assert
+gmem[960] = slider27 ? 1 : 0;
+gmem[961] = slider2;
+gmem[975] = time_precise();
+vu_target = clamp(inst_rms + 18.0, -20.0, 3.0);
+sifam_needle_vu += (vu_target - sifam_needle_vu) * 0.25;
 sifam_needle_gr += (glue_gr_db - sifam_needle_gr) * 0.35;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1586,7 +1597,7 @@ while (t_i < 8) (
     gfx_rect(tx, tab_y, tab_w, tab_h, 0);
   );
 
-  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  gfx_setfont(1, "Orbitron", 12, 'b');
   is_sel ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;);
   t_lbl = t_i == 0 ? "OVERVIEW" :
           t_i == 1 ? "TONAL EQ" :
@@ -1618,10 +1629,10 @@ function draw_component_header(title, mission, role, signal_path) (
   gfx_r = 0.018; gfx_g = 0.024; gfx_b = 0.034; gfx_rect(ws_x + 8, ws_y + 8, ws_w - 16, 52);
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(ws_x + 8, ws_y + 8, ws_w - 16, 52, 0);
 
-  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); gfx_r = 1.00; gfx_g = 0.85; gfx_b = 0.30;
   gfx_x = ws_x + 18; gfx_y = ws_y + 14; gfx_drawstr(title);
 
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = ws_x + 18; gfx_y = ws_y + 32; gfx_drawstr("MISSION: ");
   gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98; gfx_drawstr(mission);
 
@@ -1646,35 +1657,7 @@ slider1 == 0 ? (
 
   // CARD 1: SIFAM ANALOG MOVING-COIL CONSOLE VU METER (Left)
   c1_x = ws_x + 12; c1_y = t0_top_y; c1_w = floor((ws_w - 36) * 0.33); c1_h = t0_top_h;
-  gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(c1_x, c1_y, c1_w, c1_h);
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c1_x, c1_y, c1_w, c1_h, 0);
-  draw_adinkra_watermark(c1_x, c1_y, c1_w, c1_h, 2); // Funtunfunefu Watermark
-
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
-  gfx_x = c1_x + 14; gfx_y = c1_y + 12; gfx_drawstr("SIFAM DIRECTOR // CONSOLE DRIVE");
-  gfx_setfont(2, "Arial", 11, 'b'); gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00;
-  gfx_x = c1_x + c1_w - 82; gfx_y = c1_y + 12; gfx_drawstr("STUDIO VU");
-
-  // SIFAM Moving-Coil Needle Arc
-  sif_cx = c1_x + floor(c1_w * 0.5); sif_cy = c1_y + 172; sif_r = 138;
-  draw_arc(sif_cx, sif_cy, sif_r, -0.65, 0.65, 0.15, 0.20, 0.30);
-  draw_arc(sif_cx, sif_cy, sif_r, 0.25, 0.65, 0.85, 0.25, 0.25); // Redline
-
-  vu_val = clamp(inst_rms + 18.0, -20.0, 3.0);
-  sifam_needle_vu += (vu_val - sifam_needle_vu) * 0.15;
-  n_ang = -0.65 + ((sifam_needle_vu + 20.0) / 23.0) * 1.30;
-  
-  gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
-  gfx_line(sif_cx, sif_cy, sif_cx + sin(n_ang) * (sif_r - 10), sif_cy - cos(n_ang) * (sif_r - 10));
-  gfx_circle(sif_cx, sif_cy, 12, 1);
-  gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_circle(sif_cx, sif_cy, 12, 0);
-
-  // Ballistics & Peak Readouts
-  crest_live = max(0.0, inst_peak_db - inst_rms);
-  gfx_setfont(2, "Consolas", 11, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
-  gfx_x = c1_x + 14; gfx_y = c1_y + c1_h - 26; gfx_printf("RMS: %4.1f dBFS | CREST: %3.1f dB", inst_rms, crest_live);
-  gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
-  gfx_x = c1_x + c1_w - 110; gfx_y = c1_y + c1_h - 26; gfx_printf("PEAK: %4.1f dBTP", inst_peak_db);
+  draw_sifam_meter(c1_x, c1_y, c1_w, c1_h, "SIFAM // CONSOLE DRIVE", sifam_needle_vu, 3.0, 0, 0.25, 0.62, 1.00);
 
   // CARD 2: 5-BAND TONAL BALANCE ENERGY RADAR (Center)
   c2_x = c1_x + c1_w + 12; c2_y = t0_top_y; c2_w = floor((ws_w - 36) * 0.34); c2_h = t0_top_h;
@@ -1682,7 +1665,7 @@ slider1 == 0 ? (
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c2_x, c2_y, c2_w, c2_h, 0);
   draw_adinkra_watermark(c2_x, c2_y, c2_w, c2_h, 4); // Sankofa Reference Radar Watermark
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = c2_x + 14; gfx_y = c2_y + 12; gfx_drawstr("TONAL BALANCE ENERGY RADAR");
   gfx_setfont(2, "Arial", 11, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
   gfx_x = c2_x + c2_w - 90; gfx_y = c2_y + 12; gfx_drawstr("5-BAND LIVE");
@@ -1702,7 +1685,7 @@ slider1 == 0 ? (
   draw_radar_bar(b_base_x + 4 * (b_w + b_gap), b_y, b_w, e_air, "AIR", 1);
 
   // Saturation & Harmonic Health
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = c2_x + 14; gfx_y = c2_y + c2_h - 26;
   gfx_printf("REF TARGET MATCH: 98.4%% | DESK THD: %3.2f%%", 0.12 * exp(slider24 * 0.15));
 
@@ -1712,7 +1695,7 @@ slider1 == 0 ? (
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(c3_x, c3_y, c3_w, c3_h, 0);
   draw_adinkra_watermark(c3_x, c3_y, c3_w, c3_h, 1); // Adinkrahene Mastery Watermark
 
-  gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = c3_x + 14; gfx_y = c3_y + 12; gfx_drawstr("STEREO PHASE RADAR");
 
   pr_cx = c3_x + floor(c3_w * 0.5); pr_cy = c3_y + 98; pr_r = 52;
@@ -1737,7 +1720,7 @@ slider1 == 0 ? (
 
   // Correlation & M/S Ratio Telemetry
   sm_ratio_live = (inst_rms < -60.0) ? -24.0 : 20.0 * log10(max(0.00001, abs(dry_l - dry_r)) / max(0.00001, abs(dry_l + dry_r)));
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
   gfx_x = c3_x + 14; gfx_y = c3_y + c3_h - 26;
   gfx_printf("CORR: %+4.2f | S/M: %4.1f dB | WIDTH: %3.2fx", corr_smooth, sm_ratio_live, active_width);
 
@@ -1747,10 +1730,10 @@ slider1 == 0 ? (
   gfx_r = 0.016; gfx_g = 0.024; gfx_b = 0.038; gfx_rect(bot_x, bot_y, bot_w, bot_h);
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(bot_x, bot_y, bot_w, bot_h, 0);
 
-  gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bot_x + 18; gfx_y = bot_y + 14; gfx_drawstr("FLAGSHIP CONCLAVE INTEGRATION // MASTER STATUS");
 
-  gfx_setfont(2, "Arial", 12, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_setfont(2, "Consolas", 12, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
   gfx_x = bot_x + 18; gfx_y = bot_y + 40;
   gfx_printf("* HEADROOM TRIM  : %+3.1f dB (Forensic DeeGain Staging Lock - Bit-Exact Parity Target)", slider4);
   gfx_x = bot_x + 18; gfx_y = bot_y + 64;
@@ -2348,27 +2331,27 @@ slider1 == 6 ? (
     );
 
     // Line 1: Producer Name (Primary)
-    gfx_setfont(1, "Orbitron", 10, 'b');
+    gfx_setfont(1, "Orbitron", 12, 'b');
     gfx_r = p_sel ? 0.05 : (p_hov ? 1.00 : 0.85);
     gfx_g = p_sel ? 0.95 : (p_hov ? 0.90 : 0.88);
     gfx_b = p_sel ? 0.68 : (p_hov ? 0.60 : 0.95);
-    gfx_x = bx + 6; gfx_y = by + 6;
+    gfx_x = bx + 8; gfx_y = by + 10;
     gfx_drawstr(get_producer_short(p_idx));
 
     // Line 2: Band & Track Reference
-    gfx_setfont(2, "Arial", 10, 'b');
+    gfx_setfont(2, "Arial", 11.5, 'b');
     gfx_r = p_sel ? 0.95 : (p_hov ? 0.90 : 0.70);
     gfx_g = p_sel ? 0.95 : (p_hov ? 0.85 : 0.75);
     gfx_b = p_sel ? 0.98 : (p_hov ? 0.80 : 0.85);
-    gfx_x = bx + 6; gfx_y = by + 26;
+    gfx_x = bx + 8; gfx_y = by + 34;
     gfx_drawstr(get_producer_band(p_idx));
 
     // Line 3: Sonic Footprint Spec Badge
-    gfx_setfont(2, "Consolas", 9, 'b');
+    gfx_setfont(2, "Consolas", 10.5, 'b');
     gfx_r = p_sel ? 0.94 : 0.60;
     gfx_g = p_sel ? 0.56 : 0.65;
     gfx_b = p_sel ? 0.36 : 0.75;
-    gfx_x = bx + 6; gfx_y = by + 46;
+    gfx_x = bx + 8; gfx_y = by + 58;
     gfx_drawstr(get_producer_badge(p_idx));
 
     // Bottom Status Pill
@@ -2391,15 +2374,15 @@ slider1 == 6 ? (
   gfx_r = 0.016; gfx_g = 0.022; gfx_b = 0.030; gfx_rect(bp_x, pm_y + 12, bp_w, pm_h - 24);
   gfx_r = 0.25; gfx_g = 0.62; gfx_b = 1.00; gfx_rect(bp_x, pm_y + 12, bp_w, pm_h - 24, 0);
 
-  gfx_setfont(1, "Orbitron", 13.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(1, "Orbitron", 14, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bp_x + 16; gfx_y = pm_y + 24;
   gfx_drawstr("FORENSIC BENCHMARK BLUEPRINT");
 
-  gfx_setfont(2, "Consolas", 12, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
   gfx_x = bp_x + 16; gfx_y = pm_y + 48;
   gfx_printf("TARGET: %s", get_producer_name(slider2));
 
-  gfx_setfont(2, "Arial", 11.5, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
+  gfx_setfont(2, "Arial", 12, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;
   gfx_x = bp_x + 16; gfx_y = pm_y + 68;
   gfx_printf("REF   : %s", get_producer_ref_track(slider2));
   draw_adinkra_watermark(bp_x, pm_y + 12, bp_w, pm_h - 24, 4); // Sankofa Benchmark Watermark
@@ -2426,11 +2409,11 @@ slider1 == 6 ? (
   d_crest = inst_crest - tgt_crest;
   fit_score = clamp(100.0 - abs(d_rms)*3.5 - abs(d_crest)*4.0, 78.0, 99.8);
 
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;
   gfx_x = bp_x + 16; gfx_y = pm_y + 88;
   gfx_printf("TARGET: RMS %4.1fdB | Crest %3.1fdB | S/M -7.8dB | Sub-Mono -28dB", tgt_rms, tgt_crest);
 
-  gfx_setfont(2, "Consolas", 10.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
+  gfx_setfont(2, "Consolas", 11.5, 'b'); gfx_r = 0.05; gfx_g = 0.95; gfx_b = 0.68;
   gfx_x = bp_x + 16; gfx_y = pm_y + 104;
   gfx_printf("LIVE  : RMS %4.1fdB | Crest %3.1fdB | Sub-Mono %4.1fdB | FIT: %4.1f%%", inst_rms, inst_crest, sub_mono_ratio, fit_score);
 

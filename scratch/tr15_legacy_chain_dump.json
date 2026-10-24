@@ -1,7 +1,7 @@
 [
   {
     "fx_idx": 0,
-    "enabled": true,
+    "enabled": false,
     "num_params": 14,
     "params": [
       {
@@ -71,9 +71,9 @@
         "idx": 10
       },
       {
-        "fmt": "normal",
+        "fmt": "bypassed",
         "name": "Bypass",
-        "val": 0,
+        "val": 1,
         "idx": 11
       },
       {
@@ -93,7 +93,7 @@
   },
   {
     "fx_idx": 1,
-    "enabled": true,
+    "enabled": false,
     "num_params": 4088,
     "params": [
       {
@@ -24607,9 +24607,9 @@
         "idx": 4084
       },
       {
-        "fmt": "normal",
+        "fmt": "bypassed",
         "name": "Bypass",
-        "val": 0,
+        "val": 1,
         "idx": 4085
       },
       {
@@ -24629,7 +24629,7 @@
   },
   {
     "fx_idx": 2,
-    "enabled": true,
+    "enabled": false,
     "num_params": 6,
     "params": [
       {
@@ -24651,9 +24651,9 @@
         "idx": 2
       },
       {
-        "fmt": "normal",
+        "fmt": "bypassed",
         "name": "Bypass",
-        "val": 0,
+        "val": 1,
         "idx": 3
       },
       {
@@ -24673,7 +24673,7 @@
   },
   {
     "fx_idx": 3,
-    "enabled": true,
+    "enabled": false,
     "num_params": 13,
     "params": [
       {
@@ -24737,9 +24737,9 @@
         "idx": 9
       },
       {
-        "fmt": "normal",
+        "fmt": "bypassed",
         "name": "Bypass",
-        "val": 0,
+        "val": 1,
         "idx": 10
       },
       {
@@ -24759,7 +24759,7 @@
   },
   {
     "fx_idx": 4,
-    "enabled": true,
+    "enabled": false,
     "num_params": 23,
     "params": [
       {
@@ -24883,9 +24883,9 @@
         "idx": 19
       },
       {
-        "fmt": "normal",
+        "fmt": "bypassed",
         "name": "Bypass",
-        "val": 0,
+        "val": 1,
         "idx": 20
       },
       {
@@ -24905,18 +24905,18 @@
   },
   {
     "fx_idx": 5,
-    "enabled": false,
-    "num_params": 33,
+    "enabled": true,
+    "num_params": 44,
     "params": [
       {
-        "fmt": " 6: PRODUCER",
+        "fmt": " 1: TONAL EQ",
         "name": "Active Navigation Tab",
-        "val": 6,
+        "val": 1,
         "idx": 0
       },
       {
-        "fmt": " 06: Kel Pinchin (Split Chain Target)",
-        "name": "Producer Benchmark Matrix",
+        "fmt": " 06: Kel Pinchin (Split Chain - I'm Not Dying To Be Here)",
+        "name": "Producer Reference Benchmark",
         "val": 6,
         "idx": 1
       },
@@ -24927,21 +24927,21 @@
         "idx": 2
       },
       {
-        "fmt": "-3.5",
+        "fmt": "-1.8",
         "name": "Producer Headroom Trim (dB)",
-        "val": -3.5,
+        "val": -1.8,
         "idx": 3
       },
       {
-        "fmt": " -6.0 dBTP Strict Pre-Master Lock",
+        "fmt": "Free Output",
         "name": "Headroom Guardian Mode",
-        "val": 1,
+        "val": 0,
         "idx": 4
       },
       {
-        "fmt": "75.0",
+        "fmt": "80.0",
         "name": "Sub-Bass Mono Anchor Cutoff (Hz)",
-        "val": 75,
+        "val": 80,
         "idx": 5
       },
       {
@@ -24951,9 +24951,9 @@
         "idx": 6
       },
       {
-        "fmt": "1.2",
+        "fmt": "0.8",
         "name": "Vocal Pocket Dynamic Notch Depth (dB)",
-        "val": 1.2,
+        "val": 0.8,
         "idx": 7
       },
       {
@@ -24975,33 +24975,33 @@
         "idx": 10
       },
       {
-        "fmt": "-4.5",
+        "fmt": "-7.0",
         "name": "Bus Glue Threshold (dB)",
-        "val": -4.5,
+        "val": -7,
         "idx": 11
       },
       {
-        "fmt": " 2:1 Master Glue",
+        "fmt": " 4:1 Modern Punch",
         "name": "Bus Glue Ratio",
-        "val": 1,
+        "val": 2,
         "idx": 12
       },
       {
-        "fmt": "30.0",
+        "fmt": "10.0",
         "name": "Bus Glue Attack (ms)",
-        "val": 30,
+        "val": 10,
         "idx": 13
       },
       {
-        "fmt": " Auto Ballistics",
+        "fmt": " 600ms Classical",
         "name": "Bus Glue Release",
-        "val": 4,
+        "val": 2,
         "idx": 14
       },
       {
-        "fmt": "140.0",
+        "fmt": "39.0",
         "name": "Bus Glue Sidechain Detector HPF (Hz)",
-        "val": 140,
+        "val": 39,
         "idx": 15
       },
       {
@@ -25011,33 +25011,33 @@
         "idx": 16
       },
       {
-        "fmt": "28.0",
+        "fmt": "38.0",
         "name": "Tonal Forge HPF Cutoff (Hz)",
-        "val": 28,
+        "val": 38,
         "idx": 17
       },
       {
-        "fmt": "1.5",
+        "fmt": "3.0",
         "name": "Tonal Forge 80Hz Punch (dB)",
-        "val": 1.5,
+        "val": 3,
         "idx": 18
       },
       {
-        "fmt": "-2.8",
-        "name": "Tonal Forge 280Hz Mud Scoop (dB)",
-        "val": -2.8,
+        "fmt": "-3.0",
+        "name": "Tonal Forge 202Hz Mud Scoop (dB)",
+        "val": -3,
         "idx": 19
       },
       {
-        "fmt": "2.0",
-        "name": "Tonal Forge 3.5kHz Bite (dB)",
-        "val": 2,
+        "fmt": "1.5",
+        "name": "Tonal Forge 1.5kHz Mid Body (dB)",
+        "val": 1.5,
         "idx": 20
       },
       {
-        "fmt": "2.8",
-        "name": "Tonal Forge 10kHz Sheen (dB)",
-        "val": 2.8,
+        "fmt": "3.0",
+        "name": "Tonal Forge 3.0kHz Pick Bite (dB)",
+        "val": 3,
         "idx": 21
       },
       {
@@ -25053,9 +25053,9 @@
         "idx": 23
       },
       {
-        "fmt": "1.12",
+        "fmt": "1.08",
         "name": "Quad-Wall Stereo Imager Width",
-        "val": 1.12,
+        "val": 1.08,
         "idx": 24
       },
       {
@@ -25089,22 +25089,88 @@
         "idx": 29
       },
       {
-        "fmt": "bypassed",
-        "name": "Bypass",
-        "val": 1,
+        "fmt": "3.0",
+        "name": "Tonal Forge 8.0kHz Air Sheen (dB)",
+        "val": 3,
         "idx": 30
+      },
+      {
+        "fmt": "Manual Standby",
+        "name": "AI Mix Assistant Engine",
+        "val": 0,
+        "idx": 31
+      },
+      {
+        "fmt": "Off",
+        "name": "Ear Candy: Chorus Stereo Bloom",
+        "val": 0,
+        "idx": 32
+      },
+      {
+        "fmt": "Off",
+        "name": "Ear Candy: Pre-Drop Tape Choke",
+        "val": 0,
+        "idx": 33
+      },
+      {
+        "fmt": "Off",
+        "name": "Ear Candy: Sub-Drop Ground-Slam",
+        "val": 0,
+        "idx": 34
+      },
+      {
+        "fmt": "Off",
+        "name": "Ear Candy: Breakdown Desk Lift",
+        "val": 0,
+        "idx": 35
+      },
+      {
+        "fmt": " Adaptive AI Tactical Interlock",
+        "name": "AI Ear-Candy Tactician",
+        "val": 1,
+        "idx": 36
+      },
+      {
+        "fmt": " Director On (Region + Energy Aware)",
+        "name": "Ear-Candy Director Mode",
+        "val": 1,
+        "idx": 37
+      },
+      {
+        "fmt": "65.0",
+        "name": "Ear-Candy Intensity Amount (%)",
+        "val": 65,
+        "idx": 38
+      },
+      {
+        "fmt": "255.0",
+        "name": "Active Ear-Candy Trick Palette Mask",
+        "val": 255,
+        "idx": 39
+      },
+      {
+        "fmt": " Auto-Follow Producer Preset",
+        "name": "Playbook Auto-Sync",
+        "val": 1,
+        "idx": 40
+      },
+      {
+        "fmt": "normal",
+        "name": "Bypass",
+        "val": 0,
+        "idx": 41
       },
       {
         "fmt": "100",
         "name": "Wet",
         "val": 1,
-        "idx": 31
+        "idx": 42
       },
       {
         "fmt": "normal",
         "name": "Delta",
         "val": 0,
-        "idx": 32
+        "idx": 43
       }
     ],
     "fx_name": "JS: Damei Instrumental Bus Alchemist (Harmonic Crucible & Summing Matrix)"
