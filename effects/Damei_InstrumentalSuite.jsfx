@@ -445,11 +445,11 @@ function apply_producer_preset(idx) (
     slider5 = 0;      // Free Output Crest
     slider6 = 80;     // Sub-Bass Mono Anchor Cutoff (matches Bass Manager 80 Hz)
     slider7 = 1;      // Transient Sentry Active
-    slider8 = 0.8;    // Dynamic Vocal Pocket depth
+    slider8 = 0.0;    // Dynamic Vocal Pocket depth (0.0dB for 1:1 legacy guitar body parity)
     slider9 = 1;      // gmem Auto-Sensing Corridor
     slider10 = 1;     // Bus Glue Engaged
     slider11 = 0;     // British VCA Punch (SSL 4000G / BUSTERse)
-    slider12 = -11.5; // Threshold calibrated for authentic 0.6-1.0 dB natural glue (matches legacy BUSTERse!)
+    slider12 = -12.0; // Threshold calibrated for authentic 0.5-0.8 dB natural glue (matches legacy BUSTERse!)
     slider13 = 2;     // 4:1 Modern Punch (matches BUSTERse 4:1)
     slider14 = 10.0;  // Attack 10 ms (matches BUSTERse 10 ms)
     slider15 = 2;     // Release 600 ms (matches BUSTERse .6 sec)
@@ -461,8 +461,8 @@ function apply_producer_preset(idx) (
     slider21 = 1.5;   // 1.5kHz Mid Body +1.5 dB, Q=1.5 (matches ReEQ Band 5)
     slider22 = 3.0;   // 3.0kHz Bite +3.0 dB, Q=1.8 (matches ReEQ Band 6)
     slider23 = 1;     // Neve 8014 Iron Desk (matches Britson Buss Vintage Summing!)
-    slider24 = 2.8;   // Console Desk Drive 2.8 dB (rich harmonic analog warmth)
-    slider25 = 1.08;  // Quad Imager Width 1.08x
+    slider24 = 2.2;   // Console Desk Drive 2.2 dB (replicates subtle Britson vintage harmonic depth)
+    slider25 = 1.00;  // Quad Imager Width 1.00x (matches legacy chain bit-exact stereo imaging)
     slider31 = 3.0;   // 8.0kHz Sheen +3.0 dB (matches ReEQ Band 7)
   ) : idx == 9 ? ( // Sam Guaiana (Shyeye feat. Showing Teeth - Knot)
     slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 75; slider7 = 1;
