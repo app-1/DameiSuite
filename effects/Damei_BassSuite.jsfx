@@ -274,81 +274,155 @@ update_bass_filters();
 update_trackspacer_filters();
 
 function apply_bass_preset(p_idx) (
-  p_idx == 0 ? (
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  slider26 = 1; // Standalone All-In-One Mode
+  slider45 = 1; // Trackspacer Dynamic Sidechain Active
+  slider51 = 0; // Mid-Only (protects stereo width)
+  slider52 = 0; // Normal Mode
+
+  p_idx == 0 ? ( // Default Neutral Wire
+    slider46 = 25; slider47 = 35; slider48 = 650; slider49 = 15; slider50 = 65;
     slider36 = 2; slider37 = 35; slider38 = 40; slider39 = 85;
     slider40 = 1; slider41 = 25; slider42 = 0; slider43 = 0.0; slider44 = 9000;
     slider3 = 90; slider4 = 2.0; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.0;
-    slider10 = 0.0; slider11 = 0.0; slider12 = 0.0; slider13 = 0.0;
+    slider10 = 0.0; slider11 = 0.0; slider12 = -1.0; slider13 = 0.0;
     slider23 = 20; slider24 = 15; slider25 = 10;
-  ) : p_idx == 1 ? (
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  ) : p_idx == 1 ? ( // Lance Prenc (Alpha Wolf / Polaris) - Aggressive Low Punch & Clank
+    slider46 = 36; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
     slider36 = 0; slider37 = 60; slider38 = 35; slider39 = 85;
     slider40 = 3; slider41 = 45; slider42 = 1; slider43 = 1.5; slider44 = 8000;
     slider3 = 95; slider4 = 2.8; slider5 = 20; slider6 = 55; slider7 = 65; slider8 = 1.2;
     slider10 = 1.5; slider11 = 2.6; slider12 = -2.5; slider13 = -1.5;
     slider23 = 35; slider24 = 30; slider25 = 25;
-  ) : p_idx == 4 ? (
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  ) : p_idx == 2 ? ( // Scott Seigel (DIESECT) - Heavy Industrial Low End & Grind
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 1; slider37 = 55; slider38 = 40; slider39 = 85;
+    slider40 = 2; slider41 = 42; slider42 = 1; slider43 = 1.2; slider44 = 7500;
+    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.5;
+    slider10 = 1.2; slider11 = 2.2; slider12 = -2.2; slider13 = -1.2;
+    slider23 = 32; slider24 = 28; slider25 = 22;
+  ) : p_idx == 3 ? ( // Jonathan Dolese (Cane Hill / Mirrorcell) - Warm Thick Tube Drive
+    slider46 = 30; slider47 = 40; slider48 = 600; slider49 = 18; slider50 = 70;
+    slider36 = 2; slider37 = 45; slider38 = 45; slider39 = 80;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.5; slider44 = 8500;
+    slider3 = 85; slider4 = 2.4; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.8;
+    slider10 = 0.8; slider11 = 1.8; slider12 = -1.8; slider13 = -1.0;
+    slider23 = 28; slider24 = 22; slider25 = 18;
+  ) : p_idx == 4 ? ( // Buster Odeholm (thrown / Vildhjarta) - Monolithic Low Sub & Brutal Clank
+    slider46 = 40; slider47 = 35; slider48 = 580; slider49 = 10; slider50 = 55;
     slider36 = 2; slider37 = 70; slider38 = 50; slider39 = 80;
     slider40 = 3; slider41 = 55; slider42 = 1; slider43 = 2.5; slider44 = 7000;
     slider3 = 85; slider4 = 3.2; slider5 = 18; slider6 = 50; slider7 = 55; slider8 = 2.2;
     slider10 = 2.2; slider11 = 1.8; slider12 = -3.2; slider13 = -2.0;
     slider23 = 40; slider24 = 35; slider25 = 35;
-  ) : p_idx == 9 ? (
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  ) : p_idx == 5 ? ( // Kel Pinchin (Split Chain Target) - Monolithic 99% Mono Foundation & 250Hz Scoop
+    slider46 = 32; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 2; slider37 = 48; slider38 = 42; slider39 = 85;
+    slider40 = 2; slider41 = 35; slider42 = 0; slider43 = 0.8; slider44 = 8500;
+    slider3 = 90; slider4 = 2.4; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
+    slider10 = 1.0; slider11 = 2.5; slider12 = -1.5; slider13 = -1.2;
+    slider23 = 30; slider24 = 25; slider25 = 20;
+  ) : p_idx == 6 ? ( // Sam Guaiana (Silverstein) - Modern Tight High-Definition Core
+    slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 14; slider50 = 65;
+    slider36 = 2; slider37 = 45; slider38 = 40; slider39 = 85;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.6; slider44 = 8800;
+    slider3 = 90; slider4 = 2.5; slider5 = 24; slider6 = 62; slider7 = 60; slider8 = 1.0;
+    slider10 = 0.8; slider11 = 2.4; slider12 = -1.8; slider13 = -1.0;
+    slider23 = 28; slider24 = 24; slider25 = 18;
+  ) : p_idx == 7 ? ( // Forrester Savell (Karnivool / Dead Letter Circus) - Deep Dynamic Prog Foundation
+    slider46 = 28; slider47 = 38; slider48 = 650; slider49 = 18; slider50 = 75;
+    slider36 = 1; slider37 = 40; slider38 = 45; slider39 = 85;
+    slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.4; slider44 = 9000;
+    slider3 = 88; slider4 = 2.2; slider5 = 26; slider6 = 65; slider7 = 62; slider8 = 0.8;
+    slider10 = 0.6; slider11 = 2.0; slider12 = -1.6; slider13 = -0.8;
+    slider23 = 25; slider24 = 20; slider25 = 16;
+  ) : p_idx == 8 ? ( // Jens Bogren (Fascination Street) - Nordic Saturated Iron Warmth
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 2; slider37 = 52; slider38 = 42; slider39 = 85;
+    slider40 = 2; slider41 = 40; slider42 = 1; slider43 = 1.0; slider44 = 8200;
+    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.2;
+    slider10 = 1.2; slider11 = 2.2; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 32; slider24 = 28; slider25 = 22;
+  ) : p_idx == 9 ? ( // Adam Nolly Getgood (Periphery / GGD) - Legendary Dingwall Clank & Mono Authority
+    slider46 = 35; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
     slider36 = 2; slider37 = 42; slider38 = 45; slider39 = 90;
     slider40 = 0; slider41 = 26; slider42 = 0; slider43 = 0.5; slider44 = 9500;
     slider3 = 90; slider4 = 2.4; slider5 = 25; slider6 = 60; slider7 = 60; slider8 = 0.8;
     slider10 = 1.0; slider11 = 3.2; slider12 = -2.0; slider13 = -1.2;
     slider23 = 25; slider24 = 25; slider25 = 20;
-  ) : p_idx == 10 ? (
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  ) : p_idx == 10 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose) - Gritty Midgrowl Assault
+    slider46 = 38; slider47 = 35; slider48 = 580; slider49 = 12; slider50 = 60;
     slider36 = 0; slider37 = 62; slider38 = 38; slider39 = 85;
     slider40 = 3; slider41 = 48; slider42 = 1; slider43 = 1.0; slider44 = 8000;
     slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 65; slider7 = 60; slider8 = 1.5;
     slider10 = 2.0; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
     slider23 = 35; slider24 = 30; slider25 = 25;
-  ) : p_idx == 15 ? (
-    // Trackspacer Dan Braunstein Signature Pocket Calibration
-    slider45 = 1;  // Trackspacer Active
-    slider46 = 35; // 35% Dynamic Carve
-    slider47 = 35; // 35 Hz Low Cut
-    slider48 = 650;// 650 Hz High Cut (leaves bass upper bite intact)
-    slider49 = 15; // 15ms Fast Clamp Attack
-    slider50 = 65; // 65ms Musical Decay
-    slider51 = 0;  // Mid-Only (protects stereo width)
-    slider52 = 0;  // Normal
-
-    // Smash & Grab + Decapitator Producer Calibrations
-    slider26 = 1; // Standalone All-In-One Mode
+  ) : p_idx == 11 ? ( // George Lever (Sleep Token / Loathe) - Massive Dark Sub Anchor
+    slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 16; slider50 = 70;
+    slider36 = 1; slider37 = 46; slider38 = 45; slider39 = 85;
+    slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.6; slider44 = 8500;
+    slider3 = 85; slider4 = 2.4; slider5 = 24; slider6 = 65; slider7 = 65; slider8 = 1.2;
+    slider10 = 0.8; slider11 = 2.0; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 28; slider24 = 24; slider25 = 20;
+  ) : p_idx == 12 ? ( // Sam Bassal (Thornhill / Ocean Grove) - Modern Snappy Low End
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 14; slider50 = 65;
+    slider36 = 2; slider37 = 48; slider38 = 40; slider39 = 85;
+    slider40 = 2; slider41 = 36; slider42 = 0; slider43 = 0.8; slider44 = 8600;
+    slider3 = 90; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
+    slider10 = 1.0; slider11 = 2.6; slider12 = -2.2; slider13 = -1.4;
+    slider23 = 30; slider24 = 26; slider25 = 20;
+  ) : p_idx == 13 ? ( // Henrik Udd (Architects / Bring Me The Horizon) - British Metalcore Sub Squeeze
+    slider46 = 36; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
+    slider36 = 2; slider37 = 54; slider38 = 40; slider39 = 85;
+    slider40 = 2; slider41 = 42; slider42 = 1; slider43 = 1.2; slider44 = 8200;
+    slider3 = 90; slider4 = 2.8; slider5 = 20; slider6 = 58; slider7 = 65; slider8 = 1.4;
+    slider10 = 1.2; slider11 = 2.4; slider12 = -2.4; slider13 = -1.4;
+    slider23 = 34; slider24 = 30; slider25 = 24;
+  ) : p_idx == 14 ? ( // Joey Sturgis (Asking Alexandria / Attack Attack) - Iconic 2010s Metalcore Clank
+    slider46 = 38; slider47 = 35; slider48 = 550; slider49 = 10; slider50 = 55;
+    slider36 = 0; slider37 = 65; slider38 = 35; slider39 = 85;
+    slider40 = 3; slider41 = 50; slider42 = 1; slider43 = 1.6; slider44 = 7800;
+    slider3 = 95; slider4 = 3.0; slider5 = 18; slider6 = 50; slider7 = 65; slider8 = 1.5;
+    slider10 = 1.8; slider11 = 3.0; slider12 = -2.8; slider13 = -1.6;
+    slider23 = 38; slider24 = 32; slider25 = 28;
+  ) : p_idx == 15 ? ( // Dan Braunstein (Spiritbox / Dayseeker) - Ultra-Clean Signature Pocket
+    slider46 = 35; slider47 = 35; slider48 = 650; slider49 = 15; slider50 = 65;
     slider36 = 2; slider37 = 46; slider38 = 48; slider39 = 85;
     slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.5; slider44 = 8500;
     slider3 = 92; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
     slider10 = 0.8; slider11 = 2.8; slider12 = -2.4; slider13 = -1.5;
     slider23 = 28; slider24 = 22; slider25 = 18;
-  ) : p_idx == 18 ? (
-    // 18: Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Saturated Tube Drive & Sub Weight
-    slider26 = 1; slider45 = 1; slider46 = 30; slider47 = 40; slider48 = 550; slider49 = 20; slider50 = 80; slider51 = 0; slider52 = 0;
+  ) : p_idx == 16 ? ( // Zakk Cervini (Blink-182 / Simple Plan) - Radio Gloss & Punchy Mid Anchor
+    slider46 = 30; slider47 = 38; slider48 = 650; slider49 = 16; slider50 = 70;
+    slider36 = 2; slider37 = 44; slider38 = 42; slider39 = 85;
+    slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.5; slider44 = 8800;
+    slider3 = 88; slider4 = 2.4; slider5 = 24; slider6 = 62; slider7 = 60; slider8 = 0.8;
+    slider10 = 0.8; slider11 = 2.2; slider12 = -1.8; slider13 = -1.0;
+    slider23 = 26; slider24 = 22; slider25 = 16;
+  ) : p_idx == 17 ? ( // Acle Kahney (TesseracT - King) - Prog Djent Clarity & Low Resonance Control
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 14; slider50 = 65;
+    slider36 = 1; slider37 = 45; slider38 = 45; slider39 = 85;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.6; slider44 = 8800;
+    slider3 = 88; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.0;
+    slider10 = 0.8; slider11 = 2.5; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 28; slider24 = 24; slider25 = 18;
+  ) : p_idx == 18 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Saturated Tube Drive
+    slider46 = 30; slider47 = 40; slider48 = 550; slider49 = 20; slider50 = 80;
     slider36 = 1; slider37 = 55; slider38 = 45; slider39 = 80;
     slider40 = 2; slider41 = 45; slider42 = 1; slider43 = 0.8; slider44 = 7500;
     slider3 = 85; slider4 = 2.4; slider5 = 20; slider6 = 60; slider7 = 70; slider8 = 1.2;
     slider10 = 1.5; slider11 = 1.8; slider12 = -1.8; slider13 = -1.0;
     slider23 = 38; slider24 = 32; slider25 = 30;
-  ) : p_idx == 19 ? (
-    // 19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Clank & Pure Mono Sub Anchor
-    slider26 = 1; slider45 = 1; slider46 = 38; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60; slider51 = 0; slider52 = 0;
+  ) : p_idx == 19 ? ( // Manuel Renner (SENNA - Out Of The Blue) - Pure Mono Sub Anchor
+    slider46 = 38; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
     slider36 = 2; slider37 = 50; slider38 = 40; slider39 = 90;
     slider40 = 3; slider41 = 35; slider42 = 0; slider43 = 0.4; slider44 = 9000;
     slider3 = 92; slider4 = 2.8; slider5 = 22; slider6 = 55; slider7 = 65; slider8 = 1.0;
     slider10 = 0.5; slider11 = 3.2; slider12 = -2.6; slider13 = -1.2;
     slider23 = 26; slider24 = 28; slider25 = 20;
   ) : (
+    slider46 = 30; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 2; slider37 = 45; slider38 = 42; slider39 = 85;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.5; slider44 = 8500;
     slider3 = 90; slider4 = 2.2; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.5;
     slider10 = 0.5; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
     slider23 = 25; slider24 = 20; slider25 = 15;
@@ -494,6 +568,10 @@ function load_ab_bass_snapshot(src_buf) local(k) (
 );
 
 @slider
+prev_preset != slider20 ? (
+  apply_bass_preset(slider20);
+  prev_preset = slider20;
+);
 update_bass_filters();
 
 @block

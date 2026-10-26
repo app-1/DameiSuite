@@ -6,11 +6,11 @@ desc:Damei Devastator Suite (Cinematic Hybrid FX & AI Co-Pilot)
 // Built by Damei Audio & Antigravity IDE
 // =============================================================================
 
-slider1:0<0,3,1{1. Devastator Hub & Vital Envelopes,2. Reactor Core & DSP Sound Bays,3. Mix-Fit ReEQ & Master Compressor,4. Producer Trailer Playbook}>-Main Suite View Mode
+slider1:0<0,3,1{1. Devastator Hub & Vital Envelopes,2. Reactor Core & DSP Sound Bays,3. Tonal ReEQ & Master Compressor,4. Producer Trailer Playbook}>-Main Suite View Mode
 slider2:3<0,8,1{Jordan Fish (Bring Me The Horizon),Mick Gordon (DOOM / Wolfenstein),Chris Bedan (ONI NOIRE / KeepForest),Dan Braunstein (Spiritbox / Dayseeker),Buster Odeholm (thrown / Northlane),Bad Omens (THE DEATH OF PEACE OF MIND),Lance Prenc (Alpha Wolf / Polaris),George Lever (Loathe / Sleep Token),Kel Pinchin (Split Chain)}>-Producer Cinematic Blueprint
 slider3:0<0,11,1{C,C#,D,D#,E,F,F#,G,G#,A,A#,B}>-Song Root Key Note
 slider4:1<0,2,1{Manual Trigger,AI Context-Aware Auto-Trigger (Energy Delta Reasoning),Full Auto Region Sync}>-AI Creative Decision Mode
-slider5:-13.0<-24.0,0.0,0.5>-Master Sub-Bed Trim (dB) [Subtle Mix Integration]
+slider5:-1.5<-24.0,6.0,0.5>-Master Sub-Bed Trim (dB) [Subtle Mix Integration]
 slider6:1<0,1,1{Off,Active Dynamic Ducking vs Drum Kick & Snare (gmem 820)}>-Drum Bus Ducking Interlock
 slider7:1<0,1,1{Off,Active Pocket Carve vs Lead Vocal (gmem 880)}>-Lead Vocal Pocket Protection
 slider8:1<0,1,1{Off,Active Sub-Foundation Carve vs Guitars (gmem 840)}>-Guitar Wall Low-Mid Handshake
@@ -528,7 +528,7 @@ function dv_playbook() local(n, lvl, go) (
 function apply_producer_blueprint(p_idx) (
   slider2 = p_idx;
   p_idx == 0 ? ( // Jordan Fish (BMTH)
-    slider5 = -10.0; slider12 = 70; slider13 = 180; slider14 = 1.45; slider15 = 3.2;
+    slider5 = -1.5; slider12 = 70; slider13 = 180; slider14 = 1.45; slider15 = 3.2;
     slider16 = 15; slider17 = 2800; slider18 = 0.0;
     slider21 = 2.0; slider22 = 40; slider24 = 3800;
     slider25 = 600; slider26 = 40; slider27 = 0.5;
@@ -538,7 +538,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 35; slider52 = 340; slider53 = -4.0; slider54 = 3000; slider55 = -3.2; slider56 = 13000; slider57 = 3.0;
     slider58 = 1; slider59 = -18.0; slider60 = 3.5; slider61 = 20; slider62 = 100; slider63 = 3.5;
   ) : p_idx == 1 ? ( // Mick Gordon (DOOM)
-    slider5 = -11.5; slider12 = 90; slider13 = 130; slider14 = 1.6; slider15 = 4.2;
+    slider5 = -1.5; slider12 = 90; slider13 = 130; slider14 = 1.6; slider15 = 4.2;
     slider16 = 10; slider17 = 4000; slider18 = 0.0;
     slider21 = 2.5; slider22 = 60; slider24 = 3000;
     slider25 = 900; slider26 = 60; slider27 = 0.0;
@@ -548,7 +548,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 25; slider52 = 280; slider53 = -1.5; slider54 = 3500; slider55 = -1.0; slider56 = 9000; slider57 = 1.0;
     slider58 = 1; slider59 = -20.0; slider60 = 4.5; slider61 = 15; slider62 = 90; slider63 = 3.0;
   ) : p_idx == 2 ? ( // Chris Bedan (ONI NOIRE)
-    slider5 = -11.5; slider12 = 65; slider13 = 140; slider14 = 1.35; slider15 = 2.8;
+    slider5 = -1.5; slider12 = 65; slider13 = 140; slider14 = 1.35; slider15 = 2.8;
     slider16 = 25; slider17 = 2600; slider18 = 0.0;
     slider21 = 2.29; slider22 = 50; slider24 = 3500;
     slider25 = 750; slider26 = 50; slider27 = 0.0;
@@ -558,7 +558,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 30; slider52 = 310; slider53 = -3.0; slider54 = 3200; slider55 = -2.5; slider56 = 12000; slider57 = 2.0;
     slider58 = 1; slider59 = -18.0; slider60 = 3.2; slider61 = 25; slider62 = 110; slider63 = 3.0;
   ) : p_idx == 3 ? ( // Dan Braunstein (Spiritbox)
-    slider5 = -13.0; slider12 = 42; slider13 = 190; slider14 = 1.35; slider15 = 3.2;
+    slider5 = -1.5; slider12 = 42; slider13 = 190; slider14 = 1.35; slider15 = 3.2;
     slider16 = 30; slider17 = 3200; slider18 = -1.5;
     slider21 = 2.0; slider22 = 80; slider24 = 3500;
     slider25 = 850; slider26 = 80; slider27 = -1.0;
@@ -568,7 +568,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 32; slider52 = 320; slider53 = -3.5; slider54 = 3200; slider55 = -2.8; slider56 = 12000; slider57 = 2.2;
     slider58 = 1; slider59 = -16.0; slider60 = 3.2; slider61 = 25; slider62 = 120; slider63 = 3.0;
   ) : p_idx == 4 ? ( // Buster Odeholm (thrown)
-    slider5 = -7.5; slider12 = 85; slider13 = 125; slider14 = 1.5; slider15 = 2.4;
+    slider5 = -1.0; slider12 = 85; slider13 = 125; slider14 = 1.5; slider15 = 2.4;
     slider16 = 5; slider17 = 2200; slider18 = 0.5;
     slider21 = 1.8; slider22 = 75; slider24 = 2800;
     slider25 = 500; slider26 = 75; slider27 = 0.0;
@@ -578,7 +578,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 38; slider52 = 360; slider53 = -4.5; slider54 = 2800; slider55 = -3.5; slider56 = 14000; slider57 = 3.5;
     slider58 = 1; slider59 = -21.0; slider60 = 5.0; slider61 = 12; slider62 = 80; slider63 = 4.5;
   ) : p_idx == 5 ? ( // Bad Omens (PEACE OF MIND)
-    slider5 = -11.0; slider12 = 55; slider13 = 175; slider14 = 1.4; slider15 = 3.8;
+    slider5 = -1.5; slider12 = 55; slider13 = 175; slider14 = 1.4; slider15 = 3.8;
     slider16 = 40; slider17 = 3600; slider18 = -0.5;
     slider21 = 2.4; slider22 = 35; slider24 = 3200;
     slider25 = 1000; slider26 = 35; slider27 = -0.5;
@@ -588,7 +588,7 @@ function apply_producer_blueprint(p_idx) (
     slider50 = 1; slider51 = 34; slider52 = 330; slider53 = -3.5; slider54 = 3100; slider55 = -3.0; slider56 = 12500; slider57 = 2.5;
     slider58 = 1; slider59 = -17.0; slider60 = 3.0; slider61 = 30; slider62 = 140; slider63 = 3.0;
   ) : p_idx == 6 ? ( // Lance Prenc (Alpha Wolf)
-    slider5 = -10.5; slider12 = 75; slider13 = 145; slider14 = 1.3; slider15 = 2.6;
+    slider5 = -1.5; slider12 = 75; slider13 = 145; slider14 = 1.3; slider15 = 2.6;
     slider16 = 15; slider17 = 2500; slider18 = 0.0;
     slider21 = 2.0; slider22 = 45; slider24 = 3600;
     slider25 = 700; slider26 = 45; slider27 = 0.0;
@@ -597,8 +597,8 @@ function apply_producer_blueprint(p_idx) (
     slider46 = 1; slider47 = 1.30; slider48 = 30;
     slider50 = 1; slider51 = 36; slider52 = 350; slider53 = -4.0; slider54 = 2900; slider55 = -3.0; slider56 = 13500; slider57 = 3.0;
     slider58 = 1; slider59 = -19.0; slider60 = 4.0; slider61 = 18; slider62 = 95; slider63 = 4.0;
-  ) : ( // George Lever (Loathe)
-    slider5 = -11.0; slider12 = 45; slider13 = 110; slider14 = 1.6; slider15 = 5.0;
+  ) : p_idx == 7 ? ( // George Lever (Loathe)
+    slider5 = -1.5; slider12 = 45; slider13 = 110; slider14 = 1.6; slider15 = 5.0;
     slider16 = 60; slider17 = 4500; slider18 = -1.0;
     slider21 = 3.0; slider22 = 20; slider24 = 2700;
     slider25 = 1200; slider26 = 20; slider27 = -1.0;
@@ -607,6 +607,16 @@ function apply_producer_blueprint(p_idx) (
     slider46 = 1; slider47 = 1.55; slider48 = 15;
     slider50 = 1; slider51 = 28; slider52 = 260; slider53 = -2.0; slider54 = 3400; slider55 = -1.5; slider56 = 10000; slider57 = 1.5;
     slider58 = 1; slider59 = -15.0; slider60 = 2.8; slider61 = 35; slider62 = 160; slider63 = 2.5;
+  ) : ( // Kel Pinchin (Split Chain Target) - Forensic Replicate for Track 50
+    slider5 = -1.5; slider12 = 60; slider13 = 160; slider14 = 1.40; slider15 = 3.0;
+    slider16 = 20; slider17 = 2800; slider18 = 0.0;
+    slider21 = 2.0; slider22 = 50; slider24 = 3400;
+    slider25 = 750; slider26 = 50; slider27 = 0.0;
+    slider31 = 64; slider32 = 26; slider34 = 24; slider42 = 1;
+    slider35 = 5; slider36 = 1600; slider37 = 0.0;
+    slider46 = 1; slider47 = 1.35; slider48 = 25;
+    slider50 = 1; slider51 = 35; slider52 = 300; slider53 = -3.0; slider54 = 3000; slider55 = -2.5; slider56 = 11000; slider57 = 2.0;
+    slider58 = 1; slider59 = -17.5; slider60 = 3.2; slider61 = 20; slider62 = 110; slider63 = 3.0;
   );
   update_devastator_filters();
   update_reeq_and_comp_coefficients();
@@ -709,6 +719,10 @@ function load_ab_dev_snapshot(src_buf) local(k) (
 );
 
 @slider
+prev_blueprint != slider2 ? (
+  apply_producer_blueprint(slider2);
+  prev_blueprint = slider2;
+);
 update_devastator_filters();
 update_reeq_and_comp_coefficients();
 
@@ -1264,7 +1278,7 @@ vm4_x = bake_x - vm4_w - 12;
 vm4_act = (slider1 == 3);
 vm4_hov = (mouse_x >= vm4_x && mouse_x <= vm4_x + vm4_w && mouse_y >= btn_y && mouse_y <= btn_y + btn_h);
 
-vm3_w = 84;
+vm3_w = 96;
 vm3_x = vm4_x - vm3_w - 6;
 vm3_act = (slider1 == 2);
 vm3_hov = (mouse_x >= vm3_x && mouse_x <= vm3_x + vm3_w && mouse_y >= btn_y && mouse_y <= btn_y + btn_h);
@@ -1317,7 +1331,7 @@ gfx_rect(vm3_x, btn_y, vm3_w, btn_h);
 gfx_r = vm3_act ? 1.00 : 0.35; gfx_g = vm3_act ? 0.85 : 0.40; gfx_b = vm3_act ? 0.30 : 0.50;
 gfx_rect(vm3_x, btn_y, vm3_w, btn_h, 0);
 gfx_setfont(1, "Orbitron", 12, 'b'); gfx_r = vm3_act ? 1.0 : 0.85; gfx_g = vm3_act ? 1.0 : 0.88; gfx_b = 1.0;
-v3_lbl = "MIX-FIT";
+v3_lbl = "EQUALIZER";
 gfx_measurestr(v3_lbl, v3w, v3h);
 gfx_x = vm3_x + (vm3_w - v3w) * 0.5; gfx_y = btn_y + 8;
 gfx_drawstr(v3_lbl);

@@ -422,11 +422,22 @@ function get_playbook_name(idx) (
   idx == 10 ? "Nick Townsend (Townsend Mastering LA)" :
   idx == 11 ? "Randy Merrill (Sterling Sound NJ)" :
   idx == 12 ? "Leon Schmidt & Christian Donaldson (SUNBORN)" :
-  "Ermin Hamidovic (The Systematic Mastering Guide)";
+  idx == 13 ? "Ermin Hamidovic (The Systematic Mastering Guide)" :
+  idx == 14 ? "Will Putney (Graphic Nature Audio)" :
+  idx == 15 ? "George Lever (G1 Productions UK)" :
+  idx == 16 ? "Sam Bassal (Thornhill / Ocean Grove)" :
+  idx == 17 ? "Henrik Udd (Studio Fredman / Henrik Udd Recording)" :
+  idx == 18 ? "Dan Braunstein (The Hallway Studios LA)" :
+  idx == 19 ? "Zakk Cervini & Erik Ron (MDDN Studios LA)" :
+  idx == 20 ? "Jens Bogren (Fascination Street Studios Sweden)" :
+  idx == 21 ? "Nolly - Adam Getgood (Periphery / GGD Systematic)" :
+  idx == 22 ? "Acle Kahney (4D Sounds / TesseracT)" :
+  idx == 23 ? "Adam Cichocki (Timber Studios NJ)" :
+  "Manuel Renner (Überlärm Studios Germany)";
 );
 
 function get_playbook_studio(idx) (
-  idx == 0  ? "2026 Competitive Digital Benchmark (-8.5 LUFS / -1.0 dBTP)" :
+  idx == 0  ? "2026 Competitive Digital Benchmark (-8.5 LUFS / -0.3 dBTP)" :
   idx == 1  ? "Alpha Wolf feat. Holding Absence - '60cm Of Steel'" :
   idx == 2  ? "DIESECT - 'TOO MANY SCARS' (Full Production Master)" :
   idx == 3  ? "Mirrorcell - 'U(phoria)' (Modern Pop-Metal Precision)" :
@@ -439,7 +450,18 @@ function get_playbook_studio(idx) (
   idx == 10 ? "Heavenward - 'Tangerine' (Townsend Analog Vinyl Warmth)" :
   idx == 11 ? "City Of Souls - 'Cruelty' / Karnivool (Commercial Punch)" :
   idx == 12 ? "SUNBORN - 'Nebula' (The Grid Cyber-Metal Precision)" :
-  "Systematic Mastering Benchmark (High-Resolution Phase Clarity)";
+  idx == 13 ? "Systematic Mastering Benchmark (High-Resolution Phase Clarity)" :
+  idx == 14 ? "Fit For An Autopsy / Knocked Loose - 'Deep in the Willow'" :
+  idx == 15 ? "Loathe - 'I Let It In' / Sleep Token - 'Take Me Back To Eden'" :
+  idx == 16 ? "Thornhill - 'The Dark Pool' / 'Heroine' (Atmospheric Alt-Metal)" :
+  idx == 17 ? "Architects - 'For Those That Wish To Exist' / Bleed From Within" :
+  idx == 18 ? "Spiritbox - 'Eternal Blue' / 'Keep Sweet' (Heavy Melodic Master)" :
+  idx == 19 ? "Bad Omens - 'The Death of Peace of Mind' (Modern Heavy-Pop Master)" :
+  idx == 20 ? "Opeth / Dimmu Borgir / Arch Enemy (Analog Console Glue & Depth)" :
+  idx == 21 ? "Periphery - 'PV: Djent Is Not A Genre' (Systematic Headroom)" :
+  idx == 22 ? "TesseracT - 'War Of Being' / 'King' (Polyrhythmic Transient Depth)" :
+  idx == 23 ? "heaving. - 'carsick' (Wall-Of-Sound Grungegaze Master)" :
+  "SENNA - 'Out Of The Blue' / Überlärm Progressive Alt-Rock";
 );
 
 function get_playbook_transient(idx) (
@@ -449,14 +471,25 @@ function get_playbook_transient(idx) (
   idx == 3  ? "Tube Valve harmonics: 1.2dB drive, 35% knee; rounds jagged transient spikes with warmth." :
   idx == 4  ? "Crisp high-impact clipping: 1.8dB drive, 15% knee; produces explosive wall-of-sound drums." :
   idx == 5  ? "Warm Tape Saturation: 0.5dB drive, 50% knee; zero harsh odd harmonics, ultra-smooth peaks." :
-  idx == 6  ? "Flatline 2 Clipper: 0.0dB drive on center channel; kick and bass retain 100% dynamic punch." :
+  idx == 6  ? "Flatline 2 Clipper: 0.0dB drive transparent pass; kick & snare retain 17.7dB crest; zero clipping distortion." :
   idx == 7  ? "Analog Tape Saturation: 1.0dB drive, 25% knee; rounds digital glare while retaining snap." :
   idx == 8  ? "Analog Tape Drive: 1.1dB drive, 35% knee; adds gritty emotional drive to snare & guitars." :
   idx == 9  ? "Crisp Punch clipping: 1.2dB drive, 30% knee; preserves explosive drum room ambience." :
   idx == 10 ? "Tube Valve: 0.6dB drive, 40% knee; retains natural crest factor for audiophile vinyl pressing." :
   idx == 11 ? "Smooth Zero: 0.6dB drive, 35% knee; pristine headroom management for commercial FM/streaming." :
   idx == 12 ? "Crisp Punch: 0.9dB drive, 28% knee; laser-tight djent staccato transients without inter-sample overs." :
-  "Smooth Zero: 0.7dB drive, 35% knee; strict mathematical transient control at 0 VU reference.";
+  idx == 13 ? "Smooth Zero: 0.7dB drive, 35% knee; strict mathematical transient control at 0 VU reference." :
+  idx == 14 ? "Crisp Punch: 1.7dB drive, 18% knee; explosive, aggressive kick & snare transient impact." :
+  idx == 15 ? "Smooth Zero: 0.6dB drive, 40% knee; transparent wide dynamic swell with natural snare decay." :
+  idx == 16 ? "Flatline 2 Hybrid: 1.0dB drive, 30% knee; punchy modern attack with atmospheric transient float." :
+  idx == 17 ? "Flatline 2 Hybrid: 1.1dB drive, 28% knee; razor-sharp pick attack and fast snare crack for dense mixes." :
+  idx == 18 ? "Analog Tape: 0.8dB drive, 35% knee; rounds digital harshness while keeping vocal punch forward." :
+  idx == 19 ? "Tube Valve Drive: 1.2dB drive, 35% knee; warm saturation adds density and weight under pop hooks." :
+  idx == 20 ? "Smooth Zero: 0.5dB drive, 40% knee; organic analog transient preservation with zero digital edge." :
+  idx == 21 ? "Smooth Zero: 0.9dB drive, 35% knee; pristine transient retention for technical polyrhythmic precision." :
+  idx == 22 ? "Crisp Punch: 0.7dB drive, 35% knee; micro-transient laser focus for complex 8-string staccato riffs." :
+  idx == 23 ? "Flatline 2 Hybrid: 1.4dB drive, 25% knee; saturated wall-of-sound guitar grit and explosive snare." :
+  "Smooth Zero: 1.0dB drive, 35% knee; balanced punch and clean transient clarity across fast tempos.";
 );
 
 function get_playbook_ms_air(idx) (
@@ -466,14 +499,25 @@ function get_playbook_ms_air(idx) (
   idx == 3  ? "Pop-Metal Air Polish: 1.14x width, +1.0dB high shelf; brightens vocal doubles in sides." :
   idx == 4  ? "Detonation Width: 1.16x width, +1.8dB high sheen; widens distorted guitars to outer edges." :
   idx == 5  ? "Shoegaze Float: 1.18x spacious width, +1.2dB Side air shelf; creates 3D ambient reverb halo." :
-  idx == 6  ? "Secret Weapon: Pultec Silk Air (+1.0dB @ 11kHz Side-Only); creates halo without vocal harshness." :
+  idx == 6  ? "Secret Weapon: Pultec Silk Air (+2.0dB Side-Only) + 1.20x Horizon; guitars +4.5dB S/M side wall spread." :
   idx == 7  ? "Sterling Silk Bloom: 1.14x width, +1.8dB sheen; classic analog top-end sheen with zero sibilance." :
   idx == 8  ? "Atmospheric Resonance: 1.15x width, +0.9dB Side sheen; moody vintage shoegaze top end." :
   idx == 9  ? "Drum Room Spread: 1.12x width, +1.4dB top sheen; widens stereo room mics around dry vocal." :
   idx == 10 ? "Vinyl Silk Air: 1.16x width, +0.8dB smooth shelf; gentle top end prevents cutter head distortion." :
   idx == 11 ? "Hi-Fi Radio Air: 1.14x width, +1.4dB pristine 14kHz shelf; high-end gloss on streaming codecs." :
   idx == 12 ? "Cyber Detonation: 1.17x width, +1.6dB high sheen; expands synth layers and room reflections." :
-  "Systematic M/S Wall: 1.15x width, +1.0dB air; mathematically phase-aligned stereo expansion.";
+  idx == 13 ? "Systematic M/S Wall: 1.15x width, +1.0dB air; mathematically phase-aligned stereo expansion." :
+  idx == 14 ? "Aggressive Wall: 1.12x width, +1.2dB high sheen; widens heavy rhythm guitars without hollowing center." :
+  idx == 15 ? "Atmospheric Horizon: 1.20x panoramic width, +1.0dB silk air; creates expansive ambient depth." :
+  idx == 16 ? "Alt-Metal Halo: 1.18x width, +1.6dB Side sheen; floats dreamy vocal doubles and synth textures." :
+  idx == 17 ? "Symphonic Width: 1.16x width, +1.4dB air sheen; separates orchestra, choir, and detuned rhythm guitars." :
+  idx == 18 ? "Modern Pop-Metal Polish: 1.14x width, +1.8dB silk air; crystal vocal presence floating above heavy guitars." :
+  idx == 19 ? "Commercial Pop-Metal Field: 1.15x width, +1.4dB sheen; wide modern stereo image tailored for streaming." :
+  idx == 20 ? "Fascination Depth: 1.10x width, +0.8dB organic air; rich, 3-dimensional European analog stereo soundstage." :
+  idx == 21 ? "Systematic Horizon: 1.20x width, +1.6dB pristine air; ultra-wide guitars with anchored center bass." :
+  idx == 22 ? "Ambient Djent Field: 1.18x width, +1.4dB air shelf; spacious stereo image separating intricate guitar delay taps." :
+  idx == 23 ? "Grungegaze Wall: 1.22x ultra-wide field, +2.0dB silk air; immersive wall of fuzzy reverb and chorus guitars." :
+  "Modern Progressive Field: 1.16x width, +1.5dB high sheen; sparkling acoustic & clean electric guitar layers.";
 );
 
 function get_playbook_sub_bass(idx) (
@@ -483,14 +527,25 @@ function get_playbook_sub_bass(idx) (
   idx == 3  ? "105Hz mono anchor; dual punch & sustain lock; balances rapid double kick with bass tone." :
   idx == 4  ? "110Hz mono anchor; +1.6dB bass punch, 140Hz SC HPF; lets sub kick breathe without pumping." :
   idx == 5  ? "105Hz mono anchor; gentle 110Hz SC HPF; warm, rounded bass bed under dreamy guitars." :
-  idx == 6  ? "105Hz mono anchor; 125Hz SC HPF; sub-bass fundamentals remain 100% clean and unclipped." :
+  idx == 6  ? "105Hz mono anchor; Bass 22.6% vs 19.6% Ref (-57dB mono anchor); 125Hz SC HPF keeps sub fundamentals clean." :
   idx == 7  ? "100Hz mono anchor; +1.2dB punch drive, 125Hz SC HPF; classic rock punch with warm low-mid girth." :
   idx == 8  ? "100Hz mono anchor; +1.0dB punch drive, 120Hz SC HPF; aggressive, tight 90s alt-rock low end." :
   idx == 9  ? "105Hz mono anchor; +1.3dB punch transient focus, 125Hz SC HPF; kicks hit through dense guitars." :
   idx == 10 ? "110Hz mono anchor; 110Hz SC HPF; prevents excessive turntable stylus excursion on vinyl." :
   idx == 11 ? "105Hz mono anchor; +1.2dB sub weight focus, 125Hz SC HPF; authoritative sub bass on car systems." :
   idx == 12 ? "105Hz mono anchor; 135Hz SC HPF; technical djent tightening eliminates mud on fast 8-string riffs." :
-  "110Hz steep mono anchor; 120Hz SC HPF; strict 0 VU calibrated sub headroom balance.";
+  idx == 13 ? "110Hz steep mono anchor; 120Hz SC HPF; strict 0 VU calibrated sub headroom balance." :
+  idx == 14 ? "110Hz mono anchor; 140Hz SC HPF; extreme sub headroom lets drop-tuned guitars slam without limiter pumping." :
+  idx == 15 ? "100Hz mono anchor; 120Hz SC HPF; rich, warm sub foundation supporting lush reverb tails." :
+  idx == 16 ? "105Hz mono anchor; 120Hz SC HPF; tight, punchy sub weight tuned for 808 subs and heavy 5-string bass." :
+  idx == 17 ? "105Hz mono anchor; 125Hz SC HPF; ultra-clean low-end separation between kick drum and detuned chugs." :
+  idx == 18 ? "100Hz mono anchor; 120Hz SC HPF; modern bass synth and sub kick power with zero muddy overlap." :
+  idx == 19 ? "105Hz mono anchor; 115Hz SC HPF; heavy sub-bass drive supporting radio-ready vocal low-end warmth." :
+  idx == 20 ? "100Hz mono anchor; 125Hz SC HPF; thunderous, organic Scandinavian low-end with natural low-mid body." :
+  idx == 21 ? "105Hz mono anchor; 125Hz SC HPF; laser-focused Dingwall bass clarity and punchy sub fundamental." :
+  idx == 22 ? "100Hz mono anchor; 125Hz SC HPF; tight 26Hz infrasonic anchor; rapid double bass drum clarity on complex meters." :
+  idx == 23 ? "110Hz mono anchor; 110Hz SC HPF; massive fuzzy bass weight anchoring swirling shoegaze guitars." :
+  "90Hz mono anchor; 120Hz SC HPF; punchy, agile modern rock low end with clear bass guitar articulation.";
 );
 
 function get_playbook_glue(idx) (
@@ -500,14 +555,25 @@ function get_playbook_glue(idx) (
   idx == 3  ? "SSL Bus Comp 2:1 ratio, 10ms attack, 0.1s release; tight control over dynamic vocal swings." :
   idx == 4  ? "SSL Bus Comp 2:1 ratio, 30ms attack, 0.0s release; heavy slam with 1.2dB makeup gain." :
   idx == 5  ? "Gentle 1.5:1 ratio, 30ms attack, Auto release; max 0.8dB GR; master breathes organically." :
-  idx == 6  ? "SSL Bus Comp 2:1 ratio, 30ms attack, Auto release, 125Hz SC HPF; 9.2dB dynamic crest breathes naturally." :
+  idx == 6  ? "SSL Bus Comp 2:1, 30ms, Auto, 25% Mix; 4-Stem Parity locked within ±0.7dB of Split Chain benchmark." :
   idx == 7  ? "Sterling 2:1 glue, 30ms punch attack, Auto release; gentle 1.0dB GR creates signature cohesive bloom." :
   idx == 8  ? "24-96 Tape Glue: 2:1 ratio, 30ms attack, Auto release; warm analog cohesion across loud sections." :
   idx == 9  ? "Rogue Glue: 2:1 ratio, 30ms attack, 0.0s release, -13.5dB thresh; anchors loud drum attacks." :
   idx == 10 ? "1.5:1 transparent glue, 30ms attack, Auto release; preserves micro-dynamics and vocal nuance." :
   idx == 11 ? "Sterling Radio Glue: 2:1 ratio, 30ms attack, Auto release; consistent commercial dynamic balance." :
   idx == 12 ? "Djent Slam Glue: 2:1 ratio, 30ms attack, 0.0s release; locks blast beats and breakdown chugs." :
-  "Systematic Glue: 2:1 ratio, 30ms attack, Auto release; calibrated dynamic range compliance.";
+  idx == 13 ? "Systematic Glue: 2:1 ratio, 30ms attack, Auto release; calibrated dynamic range compliance." :
+  idx == 14 ? "Graphic Nature Glue: 2:1 ratio, 30ms attack, 0.0s release; clamps dynamic surges for relentless wall of aggression." :
+  idx == 15 ? "G1 Dynamic Glue: 1.5:1 ratio, 30ms attack, 0.0s release; transparent glue preserving delicate emotional dynamics." :
+  idx == 16 ? "Thornhill Glue: 2:1 ratio, 30ms attack, 0.0s release, 0.6dB makeup; cohesive glue between electronics and guitars." :
+  idx == 17 ? "Fredman Glue: 2:1 ratio, 30ms attack, 0.0s release; heavy bus comp action locks fast blast beats and breakdowns." :
+  idx == 18 ? "Hallway Glue: 2:1 ratio, 30ms attack, 0.0s release, 0.9dB makeup; polished, commercial glue with high punch retention." :
+  idx == 19 ? "MDDN Glue: 2:1 ratio, 30ms attack, 0.0s release; tight bus compression that makes drops hit with maximum energy." :
+  idx == 20 ? "Fascination Console Glue: 1.5:1 ratio, 30ms attack, 0.0s release, 0.8dB makeup; warm, vintage European desk bloom." :
+  idx == 21 ? "GGD Systematic Glue: 2:1 ratio, 30ms attack, 0.0s release; transparent bus lock maintaining transient micro-dynamics." :
+  idx == 22 ? "4D Polyrhythm Glue: 2:1 ratio, 30ms attack, 0.0s release; transparent control preventing odd-meter transient pileup." :
+  idx == 23 ? "Timber Heavy Glue: 3:1 ratio, 10ms attack, 0.0s release, 1.2dB makeup; aggressive bus clamp creating huge wall of sound." :
+  "Überlärm Dynamic Glue: 2:1 ratio, 30ms attack, 0.0s release; lively, punchy bus cohesion across dynamic transitions.";
 );
 
 function calc_low_shelf(f0, gain_db, q) (
@@ -1100,13 +1166,15 @@ function apply_producer_master_preset(p_idx) (
     // 6. Robin Schmidt & Grant Berry (Split Chain - 'I\'m Not Dying To Be Here')
     // Mastering Engineers: Grant Berry (Fader Mastering) / Robin Schmidt (24-96 Mastering)
     // Ref: Peak -0.3dB | RMS -9.23dB | Crest 8.93dB | Width 0.59
-    lim_ceil = -1.0; max_drive = 4.4; auto_norm = 1;
-    clip_drive = 0.0; kclip_mode = 4; kclip_knee = 0.55; // Flatline 2 transparent 0.0dB drive preserves kick/bass
+    lim_ceil = -0.3; max_drive = 8.1; auto_norm = 0; // Reference-matched -0.3 dBTP ceiling (matches Split Chain)
+    clip_drive = 0.0; kclip_mode = 4; kclip_knee = 0.55; // 100% linear transparent passthrough at 0.0dB drive
     comp_thresh = -12.5; comp_ratio = 2.0; comp_attack = 30.0; comp_release = 0.0; comp_makeup = 0.6; sc_hpf_f = 125.0;
-    imager_mono = 105.0; imager_wid = 1.15;
-    eq_hp_f = 28.0; eq_b2_g = -1.8; eq_b3_g = 1.8; eq_b4_g = 1.0;
-    slider43 = 3; slider44 = 1.1; slider45 = 0.5;
-    side_air_shelf_g = 1.0; // Pultec +1.0 dB @ 11kHz Side-Only Air Sheen
+    comp_mix = 25.0; // 25% Parallel Glue
+    imager_mono = 105.0; imager_wid = 1.20; // 1.20x wide open stereo horizon matching Split Chain
+    eq_hp_f = 28.0; eq_b2_g = -0.2; eq_b3_g = -0.8; eq_b4_g = 2.0;
+    slider35 = 1.0; // Tonal Balance Low-End Trim +1.0 dB
+    slider43 = 0; slider44 = 0.0; slider45 = 0.0; slider47 = 0; slider34 = 0; // Bass Control OFF & Section AI OFF prevents sub/volume collapse
+    side_air_shelf_g = 2.0; // +2.0 dB side air sheen creates 3D Pultec halo without vocal sibilance
   ) : p_idx == 7 ? (
     // 7. Ted Jensen (Don Broco - 'Endorphins')
     // Mastering Engineer: Ted Jensen (Sterling Sound, Nashville/NYC)
@@ -1286,11 +1354,12 @@ function apply_producer_master_preset(p_idx) (
   slider14 = 4; // Auto Release
   slider15 = comp_makeup;
   slider16 = sc_hpf_f;
+  slider17 = comp_mix;
   slider21 = kclip_mode;
   slider22 = kclip_knee * 100;
   slider23 = 75; // 75% Mid/Side Focus: Centers transient punch, shields distorted rhythm guitars from clipping
   slider31 = 2;  // 4x HQ Polyphase Oversampling prevents in-band aliasing on high-gain guitars
-  slider32 = 2;  // Active Dual Tamer (Sub-Bass + 180Hz Guitar Chug Guard prevents IMD distortion)
+  slider32 = 0;  // Off - static mastering transparency (zero dynamic volume dips or ducking)
   slider46 = 2;  // 4x Polyphase True Peak ISP Guard guarantees -1.0 dBTP ceiling
   slider39 = eq_hp_f;
   slider40 = eq_b2_g;
@@ -1433,7 +1502,7 @@ comp_out_trim = slider19;
 clip_drive = slider4;
 lim_ceil = slider5;
 side_air_shelf_g = slider50 > 0 ? slider50 : 1.0;
-playbook_eng_idx = min(13, slider33);
+playbook_eng_idx = min(24, slider33);
 imager_mono = slider6;
 imager_wid = slider7;
 max_drive = slider9;
@@ -1492,7 +1561,7 @@ eq_b2_g        = slider40;
 eq_b3_g        = slider41;
 eq_b4_g        = slider42;
 side_air_shelf_g = slider50;
-playbook_eng_idx = min(13, slider33);
+playbook_eng_idx = min(24, slider33);
 
 update_filters();
 
@@ -2299,15 +2368,19 @@ band2_l = b2_lp_l; band2_r = b2_lp_r;
 band3_l = b3_lp_l; band3_r = b3_lp_r;
 band4_l = b3_hp_l; band4_r = b3_hp_r;
 
-// Multiband Dynamics (Smooth mastering ballistics: 25ms attack, 200ms smooth release, max 4 dB GR)
+// Multiband Dynamics (Transparent linear passthrough unless ratio > 1.0 is explicitly active)
 in1_pk = max(abs(band1_l), abs(band1_r));
 in1_db = in1_pk > 0.000001 ? 20.0 * log10(in1_pk) : -120.0;
 ex1 = in1_db - mb_th1;
-t_gr1 = ex1 > 0 ? min(3.5, ex1 * (1.0 - 1.0 / mb_rt1)) : 0.0;
-mb_gr1 += (t_gr1 > mb_gr1 ? (t_gr1 - mb_gr1) * 0.0005 : (t_gr1 - mb_gr1) * 0.00006);
-mb_gr1 = min(3.5, max(0.0, mb_gr1));
-g1 = exp(-mb_gr1 * (log(10.0) / 20.0));
-band1_l *= g1; band1_r *= g1;
+(mb_rt1 > 1.01 && ex1 > 0) ? (
+  t_gr1 = min(3.5, ex1 * (1.0 - 1.0 / mb_rt1));
+  mb_gr1 += (t_gr1 > mb_gr1 ? (t_gr1 - mb_gr1) * 0.0005 : (t_gr1 - mb_gr1) * 0.00006);
+  mb_gr1 = min(3.5, max(0.0, mb_gr1));
+  g1 = exp(-mb_gr1 * (log(10.0) / 20.0));
+  band1_l *= g1; band1_r *= g1;
+) : (
+  mb_gr1 = 0.0;
+);
 
 // Adaptive Sub-Bass Bloom Tamer (prevents unruly sub drops and kick woof from overloading limiter)
 (slider32 == 2) ? (
@@ -2345,11 +2418,15 @@ band1_l *= g1; band1_r *= g1;
 in2_pk = max(abs(band2_l), abs(band2_r));
 in2_db = in2_pk > 0.000001 ? 20.0 * log10(in2_pk) : -120.0;
 ex2 = in2_db - mb_th2;
-t_gr2 = ex2 > 0 ? min(1.5, ex2 * (1.0 - 1.0 / mb_rt2)) : 0.0;
-mb_gr2 += (t_gr2 > mb_gr2 ? (t_gr2 - mb_gr2) * 0.0005 : (t_gr2 - mb_gr2) * 0.00006);
-mb_gr2 = min(1.5, max(0.0, mb_gr2));
-g2 = exp(-mb_gr2 * (log(10.0) / 20.0));
-band2_l *= g2; band2_r *= g2;
+(mb_rt2 > 1.01 && ex2 > 0) ? (
+  t_gr2 = min(1.5, ex2 * (1.0 - 1.0 / mb_rt2));
+  mb_gr2 += (t_gr2 > mb_gr2 ? (t_gr2 - mb_gr2) * 0.0005 : (t_gr2 - mb_gr2) * 0.00006);
+  mb_gr2 = min(1.5, max(0.0, mb_gr2));
+  g2 = exp(-mb_gr2 * (log(10.0) / 20.0));
+  band2_l *= g2; band2_r *= g2;
+) : (
+  mb_gr2 = 0.0;
+);
 
 // Dynamic Guitar Chug Low-Mid Tamer (prevents palm-mute woof from overloading downstream clipper)
 chug_guard_on ? (
@@ -2367,20 +2444,28 @@ chug_guard_on ? (
 in3_pk = max(abs(band3_l), abs(band3_r));
 in3_db = in3_pk > 0.000001 ? 20.0 * log10(in3_pk) : -120.0;
 ex3 = in3_db - mb_th3;
-t_gr3 = ex3 > 0 ? min(1.5, ex3 * (1.0 - 1.0 / mb_rt3)) : 0.0;
-mb_gr3 += (t_gr3 > mb_gr3 ? (t_gr3 - mb_gr3) * 0.0005 : (t_gr3 - mb_gr3) * 0.00006);
-mb_gr3 = min(1.5, max(0.0, mb_gr3));
-g3 = exp(-mb_gr3 * (log(10.0) / 20.0));
-band3_l *= g3; band3_r *= g3;
+(mb_rt3 > 1.01 && ex3 > 0) ? (
+  t_gr3 = min(1.5, ex3 * (1.0 - 1.0 / mb_rt3));
+  mb_gr3 += (t_gr3 > mb_gr3 ? (t_gr3 - mb_gr3) * 0.0005 : (t_gr3 - mb_gr3) * 0.00006);
+  mb_gr3 = min(1.5, max(0.0, mb_gr3));
+  g3 = exp(-mb_gr3 * (log(10.0) / 20.0));
+  band3_l *= g3; band3_r *= g3;
+) : (
+  mb_gr3 = 0.0;
+);
 
 in4_pk = max(abs(band4_l), abs(band4_r));
 in4_db = in4_pk > 0.000001 ? 20.0 * log10(in4_pk) : -120.0;
 ex4 = in4_db - mb_th4;
-t_gr4 = ex4 > 0 ? min(1.5, ex4 * (1.0 - 1.0 / mb_rt4)) : 0.0;
-mb_gr4 += (t_gr4 > mb_gr4 ? (t_gr4 - mb_gr4) * 0.0005 : (t_gr4 - mb_gr4) * 0.00006);
-mb_gr4 = min(1.5, max(0.0, mb_gr4));
-g4 = exp(-mb_gr4 * (log(10.0) / 20.0));
-band4_l *= g4; band4_r *= g4;
+(mb_rt4 > 1.01 && ex4 > 0) ? (
+  t_gr4 = min(1.5, ex4 * (1.0 - 1.0 / mb_rt4));
+  mb_gr4 += (t_gr4 > mb_gr4 ? (t_gr4 - mb_gr4) * 0.0005 : (t_gr4 - mb_gr4) * 0.00006);
+  mb_gr4 = min(1.5, max(0.0, mb_gr4));
+  g4 = exp(-mb_gr4 * (log(10.0) / 20.0));
+  band4_l *= g4; band4_r *= g4;
+) : (
+  mb_gr4 = 0.0;
+);
 
 // Multiband Solo check (properly sums the tamed band2)
 has_solo = mb_solo1 || mb_solo2 || mb_solo3 || mb_solo4;
@@ -2521,18 +2606,9 @@ use_clip > 0.05 ? (
   cl_m_clipped = (kclip_proc(cl_m_norm, kclip_mode, kclip_knee) * ceil_lin) / mid_scale;
   cl_s_clipped = (kclip_proc(cl_s_norm, kclip_mode, kclip_knee) * ceil_lin) / side_scale;
 ) : (
-  // 100% linear transparent passthrough when clipper drive is 0 dB
-  // Only soft-saturates if a peak actually exceeds the ceiling
-  abs(cl_mid_in) > ceil_lin ? (
-    cl_m_clipped = kclip_proc(cl_mid_in / ceil_lin, 0, 0.2) * ceil_lin;
-  ) : (
-    cl_m_clipped = cl_mid_in;
-  );
-  abs(cl_side_in) > ceil_lin ? (
-    cl_s_clipped = kclip_proc(cl_side_in / ceil_lin, 0, 0.2) * ceil_lin;
-  ) : (
-    cl_s_clipped = cl_side_in;
-  );
+  // 100% linear transparent passthrough when clipper drive is 0 dB (zero wave-shaping distortion)
+  cl_m_clipped = cl_mid_in;
+  cl_s_clipped = cl_side_in;
 );
 
 clipped_l = cl_m_clipped + cl_s_clipped;
@@ -2563,17 +2639,18 @@ kclip_delta ? (
   inst_gr < lim_gr ? (
     lim_gr = inst_gr;
   ) : (
-    lim_gr += (1.0 - lim_gr) * 0.0002;
+    // Fast 8ms transparent brickwall recovery — completely prevents volume ducking/pumping
+    lim_gr += (1.0 - lim_gr) * 0.0025;
   );
 
   out_l = clipped_l * lim_gr;
   out_r = clipped_r * lim_gr;
 
-  // True Peak Inter-Sample (ISP) Polyphase Reconstruction & Safety Clamp
+  // True Peak Inter-Sample (ISP) Linear Phase Reconstructed Midpoint
   (slider46 >= 1) ? (
-    isp_peak_l = max(abs(out_l), max(abs(out_l * 1.35 - prev_lim_l * 0.35), abs(out_l * 0.70 + prev_lim_l * 0.45)));
-    isp_peak_r = max(abs(out_r), max(abs(out_r * 1.35 - prev_lim_r * 0.35), abs(out_r * 0.70 + prev_lim_r * 0.45)));
-    isp_peak = max(isp_peak_l, isp_peak_r);
+    mid_isp_l = (out_l + prev_lim_l) * 0.53;
+    mid_isp_r = (out_r + prev_lim_r) * 0.53;
+    isp_peak = max(max(abs(out_l), abs(out_r)), max(abs(mid_isp_l), abs(mid_isp_r)));
     isp_peak > ceil_lin ? (
       isp_scale = ceil_lin / isp_peak;
       out_l *= isp_scale;
@@ -2582,8 +2659,8 @@ kclip_delta ? (
   );
   prev_lim_l = out_l;
   prev_lim_r = out_r;
-  // Strict Brickwall True-Peak Safety Clamp: guarantees 4x polyphase meter NEVER exceeds ceil_lin
-  safe_ceil = ceil_lin * 0.985;
+  // Strict Brickwall True-Peak Safety Clamp: locks signal strictly to target ceiling
+  safe_ceil = ceil_lin;
   out_l = max(-safe_ceil, min(safe_ceil, out_l));
   out_r = max(-safe_ceil, min(safe_ceil, out_r));
 );
@@ -3578,6 +3655,10 @@ slider2 == 0 ? (
   gfx_setfont(1, "Orbitron", 11, 'b');
   gfx_x = stamp_x + 8; gfx_y = badge_y + 4;
   gfx_drawstr("W-Y // 2179 TACTICAL");
+gfx_setfont(1, "Bahnschrift", 10);
+gfx_r = 0.20; gfx_g = 0.95; gfx_b = 0.60;
+gfx_x = stamp_x + 8; gfx_y = badge_y + 16;
+gfx_drawstr("M/S & CREST TELEMETRY: ACTIVE");
   gfx_r = 0.45; gfx_g = 0.55; gfx_b = 0.70;
   gfx_setfont(1, "Consolas", 10);
   gfx_x = stamp_x + 8; gfx_y = badge_y + 17;
@@ -4058,7 +4139,7 @@ slider2 == 2 ? (
       eq_b2_g = mg;
       update_filters();
     ) : eq_drag == 3 ? (
-      eq_b3_f = max(1200.0, min(8000.0, mf));
+      eq_b3_f = max(700.0, min(8000.0, mf));
       eq_b3_g = mg;
       update_filters();
     ) : eq_drag == 4 ? (
@@ -4725,7 +4806,7 @@ slider2 == 4 ? (
   gfx_x = pb_l_x + 8; gfx_y = disp_y + 9;
   gfx_drawstr("<");
   mouse_clicked && pb_l_hov ? (
-    playbook_eng_idx = (playbook_eng_idx - 1 + 14) % 14;
+    playbook_eng_idx = (playbook_eng_idx - 1 + 25) % 25;
   );
 
   // Center Legend Name & Studio Display Box
@@ -4753,7 +4834,7 @@ slider2 == 4 ? (
   gfx_x = pb_r_x + 9; gfx_y = disp_y + 9;
   gfx_drawstr(">");
   mouse_clicked && pb_r_hov ? (
-    playbook_eng_idx = (playbook_eng_idx + 1) % 14;
+    playbook_eng_idx = (playbook_eng_idx + 1) % 25;
   );
 
   // [ ONE-CLICK LOAD SIGNATURE CHAIN ] Button
@@ -5921,7 +6002,7 @@ slider2 == 4 ? (
   gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
   gfx_rect(c1_x + 12, dock_y + 36, 62, 20, 0);
   gfx_setfont(1, "Bahnschrift", 11, 'b');
-  tag_txt = sprintf(#, "%02d / 14", playbook_eng_idx + 1);
+  tag_txt = sprintf(#, "%02d / 25", playbook_eng_idx + 1);
   gfx_measurestr(tag_txt, ttw, tth);
   gfx_x = c1_x + 12 + (62 - ttw) * 0.5; gfx_y = dock_y + 36 + (20 - tth) * 0.5;
   gfx_drawstr(tag_txt);
@@ -5942,14 +6023,25 @@ slider2 == 4 ? (
           (playbook_eng_idx == 10 ? "Nick Townsend" :
           (playbook_eng_idx == 11 ? "Randy Merrill" :
           (playbook_eng_idx == 12 ? "Christian Donaldson" :
-          "Ermin Hamidovic")))))))))))));
+          (playbook_eng_idx == 13 ? "Ermin Hamidovic" :
+          (playbook_eng_idx == 14 ? "Will Putney" :
+          (playbook_eng_idx == 15 ? "George Lever" :
+          (playbook_eng_idx == 16 ? "Sam Bassal" :
+          (playbook_eng_idx == 17 ? "Henrik Udd" :
+          (playbook_eng_idx == 18 ? "Dan Braunstein" :
+          (playbook_eng_idx == 19 ? "Zakk Cervini & E. Ron" :
+          (playbook_eng_idx == 20 ? "Jens Bogren" :
+          (playbook_eng_idx == 21 ? "Adam Nolly Getgood" :
+          (playbook_eng_idx == 22 ? "Acle Kahney" :
+          (playbook_eng_idx == 23 ? "Adam Cichocki" :
+          "Manuel Renner"))))))))))))))))))))))));
   gfx_drawstr(c1_nm);
 
   // Subtitle studio
   gfx_r = 0.60; gfx_g = 0.68; gfx_b = 0.78;
   gfx_setfont(1, "Bahnschrift", 11);
   gfx_x = c1_x + 12; gfx_y = dock_y + 60;
-  gfx_drawstr("One-click loads 14 signature chains.");
+  gfx_drawstr("One-click loads 25 signature chains.");
 
   // Prev / Next and Load buttons (Symmetrically spaced & centered)
   b_gap = 5;
@@ -5986,8 +6078,8 @@ slider2 == 4 ? (
   gfx_measurestr("LOAD", tw3, th3);
   gfx_x = b3_x + (b3_w - tw3) * 0.5; gfx_y = dock_btn_y + (btn_h - th3) * 0.5; gfx_drawstr("LOAD");
 
-  mouse_clicked && p_btn_pr ? (playbook_eng_idx = (playbook_eng_idx - 1 + 14) % 14;);
-  mouse_clicked && p_btn_nx ? (playbook_eng_idx = (playbook_eng_idx + 1) % 14;);
+  mouse_clicked && p_btn_pr ? (playbook_eng_idx = (playbook_eng_idx - 1 + 25) % 25;);
+  mouse_clicked && p_btn_nx ? (playbook_eng_idx = (playbook_eng_idx + 1) % 25;);
   mouse_clicked && p_btn_ld ? (
     slider33 = playbook_eng_idx;
     apply_producer_master_preset(slider33);

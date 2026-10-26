@@ -235,49 +235,214 @@ function update_vocal_filters() local(w0, cos_w0, sin_w0, alpha, A, beta) (
 
 function apply_producer_preset(idx) (
   idx == 0 ? ( // Unity Baseline (1:1 Transparent Pass)
-    slider3 = 0.0; slider4 = 0.0; slider5 = 0; slider6 = -18.0; slider7 = 6800;
-    slider8 = 0.0; slider9 = 0; slider10 = 0.0; slider11 = 0.0; slider12 = 0.0;
-    slider13 = 1; slider14 = 0; slider15 = 0.0; slider16 = 1; slider17 = 15.0;
+    slider3 = 0.0; slider4 = 0.0; slider5 = 0; slider6 = -30.0; slider7 = 6800;
+    slider8 = -3.0; slider9 = 0; slider10 = 0.0; slider11 = 0.0; slider12 = 0.0;
+    slider13 = 1; slider14 = 0; slider15 = -4.0; slider16 = 1; slider17 = 15.0;
     slider18 = 2; slider19 = 100; slider20 = 0.0; slider21 = 1.00;
   ) : idx == 6 ? ( // Kel Pinchin (Split Chain Target - Unified Flagship Calibration)
     slider3 = 0.0; slider4 = 1.8; slider5 = 0;
-    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0; // Gentle de-esser (preserves articulation!)
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
     slider10 = 1.2; slider11 = 1.4; slider12 = 3.2;
-    slider13 = 1; slider14 = 1; // 1176 FET + LA-2A Serial Opto
-    slider15 = -8.0; slider16 = 1;
+    slider13 = 1; slider14 = 1;
+    slider15 = -4.5; slider16 = 1; // Transparent -4.5dB threshold for gentle 1.5dB vocal glue
     slider17 = 8.0; slider18 = 1; slider19 = 100;
-    slider20 = 2.0; slider21 = 1.15; // Lead Center Lock + 1.15 Backing Width
-    slider28 = 2.0; // Maag 16kHz Air Band +2.0 dB Sheen!
-    slider29 = -2.5; // ReEQ 380Hz Chest Mud Scoop
-    slider30 = -2.2; // ReEQ 5.2kHz De-Harsh Notch
-    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15; // Ear-candy throw & reverse swell active
-  ) : idx == 1 ? ( // Lance Prenc (Alpha Wolf - 60cm Of Steel)
-    slider3 = 0.0; slider4 = -2.0; slider5 = 0;
-    slider6 = -20.0; slider7 = 6500; slider8 = -8.0; slider9 = 0;
-    slider10 = 1.0; slider11 = 3.5; slider12 = 3.0;
-    slider13 = 1; slider14 = 0; slider15 = -6.5; slider16 = 2; slider17 = 8.0;
-    slider18 = 0; slider19 = 100; slider20 = 3.8; slider21 = 1.05;
-  ) : idx == 4 ? ( // Buster Odeholm (thrown / Northlane - Evian)
-    slider3 = 0.0; slider4 = -2.8; slider5 = 0;
-    slider6 = -22.0; slider7 = 6200; slider8 = -9.0; slider9 = 0;
-    slider10 = 0.5; slider11 = 4.0; slider12 = 3.5;
-    slider13 = 1; slider14 = 0; slider15 = -7.5; slider16 = 3; slider17 = 5.0;
-    slider18 = 0; slider19 = 100; slider20 = 4.5; slider21 = 1.00;
-  ) : idx == 18 ? ( // Dan Braunstein (Spiritbox - Keep Sweet)
-    slider3 = 0.0; slider4 = -2.2; slider5 = 0;
-    slider6 = -18.0; slider7 = 7000; slider8 = -6.5; slider9 = 0;
-    slider10 = 1.0; slider11 = 2.5; slider12 = 4.0;
-    slider13 = 1; slider14 = 0; slider15 = -5.0; slider16 = 1; slider17 = 15.0;
-    slider18 = 1; slider19 = 100; slider20 = 2.8; slider21 = 1.10;
-  ) : ( // Modern Metal Vocal Standard Fallback
-    slider3 = 0.0; slider4 = -2.0; slider5 = 0;
-    slider6 = -18.0; slider7 = 6800; slider8 = -6.0; slider9 = 0;
-    slider10 = 1.0; slider11 = 2.5; slider12 = 3.0;
-    slider13 = 1; slider14 = 0; slider15 = -5.0; slider16 = 1; slider17 = 12.0;
-    slider18 = 1; slider19 = 100; slider20 = 2.5; slider21 = 1.05;
+    slider20 = 2.0; slider21 = 1.15;
+    slider28 = 2.0; slider29 = -2.5; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 1 ? ( // Lance Prenc (Alpha Wolf - 60cm Of Steel) - Fast Aggressive Vocal In-Your-Face
+    slider3 = 0.0; slider4 = 1.5; slider5 = 0;
+    slider6 = -30.0; slider7 = 6400; slider8 = -4.0; slider9 = 0;
+    slider10 = 1.0; slider11 = 2.8; slider12 = 3.5;
+    slider13 = 1; slider14 = 0; slider15 = -4.0; slider16 = 2; slider17 = 5.0;
+    slider18 = 0; slider19 = 100; slider20 = 2.5; slider21 = 1.10;
+    slider28 = 2.5; slider29 = -3.0; slider30 = -2.5;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 20;
+  ) : idx == 2 ? ( // Scott Seigel (DIESECT) - Heavy Metalcore Forward Vocal Crunch
+    slider3 = 0.0; slider4 = 1.4; slider5 = 0;
+    slider6 = -31.0; slider7 = 6500; slider8 = -3.8; slider9 = 0;
+    slider10 = 0.8; slider11 = 2.4; slider12 = 3.2;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 8.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.12;
+    slider28 = 2.2; slider29 = -2.8; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 18;
+  ) : idx == 3 ? ( // Jonathan Dolese (Mirrorcell) - Silky Modern Rock Lead & Wide Chorus Bloom
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -33.0; slider7 = 6800; slider8 = -3.2; slider9 = 0;
+    slider10 = 1.4; slider11 = 1.8; slider12 = 3.0;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 12.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.8; slider21 = 1.20;
+    slider28 = 2.4; slider29 = -2.2; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 4 ? ( // Buster Odeholm (thrown / Northlane) - Crushed Saturated Vocal Upfront
+    slider3 = 0.0; slider4 = 1.2; slider5 = 0;
+    slider6 = -28.0; slider7 = 6200; slider8 = -4.5; slider9 = 0;
+    slider10 = 0.5; slider11 = 3.2; slider12 = 4.0;
+    slider13 = 1; slider14 = 0; slider15 = -5.0; slider16 = 3; slider17 = 5.0;
+    slider18 = 0; slider19 = 100; slider20 = 3.0; slider21 = 1.10;
+    slider28 = 3.0; slider29 = -3.5; slider30 = -3.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 25;
+  ) : idx == 5 ? ( // Lewis Johns (Love Is Noise / blanket) - Atmospheric Lush Shoegaze Air
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -34.0; slider7 = 7000; slider8 = -2.8; slider9 = 0;
+    slider10 = 1.6; slider11 = 1.0; slider12 = 2.4;
+    slider13 = 1; slider14 = 1; slider15 = -3.5; slider16 = 0; slider17 = 20.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.5; slider21 = 1.25;
+    slider28 = 2.0; slider29 = -2.0; slider30 = -1.8;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 12;
+  ) : idx == 7 ? ( // Dan Lancaster & Jason Perry (Don Broco) - Punchy Radio Vocal Sits on Top
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.2; slider12 = 3.4;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.15;
+    slider28 = 2.4; slider29 = -2.5; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : idx == 8 ? ( // Erik Bickerstaffe (Static Dress) - Post-Hardcore Raw Bite & Upper Mid Energy
+    slider3 = 0.0; slider4 = 1.5; slider5 = 0;
+    slider6 = -30.0; slider7 = 6400; slider8 = -3.8; slider9 = 0;
+    slider10 = 1.0; slider11 = 2.5; slider12 = 3.5;
+    slider13 = 1; slider14 = 0; slider15 = -4.5; slider16 = 2; slider17 = 8.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.4; slider21 = 1.12;
+    slider28 = 2.6; slider29 = -2.8; slider30 = -2.4;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 18;
+  ) : idx == 9 ? ( // Sam Guaiana (Shyeye feat. Showing Teeth) - Radio Metalcore Sheen
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.0; slider12 = 3.2;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.0; slider21 = 1.16;
+    slider28 = 2.2; slider29 = -2.5; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 10 ? ( // Zach Tuch (Heavenward) - Warm 90s Alt Gloss
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -33.0; slider7 = 6800; slider8 = -3.0; slider9 = 0;
+    slider10 = 1.4; slider11 = 1.4; slider12 = 2.8;
+    slider13 = 1; slider14 = 1; slider15 = -3.8; slider16 = 1; slider17 = 15.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.8; slider21 = 1.18;
+    slider28 = 2.0; slider29 = -2.2; slider30 = -1.8;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 14;
+  ) : idx == 11 ? ( // Forrester Savell (City Of Souls / Karnivool) - Deep Articulate Dynamics
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -32.0; slider7 = 6700; slider8 = -3.2; slider9 = 0;
+    slider10 = 1.2; slider11 = 1.6; slider12 = 3.0;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 12.0;
+    slider18 = 2; slider19 = 100; slider20 = 2.0; slider21 = 1.18;
+    slider28 = 2.2; slider29 = -2.4; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 12 ? ( // Leon Schmidt (SUNBORN) - Modern Crystal Clear Air
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.0; slider11 = 2.0; slider12 = 3.4;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.15;
+    slider28 = 2.5; slider29 = -2.6; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : idx == 13 ? ( // Ermin Hamidovic (Systematic / 01 The End of All We Know) - Transparent Master Sits
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -33.0; slider7 = 6800; slider8 = -3.0; slider9 = 0;
+    slider10 = 1.2; slider11 = 1.5; slider12 = 2.8;
+    slider13 = 1; slider14 = 1; slider15 = -3.8; slider16 = 1; slider17 = 15.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.8; slider21 = 1.14;
+    slider28 = 2.0; slider29 = -2.2; slider30 = -1.8;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 12;
+  ) : idx == 14 ? ( // Will Putney (Fit For An Autopsy) - Aggressive Distorted Vocal Bite
+    slider3 = 0.0; slider4 = 1.4; slider5 = 0;
+    slider6 = -29.0; slider7 = 6300; slider8 = -4.2; slider9 = 0;
+    slider10 = 0.8; slider11 = 3.0; slider12 = 3.8;
+    slider13 = 1; slider14 = 0; slider15 = -4.8; slider16 = 2; slider17 = 6.0;
+    slider18 = 0; slider19 = 100; slider20 = 2.6; slider21 = 1.10;
+    slider28 = 2.8; slider29 = -3.2; slider30 = -2.6;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 22;
+  ) : idx == 15 ? ( // George Lever (Loathe / Sleep Token) - Wide Spatial Lushness & Dark Mid Warmth
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -33.0; slider7 = 6700; slider8 = -3.2; slider9 = 0;
+    slider10 = 1.4; slider11 = 1.4; slider12 = 2.8;
+    slider13 = 1; slider14 = 1; slider15 = -3.8; slider16 = 1; slider17 = 18.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.8; slider21 = 1.25;
+    slider28 = 2.2; slider29 = -2.2; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 16 ? ( // Sam Bassal (Thornhill) - Modern Australian Polish & Vocal Cut
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.0; slider12 = 3.2;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.0; slider21 = 1.16;
+    slider28 = 2.2; slider29 = -2.5; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : idx == 17 ? ( // Henrik Udd (Architects) - Giant Modern Metal Wall Vocal Sits On Top
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -31.0; slider7 = 6500; slider8 = -3.8; slider9 = 0;
+    slider10 = 1.0; slider11 = 2.4; slider12 = 3.4;
+    slider13 = 1; slider14 = 1; slider15 = -4.4; slider16 = 1; slider17 = 8.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.4; slider21 = 1.12;
+    slider28 = 2.5; slider29 = -2.8; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 18;
+  ) : idx == 18 ? ( // Dan Braunstein (Spiritbox - Keep Sweet) - Ultra-Pristine Pop-Metal Vocal
+    slider3 = 0.0; slider4 = 2.0; slider5 = 0;
+    slider6 = -33.0; slider7 = 6700; slider8 = -3.2; slider9 = 0;
+    slider10 = 1.4; slider11 = 1.6; slider12 = 3.0;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 12.0;
+    slider18 = 2; slider19 = 100; slider20 = 2.0; slider21 = 1.18;
+    slider28 = 2.4; slider29 = -2.2; slider30 = -1.8;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 19 ? ( // Zakk Cervini (Bad Omens - THE DEATH OF PEACE OF MIND) - Modern Hook Gloss
+    slider3 = 0.0; slider4 = 2.0; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.2; slider12 = 3.5;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.18;
+    slider28 = 2.5; slider29 = -2.5; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : idx == 20 ? ( // Jens Bogren (Fascination Street) - Nordic Metal Authority & Warmth
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 1.8; slider12 = 3.0;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 12.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.0; slider21 = 1.14;
+    slider28 = 2.0; slider29 = -2.5; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD) - Punchy Articulate Modern Metal Lead
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.0; slider12 = 3.2;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.0; slider21 = 1.15;
+    slider28 = 2.2; slider29 = -2.5; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : idx == 22 ? ( // Acle Kahney (TesseracT - King) - Prog Ambient Vocal Space & Dynamic Clarity
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -33.0; slider7 = 6800; slider8 = -3.0; slider9 = 0;
+    slider10 = 1.4; slider11 = 1.5; slider12 = 2.8;
+    slider13 = 1; slider14 = 1; slider15 = -3.8; slider16 = 1; slider17 = 16.0;
+    slider18 = 2; slider19 = 100; slider20 = 1.8; slider21 = 1.22;
+    slider28 = 2.2; slider29 = -2.2; slider30 = -1.8;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
+  ) : idx == 23 ? ( // Adam Cichocki (heaving. - carsick) - Grungegaze Saturated Fuzz & Body
+    slider3 = 0.0; slider4 = 1.5; slider5 = 0;
+    slider6 = -30.0; slider7 = 6400; slider8 = -3.8; slider9 = 0;
+    slider10 = 1.0; slider11 = 2.2; slider12 = 3.2;
+    slider13 = 1; slider14 = 0; slider15 = -4.5; slider16 = 2; slider17 = 8.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.15;
+    slider28 = 2.4; slider29 = -2.8; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 18;
+  ) : idx == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue) - Modern German Core Vocal Clarity
+    slider3 = 0.0; slider4 = 1.8; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.5; slider9 = 0;
+    slider10 = 1.2; slider11 = 2.2; slider12 = 3.4;
+    slider13 = 1; slider14 = 1; slider15 = -4.2; slider16 = 1; slider17 = 10.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.2; slider21 = 1.15;
+    slider28 = 2.4; slider29 = -2.5; slider30 = -2.2;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 16;
+  ) : (
+    slider3 = 0.0; slider4 = 1.6; slider5 = 0;
+    slider6 = -32.0; slider7 = 6600; slider8 = -3.2; slider9 = 0;
+    slider10 = 1.2; slider11 = 1.8; slider12 = 3.0;
+    slider13 = 1; slider14 = 1; slider15 = -4.0; slider16 = 1; slider17 = 12.0;
+    slider18 = 1; slider19 = 100; slider20 = 2.0; slider21 = 1.15;
+    slider28 = 2.0; slider29 = -2.5; slider30 = -2.0;
+    slider31 = 1; slider32 = 1; slider33 = 0; slider34 = 15;
   );
   update_vocal_filters();
-  slider_automate();
 );
 
 function trigger_vocal_ai_assist() local(delta_trim) (

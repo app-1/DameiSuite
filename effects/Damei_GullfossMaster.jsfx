@@ -130,7 +130,7 @@ function apply_gullfoss_master_preset(p_idx) (
   ) : p_idx == 5 ? ( // Grant Berry
     slider2 = 25; slider3 = 22; slider4 = 4; slider5 = 15; slider6 = 12; slider7 = 65; slider8 = 19000; slider9 = 45;
   ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain)
-    slider2 = 28; slider3 = 32; slider4 = 8; slider5 = 12; slider6 = 10; slider7 = 75; slider8 = 18500; slider9 = 55;
+    slider2 = 24; slider3 = 23; slider4 = -2; slider5 = 18; slider6 = 5; slider7 = 55; slider8 = 18500; slider9 = 30;
   ) : p_idx == 7 ? ( // Ted Jensen
     slider2 = 26; slider3 = 28; slider4 = 0; slider5 = 15; slider6 = 10; slider7 = 70; slider8 = 19000; slider9 = 52;
   ) : p_idx == 8 ? ( // Robin Schmidt (Static Dress)
@@ -399,8 +399,17 @@ loop(16,
   k += 1;
 );
 
-// Clean stable compensation - zero broadband dynamic volume pumping
-loudness_comp_lin = 1.0;
+// Soundtheory Gullfoss Perceptual Loudness Invariance (Zero Section Volume Dipping)
+net_gf_gain = 0.0;
+k = 0;
+loop(16,
+  net_gf_gain += gf_tgt_gain[k];
+  k += 1;
+);
+avg_gf_gain = net_gf_gain * (1.0 / 16.0);
+// Smooth inverse broadband make-up gain so overall level never drops when vocal de-masking engages
+loudness_comp_lin = exp(-avg_gf_gain * 0.11512925);
+loudness_comp_lin = max(0.80, min(1.30, loudness_comp_lin));
 
 @sample
 in_l = spl0;
@@ -479,8 +488,8 @@ bp_fade > 0.0001 ? (
   // Denormal & NaN guard on output
   gf_in_l != gf_in_l ? gf_in_l = in_l;
   gf_in_r != gf_in_r ? gf_in_r = in_r;
-  out_l = max(-8.0, min(8.0, gf_in_l));
-  out_r = max(-8.0, min(8.0, gf_in_r));
+  out_l = max(-8.0, min(8.0, gf_in_l * comp_lin_cur));
+  out_r = max(-8.0, min(8.0, gf_in_r * comp_lin_cur));
 ) : (
   out_l = in_l;
   out_r = in_r;
@@ -893,6 +902,20 @@ gfx_x = btn2_p_x + 9; gfx_y = ctrl_y + 55; gfx_drawstr("+");
 
 gfx_r = 0.50; gfx_g = 0.65; gfx_b = 0.80;
 gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 80; gfx_printf("RANGE   : %.0fHz - %.0fkHz", eff_locut, eff_hicut * 0.001);
+
+gfx_setfont(4);
+eff_speed <= 40 ? (
+  gfx_r = 0.20; gfx_g = 0.95; gfx_b = 0.60;
+  gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 98;
+  gfx_drawstr("ATTACK GUARD: OPTIMAL (35-40%)");
+) : (
+  gfx_r = 1.00; gfx_g = 0.75; gfx_b = 0.20;
+  gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 98;
+  gfx_drawstr("ATTACK GUARD: FAST TRANSIENT MOD");
+);
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c2_x + pad_m; gfx_y = ctrl_y + 112;
+gfx_printf("CONTRAST: +%.1fdB REC / -%.1fdB TAME", (eff_recover/100.0)*2.4, (eff_tame/100.0)*2.2);
 
 // CARD 3: MASTERING SIGNATURE PRESETS
 gfx_r = 0.025; gfx_g = 0.032; gfx_b = 0.044; gfx_rect(c3_x, ctrl_y, col_w, ctrl_h);

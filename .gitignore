@@ -24,3 +24,7 @@ backups_*/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Scratch artifacts
+scratch/*
+!scratch/legacy_chain_params.txt

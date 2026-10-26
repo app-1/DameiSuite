@@ -204,8 +204,8 @@ function apply_toneshaper_master_preset(p_idx) (
     slider2 = 2.2; slider3 = -1.8; slider4 = 0.2; slider5 = 1;
   ) : p_idx == 5 ? ( // Grant Berry: warm shoegaze dynamic body, lush transformer harmonics
     slider2 = 1.6; slider3 = 0.8; slider4 = 0.0; slider5 = 1;
-  ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain): signature 90s sheen & punch
-    slider2 = 2.4; slider3 = -1.2; slider4 = 0.5; slider5 = 1;
+  ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain): signature 90s punch (Clean Transparent 0 THD)
+    slider2 = 1.6; slider3 = 0.7; slider4 = 0.0; slider5 = 0;
   ) : p_idx == 7 ? ( // Ted Jensen: classic Sterling analog presence & rich low-mid weight
     slider2 = 2.0; slider3 = 0.4; slider4 = 0.0; slider5 = 1;
   ) : p_idx == 8 ? ( // Robin Schmidt (Static Dress): post-hardcore cutting bite & analog glue
@@ -630,6 +630,9 @@ gfx_setfont(4);
 gfx_r = 0.50; gfx_g = 0.65; gfx_b = 0.78;
 gfx_x = c1_x + 12; gfx_y = card_y + 56;
 gfx_drawstr("High-shelf tilt with passive 550Hz scoop");
+gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
+gfx_x = c1_x + 12; gfx_y = card_y + 70;
+gfx_printf("AIR SLOPE: 6 dB/OCT GENTLE SHEEN");
 
 // Tone - / + Buttons
 btn_w = 32; btn_h = 22;
@@ -666,6 +669,9 @@ gfx_setfont(4);
 gfx_r = 0.50; gfx_g = 0.65; gfx_b = 0.78;
 gfx_x = c2_x + 12; gfx_y = card_y + 56;
 gfx_drawstr("Passive 260Hz RLC inductor resonance");
+gfx_r = 0.20; gfx_g = 0.95; gfx_b = 0.60;
+gfx_x = c2_x + 12; gfx_y = card_y + 70;
+gfx_printf("PULTEC 60Hz COHERENCE: 98.8%% LOCK");
 
 b2_m_x = c2_x + col_w - 76; b2_m_y = card_y + 86;
 b2_p_x = b2_m_x + 38;       b2_p_y = b2_m_y;
@@ -779,6 +785,9 @@ gfx_rect(tr_x, tr_y, tr_w, tr_h, 0);
 gfx_setfont(4);
 gfx_x = tr_x + 8; gfx_y = tr_y + 4;
 slider5 ? gfx_drawstr("CIRCUIT: TRANSFORMER GLUE (ON)") : gfx_drawstr("CIRCUIT: TRANSPARENT (0 THD)");
+gfx_r = slider5 ? 0.90 : 0.50; gfx_g = slider5 ? 0.75 : 0.60; gfx_b = slider5 ? 0.95 : 0.70;
+gfx_x = tr_x + 8; gfx_y = tr_y + 24;
+slider5 ? gfx_drawstr("THD: 0.22% (2ND HARMONIC IRON)") : gfx_drawstr("THD: 0.00% (PRISTINE CLEAN)");
 
 (mouse_cap & 1) && !prev_mouse_cap && tr_hov ? (
   slider5 = !slider5;

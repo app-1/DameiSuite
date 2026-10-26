@@ -6,7 +6,7 @@ desc:Damei Instrumental Bus Conclave (Collective Summing & Harmonic Imperium)
 // V9.0 CONCLAVE: IMPERIAL SAPPHIRE & ROSE-GOLD TITANIUM PALETTE, ADINKRA SIGILS & H:\REFERENCES REVERSE-ENGINEERING
 // =============================================================================
 
-slider1:0<0,7,1{0: OVERVIEW, 1: TONAL EQ, 2: BUS GLUE, 3: CRUCIBLE, 4: STEREO, 5: POCKET, 6: PRODUCER MATRIX, 7: EAR CANDY DOCK}>-Active Navigation Tab
+slider1:0<0,7,1{0: OVERVIEW, 1: CRUCIBLE, 2: TONAL EQ, 3: STEREO & BASS, 4: BUS GLUE, 5: VOCAL POCKET, 6: PRODUCER MATRIX, 7: EAR CANDY DOCK}>-Active Navigation Tab
 slider2:6<0,24,1{00: Unity Baseline (1:1 Transparent Pass), 01: Lance Prenc (Alpha Wolf - 60cm Of Steel), 02: Scott Seigel (DIESECT - TOO MANY SCARS), 03: Jonathan Dolese (Mirrorcell - U(phoria)), 04: Buster Odeholm (thrown / Northlane - Evian), 05: Lewis Johns (Love Is Noise / blanket - Blur), 06: Kel Pinchin (Split Chain - I'm Not Dying To Be Here), 07: Dan Lancaster & Jason Perry (Don Broco - Endorphins), 08: Erik Bickerstaffe (Static Dress - face..), 09: Sam Guaiana (Shyeye feat. Showing Teeth - Knot), 10: Zach Tuch (Heavenward - Tangerine), 11: Forrester Savell (City Of Souls - Cruelty / Karnivool), 12: Leon Schmidt (SUNBORN - Nebula), 13: Ermin Hamidovic (Systematic / 01 The End of All We Know), 14: Will Putney (Fit For An Autopsy - Walk With Me In Hell), 15: George Lever (Loathe - Agressive Evolution / Sleep Token), 16: Sam Bassal (Thornhill - nerv), 17: Henrik Udd (Architects - 8. Gravity), 18: Dan Braunstein (Spiritbox - Keep Sweet), 19: Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND), 20: Jens Bogren (Fascination Street Studios Benchmark), 21: Adam Nolly Getgood (Periphery / GGD Modern Metal Target), 22: Acle Kahney (TesseracT - King), 23: Adam Cichocki (heaving. - carsick), 24: Manuel Renner (SENNA - Out Of The Blue)}>-Producer Reference Benchmark
 slider3:0<-6.0,6.0,0.1>-Input Calibration Gain (dB)
 slider4:-2.2<-6.0,6.0,0.1>-Producer Headroom Trim (dB)
@@ -91,6 +91,12 @@ sc_prev_in = 0.0;
 comp_env = -100.0;
 glue_gr_db = 0.0;
 comp_prev_l = 0.0; comp_prev_r = 0.0;
+
+// Liteon Bass Manager & Sub-Mono state variables
+bm_x1_l = 0; bm_x2_l = 0; bm_y1_l = 0; bm_y2_l = 0;
+bm_x1_r = 0; bm_x2_r = 0; bm_y1_r = 0; bm_y2_r = 0;
+sm_x1 = 0; sm_x2 = 0; sm_y1 = 0; sm_y2 = 0;
+sub_side_rms = 0.0; sub_mid_rms = 0.0;
 
 // Dynamic Vocal Pocket 2.2kHz notch state
 np_x1_l = 0; np_x2_l = 0; np_y1_l = 0; np_y2_l = 0;
@@ -456,128 +462,181 @@ function update_filters() local(w0, alpha, cos_w0, sin_w0, A, beta, drv_k) (
   sm_a1 = -2.0 * sm_cos;
   sm_a2 = 1.0 - sm_alpha;
 
+  // 7b. Liteon Bass Manager 50Hz Q=1.0 Resonant Low-End Focus Filter (Bit-Exact Legacy Parity)
+  // Authored by Liteon (Lubomir I. Ivanov) - provides +1.25dB resonant low-end bolster at 55-70Hz
+  bm_w0 = 2.0 * M_PI * 50.0 / srate;
+  bm_sn = sin(bm_w0); bm_cs = cos(bm_w0);
+  bm_alpha = bm_sn * 0.5; // Q = 1.0 -> resonant bass lift
+  bm_a0 = 1.0 / (1.0 + bm_alpha);
+  bm_a1 = (-2.0 * bm_cs) * bm_a0;
+  bm_a2 = (1.0 - bm_alpha) * bm_a0;
+  bm_b1 = -(1.0 + bm_cs) * bm_a0;
+  bm_b0 = -bm_b1 * 0.5;
+  bm_b2 = bm_b0;
+
   // 8. Bus Glue Sidechain Detector HPF (slider16 - Unconditionally Stable 1st-Order at 39/60/85 Hz)
   sc_alpha = exp(-2.0 * M_PI * clamp(slider16, 20.0, 250.0) / srate);
 );
 
 function apply_producer_preset(idx) (
   idx == 0 ? ( // Unity Baseline (1:1 Transparent Pass)
-    slider3 = 0.0; slider4 = 0.0; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 0.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -12.0;
+    slider3 = 0.0; slider4 = 0.0; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
     slider13 = 1; slider14 = 30.0; slider15 = 2; slider16 = 39; slider17 = 100;
     slider18 = 30; slider19 = 0.0; slider20 = 0.0; slider21 = 0.0; slider22 = 0.0;
     slider23 = 0; slider24 = 0.0; slider25 = 1.00; slider31 = 0.0;
-  ) : idx == 6 ? ( // Kel Pinchin (Split Chain Target) - Forensic Replicate of Track 15 Legacy Chain
-    slider3 = 0.0;
-    slider4 = -2.2;   // Headroom Staging Calibrated for Bit-Exact Legacy Chain RMS & Peak Parity!
-    slider5 = 0;      // -3.0 dBTP Strict Legacy Staging Ceiling Lock
-    slider6 = 80;     // Sub-Bass Anchor Cutoff
-    slider7 = 1;      // Transient Sentry Active
-    slider8 = 0.0;    // Vocal Pocket depth 0.0dB (relies on static 202Hz Tonal Forge Mud Scoop)
-    slider9 = 0;      // Static Flat Wire Bypass (Zero Dynamic Modulation)
-    slider10 = 1;     // Bus Glue Engaged
-    slider11 = 0;     // British VCA Punch (SSL 4000G / BUSTERse Feedback Topology)
-    slider12 = -12.0; // Threshold calibrated for bit-exact legacy BUSTERse compression match!
-    slider13 = 2;     // 4:1 Modern Punch (matches BUSTERse 4:1)
-    slider14 = 10.0;  // Attack 10 ms (matches BUSTERse 10 ms)
-    slider15 = 2;     // Release 600 ms (matches BUSTERse .6 sec)
-    slider16 = 39;    // Sidechain Detector HPF = 39 Hz (Authentic BUSTERse & Nolly trick!)
-    slider17 = 100;   // 100% Dry/Wet
-    slider18 = 38;    // HPF Cutoff 38 Hz (matches Bass Manager 30Hz & ReEQ 40Hz)
-    slider19 = 3.0;   // 80Hz Punch +3.0 dB Low Shelf (matches ReEQ Band 2)
-    slider20 = -3.0;  // 202Hz Mud Scoop -3.0 dB, Q=1.2 (matches ReEQ Band 4)
-    slider21 = 1.5;   // 1.5kHz Mid Body +1.5 dB, Q=1.5 (matches ReEQ Band 5)
-    slider22 = 3.0;   // 3.0kHz Bite +3.0 dB, Q=1.8 (matches ReEQ Band 6)
-    slider23 = 1;     // Neve 8014 Iron Desk (matches Britson Buss Vintage Summing!)
-    slider24 = 2.2;   // Console Desk Drive 2.2 dB (replicates subtle Britson vintage harmonic depth)
-    slider25 = 1.00;  // Quad Imager Width 1.00x (matches legacy chain bit-exact stereo imaging)
-    slider31 = 3.0;   // 8.0kHz Sheen +3.0 dB (matches ReEQ Band 7)
-  ) : idx == 9 ? ( // Sam Guaiana (Shyeye feat. Showing Teeth - Knot)
-    slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 75; slider7 = 1;
-    slider8 = 0.5; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -12.0;
-    slider13 = 2; slider14 = 30.0; slider15 = 1; slider16 = 60; // 60Hz HPF kick/bass decoupling trick!
-    slider17 = 100; slider18 = 35; slider19 = 2.8; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
-    slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
-  ) : idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD Modern Metal Target)
-    slider3 = 0.0; slider4 = -1.5; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
-    slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 39; // 39Hz HPF snare cut-through trick!
-    slider17 = 100; slider18 = 35; slider19 = 3.0; slider20 = -3.2; slider21 = 1.2; slider22 = 3.2;
-    slider23 = 1; slider24 = 3.2; slider25 = 1.15; slider31 = 3.0;
-  ) : idx == 1 ? ( // Lance Prenc (Alpha Wolf - 60cm Of Steel)
-    slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 85; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
+  ) : idx == 1 ? ( // Lance Prenc (Alpha Wolf - 60cm Of Steel) - Lethal Snappy Punch & Neve Drive
+    slider3 = 0.0; slider4 = -2.6; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.5;
     slider13 = 2; slider14 = 10.0; slider15 = 0; slider16 = 45; slider17 = 100;
-    slider18 = 35; slider19 = 2.0; slider20 = -3.5; slider21 = 1.2; slider22 = 3.5;
-    slider23 = 1; slider24 = 3.8; slider25 = 1.15; slider31 = 3.2;
-  ) : idx == 2 ? ( // Scott Seigel (DIESECT - TOO MANY SCARS)
-    slider3 = 0.0; slider4 = -1.0; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
+    slider18 = 35; slider19 = 2.4; slider20 = -3.5; slider21 = 1.2; slider22 = 3.5;
+    slider23 = 1; slider24 = 3.6; slider25 = 1.15; slider31 = 3.2;
+  ) : idx == 2 ? ( // Scott Seigel (DIESECT - TOO MANY SCARS) - Heavy Metallic Weight & Rhythmic Pressure
+    slider3 = 0.0; slider4 = -2.5; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 50; slider17 = 100;
     slider18 = 32; slider19 = 3.5; slider20 = -3.2; slider21 = 0.8; slider22 = 3.0;
     slider23 = 1; slider24 = 3.2; slider25 = 1.12; slider31 = 2.5;
-  ) : idx == 3 ? ( // Jonathan Dolese (Mirrorcell - U(phoria))
-    slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 0.9; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
+  ) : idx == 3 ? ( // Jonathan Dolese (Mirrorcell - U(phoria)) - Atmospheric Modern Rock & Tape Shimmer
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
     slider13 = 1; slider14 = 10.0; slider15 = 2; slider16 = 55; slider17 = 100;
     slider18 = 35; slider19 = 2.5; slider20 = -2.8; slider21 = 1.5; slider22 = 2.8;
     slider23 = 2; slider24 = 2.6; slider25 = 1.10; slider31 = 3.2;
-  ) : idx == 4 ? ( // Buster Odeholm (thrown / Northlane - Evian)
-    slider3 = 0.0; slider4 = -1.4; slider5 = 0; slider6 = 90; slider7 = 1;
-    slider8 = 1.4; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -17.0;
+  ) : idx == 4 ? ( // Buster Odeholm (thrown / Northlane - Evian) - Crushing Low-End Discipline & Aggressive Squeeze
+    slider3 = 0.0; slider4 = -2.8; slider5 = 2; slider6 = 90; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.8;
     slider13 = 3; slider14 = 10.0; slider15 = 0; slider16 = 60; slider17 = 100;
     slider18 = 40; slider19 = 3.2; slider20 = -4.0; slider21 = 0.5; slider22 = 4.0;
-    slider23 = 1; slider24 = 4.0; slider25 = 1.25; slider31 = 3.5;
-  ) : idx == 5 ? ( // Lewis Johns (Love Is Noise / blanket - Blur)
-    slider3 = 0.0; slider4 = -0.9; slider5 = 0; slider6 = 75; slider7 = 1;
-    slider8 = 0.7; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -15.5;
-    slider13 = 1; slider14 = 25.0; slider15 = 2; slider16 = 45; slider17 = 100;
+    slider23 = 1; slider24 = 4.0; slider25 = 1.22; slider31 = 3.5;
+  ) : idx == 5 ? ( // Lewis Johns (Love Is Noise / blanket - Blur) - Shoegaze Lush Diode Warmth
+    slider3 = 0.0; slider4 = -2.0; slider5 = 2; slider6 = 75; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 1; slider12 = -3.2;
+    slider13 = 0; slider14 = 25.0; slider15 = 2; slider16 = 45; slider17 = 100;
     slider18 = 30; slider19 = 2.0; slider20 = -2.2; slider21 = 1.8; slider22 = 2.0;
     slider23 = 2; slider24 = 2.4; slider25 = 1.05; slider31 = 2.6;
-  ) : idx == 14 ? ( // Will Putney (Fit For An Autopsy - Walk With Me In Hell)
-    slider3 = 0.0; slider4 = -1.4; slider5 = 0; slider6 = 85; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
+  ) : idx == 6 ? ( // Kel Pinchin (Split Chain Target) - Forensic Replicate of Track 15 Legacy Chain
+    slider3 = 0.0; slider4 = -3.0; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 39; slider17 = 100;
+    slider18 = 38; slider19 = 3.0; slider20 = -3.0; slider21 = 1.5; slider22 = 3.0;
+    slider23 = 1; slider24 = 3.8; slider25 = 1.00; slider31 = 3.0;
+  ) : idx == 7 ? ( // Dan Lancaster & Jason Perry (Don Broco - Endorphins) - Radio Rock Bounce & Pick Bite
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 15.0; slider15 = 1; slider16 = 45; slider17 = 100;
+    slider18 = 35; slider19 = 2.6; slider20 = -2.8; slider21 = 1.4; slider22 = 3.2;
+    slider23 = 1; slider24 = 2.8; slider25 = 1.15; slider31 = 3.0;
+  ) : idx == 8 ? ( // Erik Bickerstaffe (Static Dress - face..) - Post-Hardcore Gritty Tube Crucible
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.4;
+    slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 40; slider17 = 100;
+    slider18 = 36; slider19 = 2.8; slider20 = -3.4; slider21 = 1.2; slider22 = 3.4;
+    slider23 = 3; slider24 = 3.2; slider25 = 1.12; slider31 = 3.0;
+  ) : idx == 9 ? ( // Sam Guaiana (Shyeye feat. Showing Teeth - Knot) - Modern Pop-Metal Gloss & 60Hz Decoupling
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 75; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 20.0; slider15 = 1; slider16 = 55; slider17 = 100;
+    slider18 = 35; slider19 = 2.8; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
+    slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
+  ) : idx == 10 ? ( // Zach Tuch (Heavenward - Tangerine) - 90s Alt-Rock Dynamic Warmth
+    slider3 = 0.0; slider4 = -2.0; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -2.8;
+    slider13 = 1; slider14 = 30.0; slider15 = 2; slider16 = 45; slider17 = 100;
+    slider18 = 32; slider19 = 2.2; slider20 = -2.4; slider21 = 1.6; slider22 = 2.4;
+    slider23 = 2; slider24 = 2.2; slider25 = 1.08; slider31 = 2.8;
+  ) : idx == 11 ? ( // Forrester Savell (City Of Souls - Cruelty / Karnivool) - Prog Metal Depth & Punch
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
+    slider13 = 1; slider14 = 20.0; slider15 = 2; slider16 = 50; slider17 = 100;
+    slider18 = 32; slider19 = 3.0; slider20 = -2.6; slider21 = 1.4; slider22 = 2.6;
+    slider23 = 1; slider24 = 3.0; slider25 = 1.16; slider31 = 3.2;
+  ) : idx == 12 ? ( // Leon Schmidt (SUNBORN - Nebula) - Spatial Progressive Clarity
+    slider3 = 0.0; slider4 = -2.6; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.4;
+    slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 55; slider17 = 100;
+    slider18 = 35; slider19 = 3.2; slider20 = -3.2; slider21 = 1.0; slider22 = 3.2;
+    slider23 = 1; slider24 = 3.2; slider25 = 1.18; slider31 = 3.0;
+  ) : idx == 13 ? ( // Ermin Hamidovic (Systematic / 01 The End of All We Know) - Mastering Benchmark Balance
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -2.8;
+    slider13 = 1; slider14 = 30.0; slider15 = 4; slider16 = 39; slider17 = 100;
+    slider18 = 32; slider19 = 2.5; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
+    slider23 = 1; slider24 = 2.4; slider25 = 1.10; slider31 = 2.6;
+  ) : idx == 14 ? ( // Will Putney (Fit For An Autopsy - Walk With Me In Hell) - Bone-Crushing Aggression
+    slider3 = 0.0; slider4 = -2.6; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.6;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 50; slider17 = 100;
     slider18 = 38; slider19 = 3.5; slider20 = -3.8; slider21 = 1.2; slider22 = 3.5;
     slider23 = 1; slider24 = 3.8; slider25 = 1.15; slider31 = 3.0;
-  ) : idx == 15 ? ( // George Lever (Loathe - Agressive Evolution / Sleep Token)
-    slider3 = 0.0; slider4 = -1.1; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 0.8; slider9 = 1; slider10 = 1; slider11 = 1; slider12 = -15.5;
+  ) : idx == 15 ? ( // George Lever (Loathe - Agressive Evolution / Sleep Token) - Wide Dark Atmosphere & Heavy Sub
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 1; slider12 = -3.2;
     slider13 = 1; slider14 = 20.0; slider15 = 2; slider16 = 45; slider17 = 100;
     slider18 = 32; slider19 = 3.2; slider20 = -2.8; slider21 = 1.4; slider22 = 2.6;
-    slider23 = 3; slider24 = 2.8; slider25 = 1.12; slider31 = 3.2;
-  ) : idx == 17 ? ( // Henrik Udd (Architects - Gravity)
-    slider3 = 0.0; slider4 = -1.3; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
+    slider23 = 3; slider24 = 2.8; slider25 = 1.20; slider31 = 3.2;
+  ) : idx == 16 ? ( // Sam Bassal (Thornhill - nerv) - Australian Alternative Modern Polish
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
+    slider13 = 2; slider14 = 15.0; slider15 = 1; slider16 = 45; slider17 = 100;
+    slider18 = 35; slider19 = 2.8; slider20 = -3.0; slider21 = 1.2; slider22 = 3.0;
+    slider23 = 1; slider24 = 3.0; slider25 = 1.15; slider31 = 3.0;
+  ) : idx == 17 ? ( // Henrik Udd (Architects - 8. Gravity) - Relentless Wall-of-Sound
+    slider3 = 0.0; slider4 = -2.5; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.4;
     slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 40; slider17 = 100;
     slider18 = 38; slider19 = 3.2; slider20 = -3.0; slider21 = 1.2; slider22 = 3.0;
     slider23 = 1; slider24 = 3.2; slider25 = 1.15; slider31 = 3.2;
-  ) : idx == 18 ? ( // Dan Braunstein (Spiritbox - Keep Sweet)
-    slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -15.5;
-    slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 42; slider17 = 100;
+  ) : idx == 18 ? ( // Dan Braunstein (Spiritbox - Keep Sweet) - Hyper-Sleek Modern Metal Polish
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 15.0; slider15 = 2; slider16 = 42; slider17 = 100;
     slider18 = 32; slider19 = 2.5; slider20 = -2.5; slider21 = 1.0; slider22 = 2.5;
-    slider23 = 1; slider24 = 3.0; slider25 = 1.10; slider31 = 2.8;
-  ) : idx == 19 ? ( // Zakk Cervini & Erik Ron (Bad Omens - TDOPOM)
-    slider3 = 0.0; slider4 = -1.3; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.2; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
-    slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 45; slider17 = 100;
-    slider18 = 35; slider19 = 2.8; slider20 = -2.8; slider21 = 1.0; slider22 = 2.8;
-    slider23 = 2; slider24 = 3.2; slider25 = 1.18; slider31 = 3.4;
-  ) : ( // Modern Metal Standard Baseline
-    slider3 = 0.0; slider4 = -1.2; slider5 = 0; slider6 = 80; slider7 = 1;
-    slider8 = 1.0; slider9 = 1; slider10 = 1; slider11 = 0; slider12 = -16.0;
-    slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 40; slider17 = 100;
-    slider18 = 35; slider19 = 2.6; slider20 = -2.8; slider21 = 1.2; slider22 = 2.8;
-    slider23 = 1; slider24 = 2.8; slider25 = 1.10; slider31 = 2.8;
+    slider23 = 1; slider24 = 3.0; slider25 = 1.12; slider31 = 2.8;
+  ) : idx == 19 ? ( // Zakk Cervini & Erik Ron (Bad Omens - THE DEATH OF PEACE OF MIND) - Radio Hit Polish
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
+    slider13 = 2; slider14 = 15.0; slider15 = 1; slider16 = 45; slider17 = 100;
+    slider18 = 34; slider19 = 2.6; slider20 = -2.8; slider21 = 1.2; slider22 = 3.0;
+    slider23 = 1; slider24 = 3.0; slider25 = 1.16; slider31 = 3.2;
+  ) : idx == 20 ? ( // Jens Bogren (Fascination Street Studios Benchmark) - European Metal Prestige
+    slider3 = 0.0; slider4 = -2.4; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
+    slider13 = 2; slider14 = 20.0; slider15 = 1; slider16 = 40; slider17 = 100;
+    slider18 = 35; slider19 = 3.0; slider20 = -3.0; slider21 = 1.2; slider22 = 2.8;
+    slider23 = 1; slider24 = 3.0; slider25 = 1.12; slider31 = 2.8;
+  ) : idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD Modern Metal Target) - Modern Djent Punch
+    slider3 = 0.0; slider4 = -2.5; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 10.0; slider15 = 2; slider16 = 39; slider17 = 100;
+    slider18 = 35; slider19 = 3.0; slider20 = -3.2; slider21 = 1.2; slider22 = 3.2;
+    slider23 = 1; slider24 = 3.2; slider25 = 1.15; slider31 = 3.0;
+  ) : idx == 22 ? ( // Acle Kahney (TesseracT - King) - Prog Metal Precision & Ambient Depth
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 1; slider14 = 20.0; slider15 = 2; slider16 = 45; slider17 = 100;
+    slider18 = 30; slider19 = 2.6; slider20 = -2.8; slider21 = 1.5; slider22 = 2.6;
+    slider23 = 2; slider24 = 2.6; slider25 = 1.18; slider31 = 3.2;
+  ) : idx == 23 ? ( // Adam Cichocki (heaving. - carsick) - Grungegaze Saturated Fuzz & Body
+    slider3 = 0.0; slider4 = -2.5; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.4;
+    slider13 = 2; slider14 = 15.0; slider15 = 1; slider16 = 40; slider17 = 100;
+    slider18 = 34; slider19 = 3.4; slider20 = -3.4; slider21 = 1.2; slider22 = 3.0;
+    slider23 = 3; slider24 = 3.5; slider25 = 1.18; slider31 = 3.0;
+  ) : idx == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue) - Modern German Core Punch
+    slider3 = 0.0; slider4 = -2.5; slider5 = 2; slider6 = 85; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.2;
+    slider13 = 2; slider14 = 10.0; slider15 = 1; slider16 = 50; slider17 = 100;
+    slider18 = 35; slider19 = 3.0; slider20 = -3.2; slider21 = 1.2; slider22 = 3.2;
+    slider23 = 1; slider24 = 3.2; slider25 = 1.16; slider31 = 3.2;
+  ) : (
+    slider3 = 0.0; slider4 = -2.2; slider5 = 2; slider6 = 80; slider7 = 1;
+    slider8 = 0.0; slider9 = 0; slider10 = 1; slider11 = 0; slider12 = -3.0;
+    slider13 = 2; slider14 = 15.0; slider15 = 2; slider16 = 45; slider17 = 100;
+    slider18 = 35; slider19 = 2.5; slider20 = -2.5; slider21 = 1.0; slider22 = 2.5;
+    slider23 = 1; slider24 = 2.5; slider25 = 1.10; slider31 = 2.5;
   );
-  // Pure Static Discipline - Zero Dynamic Moves Across All Producer Presets
-  slider48 = 1; // Ear Candy Director Active (Applies Curated Trick Selections Automatically)
-  slider50 = dk_pm[idx]; // Automatically assign producer's signature trick palette!
-  slider9 = 0;  // Vocal Pocket Default: Static Flat Wire Bypass (Zero Flutter)
-  slider51 ? dg_pbi = idx;
   update_filters();
-  slider_automate();
 );
 
 function trigger_ai_assist() local(delta_trim) (
@@ -713,25 +772,25 @@ dk_amt = slider49 * 0.01;
 // All tricks are static, subtle enhancements: NO dynamic gain pumping, NO volume ducking.
 // =============================================================================
 slider48 == 1 ? (
-  // Director ON: Automatically selects appropriate tricks from the active palette!
+  // Director ON: Automatically deploys balanced palettes per section with ZERO volume dips!
   dk_r_idx == 4 ? (
-    // Chorus: Deploys spacious stereo bloom (1), air sheen (32), and sub foundation (4)
-    dk_sel_mask = slider50 & (1 | 32 | 4);
+    // Chorus: Deploys spacious stereo bloom (1), air sheen (32), sub foundation (4), desk warmth (8), snare snap (16)
+    dk_sel_mask = slider50 & (1 | 4 | 8 | 16 | 32);
     dk_sel_desc = "Chorus: Stereo Bloom + Silk Air Sheen + Sub Anchor";
   ) : dk_r_idx == 2 ? (
-    // Verse: Deploys desk warmth (8) and snare sidechain snap (16)
-    dk_sel_mask = slider50 & (8 | 16);
+    // Verse: Core tone foundation matching Intro exactly (zero volume dip when vocals enter!)
+    dk_sel_mask = slider50 & (8 | 16 | 32);
     dk_sel_desc = "Verse: Desk Transformer Warmth + Snare Snap";
   ) : dk_r_idx == 3 ? (
-    // Pre-Drop / Build: Deploys tape warmth (2) and kick decoupling (64)
-    dk_sel_mask = slider50 & (2 | 64);
+    // Pre-Drop / Build: Deploys tape warmth (2), desk warmth (8), and kick decoupling (64)
+    dk_sel_mask = slider50 & (2 | 8 | 64);
     dk_sel_desc = "Pre-Drop: Tape Head Saturation + Kick Decoupling";
   ) : dk_r_idx == 5 ? (
     // Breakdown / Bridge: Deploys desk warmth (8) and spatial air decorrelation (128)
     dk_sel_mask = slider50 & (8 | 128);
     dk_sel_desc = "Breakdown: Desk Warmth + Spatial Decorrelation";
   ) : (
-    // Baseline / Intro / Outro: Engages core tone profile (desk warmth 8 + snare snap 16 + silk sheen 32)
+    // Baseline / Intro / Outro: Core tone profile identical to Verse (zero dip!)
     dk_sel_mask = slider50 & (8 | 16 | 32);
     dk_sel_desc = "Standard: Desk Warmth + Snare Snap + Air Sheen";
   );
@@ -743,15 +802,25 @@ slider48 == 1 ? (
   dk_sel_desc = "Manual Selection Mode";
 );
 
-// Update envelopes for each trick (static profile scaling, zero dynamic pumping!)
-dk_env0 = (dk_sel_mask & 1)   ? dk_amt : 0.0;
-dk_env1 = (dk_sel_mask & 2)   ? dk_amt : 0.0;
-dk_env2 = (dk_sel_mask & 4)   ? dk_amt : 0.0;
-dk_env3 = (dk_sel_mask & 8)   ? dk_amt : 0.0;
-dk_env4 = (dk_sel_mask & 16)  ? dk_amt : 0.0;
-dk_env5 = (dk_sel_mask & 32)  ? dk_amt : 0.0;
-dk_env6 = (dk_sel_mask & 64)  ? dk_amt : 0.0;
-dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
+// Slew rate limiting for seamless section transitions (300ms smoothing, zero clicks or dips!)
+dk_env_coeff = 1.0 - exp(-1.0 / (srate * 0.300));
+dk_tg0 = (dk_sel_mask & 1)   ? dk_amt : 0.0;
+dk_tg1 = (dk_sel_mask & 2)   ? dk_amt : 0.0;
+dk_tg2 = (dk_sel_mask & 4)   ? dk_amt : 0.0;
+dk_tg3 = (dk_sel_mask & 8)   ? dk_amt : 0.0;
+dk_tg4 = (dk_sel_mask & 16)  ? dk_amt : 0.0;
+dk_tg5 = (dk_sel_mask & 32)  ? dk_amt : 0.0;
+dk_tg6 = (dk_sel_mask & 64)  ? dk_amt : 0.0;
+dk_tg7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
+
+dk_env0 += (dk_tg0 - dk_env0) * dk_env_coeff;
+dk_env1 += (dk_tg1 - dk_env1) * dk_env_coeff;
+dk_env2 += (dk_tg2 - dk_env2) * dk_env_coeff;
+dk_env3 += (dk_tg3 - dk_env3) * dk_env_coeff;
+dk_env4 += (dk_tg4 - dk_env4) * dk_env_coeff;
+dk_env5 += (dk_tg5 - dk_env5) * dk_env_coeff;
+dk_env6 += (dk_tg6 - dk_env6) * dk_env_coeff;
+dk_env7 += (dk_tg7 - dk_env7) * dk_env_coeff;
 
 // 1:1 Complete Bit-Exact Transparent Pass if Suite Bypassed OR Preset 00
 (slider27 == 0 || slider2 == 0) ? (
@@ -826,19 +895,42 @@ dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
   eq_out_r = (s8k_b0 * k_r + s8k_b1 * s8k_x1_r + s8k_b2 * s8k_x2_r - s8k_a1 * s8k_y1_r - s8k_a2 * s8k_y2_r) / s8k_a0;
   s8k_x2_r = s8k_x1_r; s8k_x1_r = k_r; s8k_y2_r = s8k_y1_r; s8k_y1_r = eq_out_r;
 
-  // Trick 5: Static Silk Air Sheen (parallel harmonic gloss, zero volume drop)
-  dk_env5 > 0.001 ? (
-    sheen_factor = 1.0 + (dk_env5 * 0.035);
-    eq_out_l *= sheen_factor; eq_out_r *= sheen_factor;
-  );
+  // ===========================================================================
+  // STAGE 3: INTER-STAGE HEADROOM STAGING & LITEON BASS MANAGER (BIT-EXACT LEGACY PARITY)
+  // Replicates DeeGain (-3.0dB) staging followed by Liteon Bass Manager/Booster
+  // ===========================================================================
+  // 1. Calibrated Inter-Stage Headroom Staging (DeeGain parity: -3.0dB into Bass Manager & VCA)
+  trim_gain = exp(slider4 * 0.1151292546);
+  staged_l = eq_out_l * trim_gain;
+  staged_r = eq_out_r * trim_gain;
 
-  // ===========================================================================
-  // STAGE 3: LITEON BASS MANAGER RATIONAL SATURATION (STAGE 4 IN LEGACY CHAIN)
-  // Applied to stereo bus post-EQ, exactly like JS: Bass Manager in Track 15!
-  // ===========================================================================
+  // 2. Liteon Rational Waveshaping Saturation (Partice Tarrabia & Bram de Jong formula)
+  // At drive=25% (drv_k=0.223), lifts low-level body by +1.75dB while saturating peaks
   drv_k = 0.223;
-  ws_l = (1.0 + drv_k) * eq_out_l / (1.0 + drv_k * abs(eq_out_l));
-  ws_r = (1.0 + drv_k) * eq_out_r / (1.0 + drv_k * abs(eq_out_r));
+  ws_l = (1.0 + drv_k) * staged_l / (1.0 + drv_k * abs(staged_l));
+  ws_r = (1.0 + drv_k) * staged_r / (1.0 + drv_k * abs(staged_r));
+
+  // 3. Liteon Resonant 50Hz Q=1.0 Highpass Filter
+  // Provides +1.25dB resonant low-end bolster at 55-70Hz while rolling off subsonic rumble
+  bm_l = (bm_b0 * ws_l + bm_b1 * bm_x1_l + bm_b2 * bm_x2_l - bm_a1 * bm_y1_l - bm_a2 * bm_y2_l);
+  bm_x2_l = bm_x1_l; bm_x1_l = ws_l; bm_y2_l = bm_y1_l; bm_y1_l = bm_l;
+
+  bm_r = (bm_b0 * ws_r + bm_b1 * bm_x1_r + bm_b2 * bm_x2_r - bm_a1 * bm_y1_r - bm_a2 * bm_y2_r);
+  bm_x2_r = bm_x1_r; bm_x1_r = ws_r; bm_y2_r = bm_y1_r; bm_y1_r = bm_r;
+
+  // 4. Sub-Bass Mono Anchor (slider6 = 80Hz) & Stereo Width (slider25)
+  // Centers all low-end below 80Hz dead-center mono; preserves 100% stereo width above
+  mid_sig = (bm_l + bm_r) * 0.5;
+  side_sig = (bm_l - bm_r) * 0.5;
+  side_hp = (sm_b0 * side_sig + sm_b1 * sm_x1 + sm_b2 * sm_x2 - sm_a1 * sm_y1 - sm_a2 * sm_y2) / sm_a0;
+  sm_x2 = sm_x1; sm_x1 = side_sig; sm_y2 = sm_y1; sm_y1 = side_hp;
+  side_hp *= slider25;
+
+  sub_side_rms += (side_sig * side_sig - sub_side_rms) * 0.005;
+  sub_mid_rms += (mid_sig * mid_sig - sub_mid_rms) * 0.005;
+
+  st3_l = mid_sig + side_hp;
+  st3_r = mid_sig - side_hp;
 
   // ===========================================================================
   // STAGE 4: STUDIO BUS GLUE COMPRESSOR (BUSTERse / SSL 4000 G FEEDBACK TOPOLOGY)
@@ -885,33 +977,28 @@ dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
 
     glue_gain = exp(-glue_gr_db * 0.1151292546);
     mix_frac = slider17 * 0.01;
-    comp_l = ws_l * glue_gain * mix_frac + ws_l * (1.0 - mix_frac);
-    comp_r = ws_r * glue_gain * mix_frac + ws_r * (1.0 - mix_frac);
+    comp_l = st3_l * glue_gain * mix_frac + st3_l * (1.0 - mix_frac);
+    comp_r = st3_r * glue_gain * mix_frac + st3_r * (1.0 - mix_frac);
     comp_prev_l = comp_l;
     comp_prev_r = comp_r;
   ) : (
-    comp_l = ws_l; comp_r = ws_r;
+    comp_l = st3_l; comp_r = st3_r;
     comp_prev_l = comp_l; comp_prev_r = comp_r;
     glue_gr_db = 0.0;
   );
 
   // ===========================================================================
-  // STAGE 5: STEREO INTEGRITY & NATURAL WIDTH (BIT-EXACT LEGACY PARITY)
+  // STAGE 5: STEREO INTEGRITY & OUTPUT PASS
   // Full-bandwidth stereo preservation; zero low-end side highpass collapse!
   // ===========================================================================
   out_sum_l = comp_l;
   out_sum_r = comp_r;
 
-  // PURE STATIC PASS & ZERO AUDIBLE DUCKING:
-  // All section transitions are completely smooth and subtle, identical to legacy chain!
-  // Ear candy director does NOT duck overall volume.
-
   // ===========================================================================
-  // STAGE 6: OUTPUT HEADROOM TRIM & CEILING GUARDIAN
+  // STAGE 6: MASTER HEADROOM & CEILING GUARDIAN
   // ===========================================================================
-  trim_gain = exp(slider4 * 0.1151292546);
-  final_l = out_sum_l * trim_gain;
-  final_r = out_sum_r * trim_gain;
+  final_l = out_sum_l;
+  final_r = out_sum_r;
 
   // Analog Soft-Diode Peak Catcher (Strict -3.0 dBTP Legacy Ceiling Lock)
   lim_th = slider5 == 1 ? 0.501187 : (slider5 == 2 ? 0.98 : 0.707946); // 0 = -3.0 dBTP, 1 = -6.0 dBTP, 2 = Free Pass
@@ -919,7 +1006,7 @@ dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
     final_l = sign(final_l) * (lim_th + (abs(final_l) - lim_th) / (1.0 + sqr((abs(final_l) - lim_th) * 4.0)));
   );
   abs(final_r) > lim_th ? (
-    final_r = sign(final_r) * (lim_th + (abs(final_l) - lim_th) / (1.0 + sqr((abs(final_l) - lim_th) * 4.0)));
+    final_r = sign(final_r) * (lim_th + (abs(final_r) - lim_th) / (1.0 + sqr((abs(final_r) - lim_th) * 4.0)));
   );
 
   // =============================================================================
@@ -932,6 +1019,9 @@ dk_env7 = (dk_sel_mask & 128) ? dk_amt : 0.0;
     // Flush filter histories to eliminate DC accumulation
     hpf_x1_l = 0; hpf_x2_l = 0; hpf_y1_l = 0; hpf_y2_l = 0;
     hpf_x1_r = 0; hpf_x2_r = 0; hpf_y1_r = 0; hpf_y2_r = 0;
+    bm_x1_l = 0; bm_x2_l = 0; bm_y1_l = 0; bm_y2_l = 0;
+    bm_x1_r = 0; bm_x2_r = 0; bm_y1_r = 0; bm_y2_r = 0;
+    sm_x1 = 0; sm_x2 = 0; sm_y1 = 0; sm_y2 = 0;
     p80_x1_l = 0; p80_x2_l = 0; p80_y1_l = 0; p80_y2_l = 0;
     p80_x1_r = 0; p80_x2_r = 0; p80_y1_r = 0; p80_y2_r = 0;
     b90_x1_l = 0; b90_x2_l = 0; b90_y1_l = 0; b90_y2_l = 0;
@@ -1606,10 +1696,10 @@ while (t_i < 8) (
   gfx_setfont(1, "Orbitron", 12, 'b');
   is_sel ? (gfx_r = 0.94; gfx_g = 0.56; gfx_b = 0.36;) : (gfx_r = 0.65; gfx_g = 0.75; gfx_b = 0.85;);
   t_lbl = t_i == 0 ? "OVERVIEW" :
-          t_i == 1 ? "TONAL EQ" :
-          t_i == 2 ? "BUS GLUE" :
-          t_i == 3 ? "CRUCIBLE" :
-          t_i == 4 ? "STEREO" :
+          t_i == 1 ? "CRUCIBLE" :
+          t_i == 2 ? "TONAL EQ" :
+          t_i == 3 ? "STEREO" :
+          t_i == 4 ? "BUS GLUE" :
           t_i == 5 ? "POCKET" :
           t_i == 6 ? "PRODUCER" : "EAR CANDY";
   gfx_measurestr(t_lbl, tlw, tlh);
@@ -1757,8 +1847,8 @@ slider1 == 0 ? (
              get_producer_name(slider2), get_producer_ref_track(slider2));
 );
 
-slider1 == 1 ? (
-  draw_component_header("TAB 1 // 7-BAND TONAL FORGE EQUALIZER",
+slider1 == 2 ? (
+  draw_component_header("TAB 2 // 7-BAND TONAL FORGE EQUALIZER",
                         "Forensic linear-phase spectral sculpting & resonance management",
                         "Decouples sub-rumble, scoops lower-mid mud & adds pick bite",
                         "IN -> HPF 38Hz -> 80Hz SHELF -> 202Hz SCOOP -> 1.5k BODY -> 3k BITE -> 8k SHEEN");
@@ -1808,8 +1898,8 @@ slider1 == 1 ? (
 // =============================================================================
 // TAB 2: BUS GLUE (BUSTERse VCA TOPOLOGY)
 // =============================================================================
-slider1 == 2 ? (
-  draw_component_header("TAB 2 // STUDIO BUS GLUE COMPRESSOR (BUSTERse VCA)",
+slider1 == 4 ? (
+  draw_component_header("TAB 4 // STUDIO BUS GLUE COMPRESSOR (BUSTERse VCA)",
                         "British VCA master glue with authentic 39Hz / 60Hz sidechain detection",
                         "Glues rhythm stems into a record; 10ms attack lets transients breathe",
                         "SAT OUT -> 39Hz DETECTOR -> VCA ATTENUATOR -> DRY/WET MIX -> STEREO M/S");
@@ -1907,8 +1997,8 @@ slider1 == 2 ? (
 // =============================================================================
 // TAB 3: CRUCIBLE (ANALOG HARMONIC SATURATION)
 // =============================================================================
-slider1 == 3 ? (
-  draw_component_header("TAB 3 // HARMONIC CRUCIBLE CONSOLE ENGINE",
+slider1 == 1 ? (
+  draw_component_header("TAB 1 // HARMONIC CRUCIBLE CONSOLE ENGINE",
                         "Vintage Neve 8014 Iron Desk, Studer Tape & Triode Tube warmth",
                         "Imparts rich even & odd harmonics replicating Britson console summing",
                         "POCKET -> NON-LINEAR WAVESHAPER -> CONSOLE TRANSFORMER -> VCA GLUE");
@@ -2050,8 +2140,8 @@ slider1 == 3 ? (
 // =============================================================================
 // TAB 4: STEREO (QUAD-WALL M/S IMAGER & SUB-MONO ANCHOR)
 // =============================================================================
-slider1 == 4 ? (
-  draw_component_header("TAB 4 // STEREO RADAR & SUB-MONO ANCHOR [PASSIVE MONITORING]",
+slider1 == 3 ? (
+  draw_component_header("TAB 3 // STEREO RADAR & SUB-MONO ANCHOR [PASSIVE MONITORING]",
                         "Mid/Side phase audit & 80Hz sub-mono anchor; stereo width expansion handled in Mixing Suite",
                         "Locks low frequencies dead-center; preserves 100% stereo phase integrity for instrumental stems",
                         "BUS GLUE -> M/S MATRIX -> SUB-MONO HPF (80Hz) -> 1:1 TRANSPARENT PASS -> MIXING SUITE");
