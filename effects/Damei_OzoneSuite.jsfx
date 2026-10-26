@@ -1166,13 +1166,13 @@ function apply_producer_master_preset(p_idx) (
     // 6. Robin Schmidt & Grant Berry (Split Chain - 'I\'m Not Dying To Be Here')
     // Mastering Engineers: Grant Berry (Fader Mastering) / Robin Schmidt (24-96 Mastering)
     // Ref: Peak -0.3dB | RMS -9.23dB | Crest 8.93dB | Width 0.59
-    lim_ceil = -0.3; max_drive = 8.1; auto_norm = 0; // Reference-matched -0.3 dBTP ceiling (matches Split Chain)
+    lim_ceil = -0.3; max_drive = 10.1; auto_norm = 0; // Reference-matched -0.3 dBTP ceiling (Option B Split Chain density)
     clip_drive = 0.0; kclip_mode = 4; kclip_knee = 0.55; // 100% linear transparent passthrough at 0.0dB drive
     comp_thresh = -12.5; comp_ratio = 2.0; comp_attack = 30.0; comp_release = 0.0; comp_makeup = 0.6; sc_hpf_f = 125.0;
     comp_mix = 25.0; // 25% Parallel Glue
     imager_mono = 105.0; imager_wid = 1.20; // 1.20x wide open stereo horizon matching Split Chain
     eq_hp_f = 28.0; eq_b2_g = -0.2; eq_b3_g = -0.8; eq_b4_g = 2.0;
-    slider35 = 1.0; // Tonal Balance Low-End Trim +1.0 dB
+    slider35 = 1.8; // Tonal Balance Low-End Trim +1.8 dB (Option B sub-weight)
     slider43 = 0; slider44 = 0.0; slider45 = 0.0; slider47 = 0; slider34 = 0; // Bass Control OFF & Section AI OFF prevents sub/volume collapse
     side_air_shelf_g = 2.0; // +2.0 dB side air sheen creates 3D Pultec halo without vocal sibilance
   ) : p_idx == 7 ? (

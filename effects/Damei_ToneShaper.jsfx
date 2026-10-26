@@ -205,7 +205,7 @@ function apply_toneshaper_master_preset(p_idx) (
   ) : p_idx == 5 ? ( // Grant Berry: warm shoegaze dynamic body, lush transformer harmonics
     slider2 = 1.6; slider3 = 0.8; slider4 = 0.0; slider5 = 1;
   ) : p_idx == 6 ? ( // Robin Schmidt & Grant Berry (Split Chain): signature 90s punch (Clean Transparent 0 THD)
-    slider2 = 1.6; slider3 = 0.7; slider4 = 0.0; slider5 = 0;
+    slider2 = 1.6; slider3 = 1.0; slider4 = 0.0; slider5 = 0;
   ) : p_idx == 7 ? ( // Ted Jensen: classic Sterling analog presence & rich low-mid weight
     slider2 = 2.0; slider3 = 0.4; slider4 = 0.0; slider5 = 1;
   ) : p_idx == 8 ? ( // Robin Schmidt (Static Dress): post-hardcore cutting bite & analog glue
