@@ -1,0 +1,774 @@
+// =============================================================================
+// DAMEI SUITE // STEM CALIBRATOR v2.0 (FLAGSHIP GAIN & PHASE ALIGN)
+// Multi-Track Phase Alignment, Micro-Delay, Sifam VU & Intelligent Gain Stager
+//
+// Built with Afro-Cybernetic Luxury Aesthetics by Damei Audio & Antigravity IDE
+// Calibrated for Producer Presets: Manuel Renner, Buster Odeholm, Will Putney
+// =============================================================================
+
+desc:Damei StemCalibrator v2.0 (Phase Align, Micro-Delay & Gain Stager) [Damei Suite]
+author: Damei Suite / Google DeepMind Pair Programming
+version: 2.0
+
+options:gmem=DameiMixMetering
+options:no_meter
+options:maxmem=1048576
+
+slider1:0<0,5,1{1. Close Shell (-6 to -8 dBFS),2. Cymbals & Overheads (-12 to -14 dBFS),3. Ambient & Rooms (-14 to -16 dBFS),4. Ghost Note Pocket (-18 to -22 dBFS),5. Direct Instrument DI (-12 dBFS),6. Custom Target}>-Stem Calibration Profile
+slider2:-7.0<-30.0,0.0,0.5>-Target Peak Level (dBFS)
+slider3:0.0<-36.0,36.0,0.1>-Calibration Gain Trim (dB)
+slider4:1<0,1,1{Off,Active}>-True Peak Brickwall Safety Ceiling
+slider5:-0.3<-3.0,0.0,0.1>-Safety Ceiling Ceiling (dBFS)
+slider6:0<0,1,1{Monitor Calibrated,Monitor Delta Trim}>-Audition Mode
+slider7:0<0,1,1{Normal (0 deg),Inverted (180 deg)}>-Phase Polarity
+slider8:0<-512,512,1>-Micro-Delay Alignment (Samples)
+slider9:0<-64,64,1>-Stereo L/R Symmetry Offset (Samples)
+slider10:0<0,1,1{Bypassed,Active All-Pass Rotator}>-All-Pass Phase Rotator
+slider11:120<20,400,5>-All-Pass Corner Freq (Hz)
+slider12:20<10,120,1>-Subsonic Rumble HPF (Hz)
+slider13:0<0,1,1{Manual Lock,Ecosystem Auto-Sync}>-Preset Sync Mode
+slider14:24<0,24,1{0: Default Neutral Wire,1: Lance Prenc (Alpha Wolf),2: Scott Seigel (DIESECT),3: Jonathan Dolese (Mirrorcell),4: Buster Odeholm (thrown / Northlane),5: Lewis Johns & Grant Berry (Love Is Noise),6: Kel Pinchin (Split Chain),7: Dan Lancaster (Don Broco),8: Erik Bickerstaffe (Static Dress),9: Sam Guaiana (Shyeye),10: Zach Tuch (Heavenward),11: Forrester Savell (City Of Souls),12: Leon Schmidt (SUNBORN),13: Ermin Hamidovic (Benchmark),14: Will Putney (Fit For An Autopsy),15: George Lever (Loathe / Sleep Token),16: Sam Bassal (Thornhill),17: Henrik Udd (Architects),18: Dan Braunstein (Spiritbox),19: Zakk Cervini (Bad Omens),20: Jens Bogren (Fascination),21: Adam Nolly (Periphery),22: Acle Kahney (TesseracT),23: Adam Cichocki (heaving.),24: Manuel Renner (SENNA - Out Of The Blue)}>-Producer Preset
+
+in_pin:Main Input L (Ch 1)
+in_pin:Main Input R (Ch 2)
+in_pin:Aux Ref L (Ch 3)
+in_pin:Aux Ref R (Ch 4)
+out_pin:Output L (Ch 1)
+out_pin:Output R (Ch 2)
+
+// =============================================================================
+// @init
+// =============================================================================
+@init
+  ext_noinit = 1;
+
+  // Memory Partitions (Delay Buffers: 4096 samples each)
+  DLY_BUF_L  = 0;
+  DLY_BUF_R  = 4096;
+  DLY_REF_L  = 8192;
+  DLY_REF_R  = 12288;
+  DLY_BUF_SZ = 4096;
+  BASE_DELAY = 1024;
+  dly_write  = 0;
+
+  del_l = BASE_DELAY;
+  del_r = BASE_DELAY;
+
+  // Filter States
+  ap_x1_l = 0; ap_y1_l = 0;
+  ap_x1_r = 0; ap_y1_r = 0;
+  ap_a = 0;
+
+  hpf_x1_l = 0; hpf_x2_l = 0; hpf_y1_l = 0; hpf_y2_l = 0;
+  hpf_x1_r = 0; hpf_x2_r = 0; hpf_y1_r = 0; hpf_y2_r = 0;
+  hpf_b0 = 1; hpf_b1 = 0; hpf_b2 = 0; hpf_a1 = 0; hpf_a2 = 0;
+
+  // Correlation & Ballistics States
+  cur_corr = 1.0;
+  is_aux_ref = 0;
+  corr_acc_xy = 0; corr_acc_xx = 0; corr_acc_yy = 0;
+  stereo_acc_xy = 0; stereo_acc_xx = 0; stereo_acc_yy = 0;
+  aux_acc2 = 0;
+
+  pk_in = 0; rms_in = 0;
+  pk_out = 0; rms_out = 0;
+  acc_in2 = 0; acc_cnt = 0;
+  crest_in = 0;
+
+  sifam_vu = 0;
+  auto_trim_req = 0;
+  last_mouse_down = 0;
+  knob_drag = -1;
+  knob_drag_start_y = 0;
+  knob_drag_start_val = 0;
+
+  last_slider1 = slider1;
+  last_gmem_preset = -1;
+  last_gmem_seq = -1;
+
+  trim_lin = 1.0;
+  ceil_lin = 0.966;
+  pol = 1.0;
+
+  function clamp(x, lo, hi) (
+    x < lo ? lo : (x > hi ? hi : x);
+  );
+
+  function db(lin) (
+    lin > 0.000001 ? 20.0 * log(lin) / log(10.0) : -120.0;
+  );
+
+  function db_to_gain(x_db) (
+    exp(x_db * (log(10.0) / 20.0));
+  );
+
+  function set_c(hex) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = 1.0;
+  );
+
+  function set_ca(hex, a) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = a;
+  );
+
+  function setup_hpf(fc) local(w0, cos_w0, sin_w0, alpha, a0, a1, a2, b0, b1, b2) (
+    fc = clamp(fc, 5.0, srate * 0.45);
+    w0 = 2.0 * $pi * fc / srate;
+    cos_w0 = cos(w0);
+    sin_w0 = sin(w0);
+    alpha = sin_w0 * 0.7071067811865475;
+    
+    b0 = (1.0 + cos_w0) * 0.5;
+    b1 = -(1.0 + cos_w0);
+    b2 = (1.0 + cos_w0) * 0.5;
+    a0 = 1.0 + alpha;
+    a1 = -2.0 * cos_w0;
+    a2 = 1.0 - alpha;
+    
+    hpf_b0 = b0 / a0;
+    hpf_b1 = b1 / a0;
+    hpf_b2 = b2 / a0;
+    hpf_a1 = a1 / a0;
+    hpf_a2 = a2 / a0;
+  );
+
+  function draw_btn(bx, by, bw, bh, lbl, is_active) local(hov, clk, tw, th) (
+    hov = (mouse_x >= bx && mouse_x < bx + bw && mouse_y >= by && mouse_y < by + bh);
+    clk = hov && mouse_clicked;
+    set_ca(is_active ? 0xdfab35 : (hov ? 0x222c3d : 0x151b26), is_active ? 1.0 : 0.92);
+    gfx_rect(bx, by, bw, bh);
+    set_c(is_active ? 0xdfab35 : (hov ? 0x2899ff : 0x2e364c));
+    gfx_rect(bx, by, bw, bh, 0);
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
+    set_c(is_active ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr(lbl, tw, th);
+    gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+    gfx_drawstr(lbl);
+    clk;
+  );
+
+  function draw_knob(cx, cy, radius, val_norm, label_str, val_str, idx)
+  local(hov, val_new, a_start, a_end, tw, th) (
+    hov = sqrt((mouse_x - cx)^2 + (cy - mouse_y)^2) < radius + 8;
+    mouse_cap & 1 ? (
+      knob_drag == idx ? (
+        val_new = knob_drag_start_val + (knob_drag_start_y - mouse_y) / 130.0;
+        val_norm = clamp(val_new, 0.0, 1.0);
+      ) : (
+        knob_drag == -1 && hov ? (
+          knob_drag = idx;
+          knob_drag_start_y = mouse_y;
+          knob_drag_start_val = val_norm;
+        );
+      );
+    ) : (
+      knob_drag == idx ? knob_drag = -1;
+    );
+
+    set_c(0x131822); gfx_circle(cx, cy, radius, 1, 1);
+    set_c(0x222c3d); gfx_circle(cx, cy, radius, 0, 1);
+
+    a_start = -4.71;
+    a_end = a_start + (val_norm * 4.71);
+    set_ca(hov || knob_drag == idx ? 0x2899ff : 0xdfab35, 0.95);
+    gfx_arc(cx, cy, radius - 3, a_start, a_end, 1);
+
+    set_c(0x1c2433); gfx_circle(cx, cy, radius * 0.44, 1, 1);
+    set_c(0x1b2331); gfx_circle(cx, cy, radius * 0.44, 0, 1);
+
+    gfx_setfont(1, "Orbitron", 10, 'b');
+    set_c(0xffffff);
+    gfx_measurestr(val_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy - th * 0.5;
+    gfx_drawstr(val_str);
+
+    gfx_setfont(2, "Segoe UI", 10, 'b');
+    set_c(hov || knob_drag == idx ? 0x2899ff : 0xd6dde8);
+    gfx_measurestr(label_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy + radius + 6;
+    gfx_drawstr(label_str);
+
+    val_norm;
+  );
+
+  function draw_sifam(mx, my, mw, mh, title_str, norm_val, is_gr)
+  local(piv_x, piv_y, r_arc, r_needle, ang_start, ang_end, cur_ang, needle_val, ai, a_step, rad, x1, y1, x2, y2, tw, th, s_val) (
+    set_c(0x181c26); gfx_rect(mx, my, mw, mh);
+    set_c(0x222c3d); gfx_rect(mx, my, mw, mh, 0);
+
+    set_c(0x0e131d); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8);
+    set_c(0x1a2436); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8, 0);
+
+    piv_x = mx + mw * 0.5; piv_y = my + mh - 8;
+    r_arc = min(mh - 24, mw * 0.44); r_needle = r_arc - 2;
+
+    ang_start = -48.0 * $pi / 180.0; ang_end = 48.0 * $pi / 180.0;
+
+    set_c(0x2d3a50);
+    ai = 0; a_step = (ang_end - ang_start) / 20.0;
+    loop(20,
+      rad = ang_start + ai * a_step;
+      x1 = piv_x + sin(rad) * (r_arc - 2);
+      y1 = piv_y - cos(rad) * (r_arc - 2);
+      x2 = piv_x + sin(rad + a_step) * (r_arc - 2);
+      y2 = piv_y - cos(rad + a_step) * (r_arc - 2);
+      gfx_line(x1, y1, x2, y2);
+      (ai % 4 == 0) ? (
+        set_c(0xdfb15b);
+        gfx_line(x1, y1, piv_x + sin(rad) * (r_arc - 6), piv_y - cos(rad) * (r_arc - 6));
+        set_c(0x2d3a50);
+      );
+      ai += 1;
+    );
+
+    needle_val = clamp(norm_val, 0.0, 1.0);
+    cur_ang = ang_start + needle_val * (ang_end - ang_start);
+    set_ca(0x000000, 0.4);
+    gfx_line(piv_x + 2, piv_y + 2, piv_x + sin(cur_ang) * r_needle + 2, piv_y - cos(cur_ang) * r_needle + 2);
+    set_c(is_gr ? 0xf03344 : 0xdfb15b);
+    gfx_line(piv_x, piv_y, piv_x + sin(cur_ang) * r_needle, piv_y - cos(cur_ang) * r_needle);
+
+    set_c(0x283344); gfx_circle(piv_x, piv_y, 5, 1, 1);
+    set_c(0xdfb15b); gfx_circle(piv_x, piv_y, 5, 0, 1);
+
+    gfx_setfont(1, "Orbitron", 10.5, 'b'); set_c(0xedf1f7);
+    gfx_measurestr(title_str, tw, th); gfx_x = mx + 8; gfx_y = my + 6;
+    gfx_drawstr(title_str);
+
+    s_val = is_gr ? sprintf(#, "-%.1f dB", (1.0 - norm_val) * 45.0) : sprintf(#, "%.1f dB", db(norm_val));
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    gfx_measurestr(s_val, tw, th);
+    set_c(is_gr ? 0xf03344 : 0x0fe49e);
+    gfx_x = mx + mw - tw - 8; gfx_y = my + 6;
+    gfx_drawstr(s_val);
+  );
+
+  function draw_phase_corr(px, py, pw, ph, corr_val, is_aux)
+  local(mid_x, bar_w, track_x, track_y, track_h, c_val, fill_w, cur_x, tw, th, s_val, s_mode) (
+    set_c(0x0e131d); gfx_rect(px, py, pw, ph);
+    set_c(0x222c3d); gfx_rect(px, py, pw, ph, 0);
+
+    mid_x = px + pw * 0.5;
+    bar_w = pw - 24;
+    track_y = py + 26;
+    track_h = 13;
+    track_x = px + 12;
+
+    set_c(0x141a26); gfx_rect(track_x, track_y, bar_w, track_h);
+    set_c(0x253348); gfx_rect(track_x, track_y, bar_w, track_h, 0);
+
+    set_c(0x42526e); gfx_line(mid_x, track_y - 2, mid_x, track_y + track_h + 2);
+
+    gfx_setfont(2, "Consolas", 9);
+    set_c(0x6e788d);
+    gfx_x = track_x; gfx_y = track_y + track_h + 2; gfx_drawstr("-1.0");
+    gfx_x = track_x + bar_w * 0.25 - 8; gfx_y = track_y + track_h + 2; gfx_drawstr("-0.5");
+    gfx_x = mid_x - 3; gfx_y = track_y + track_h + 2; gfx_drawstr("0");
+    gfx_x = track_x + bar_w * 0.75 - 8; gfx_y = track_y + track_h + 2; gfx_drawstr("+0.5");
+    gfx_measurestr("+1.0", tw, th);
+    gfx_x = track_x + bar_w - tw; gfx_y = track_y + track_h + 2; gfx_drawstr("+1.0");
+
+    c_val = clamp(corr_val, -1.0, 1.0);
+    fill_w = c_val * (bar_w * 0.5);
+    c_val < 0 ? (
+      set_ca(0xf03344, 0.9);
+      gfx_rect(mid_x + fill_w, track_y + 2, -fill_w, track_h - 4);
+    ) : (
+      c_val > 0.5 ? set_ca(0x0fe49e, 0.9) : set_ca(0xdfab35, 0.9);
+      gfx_rect(mid_x, track_y + 2, fill_w, track_h - 4);
+    );
+
+    cur_x = mid_x + c_val * (bar_w * 0.5);
+    set_c(0xffffff);
+    gfx_rect(cur_x - 2, track_y - 2, 4, track_h + 4);
+
+    gfx_setfont(1, "Orbitron", 10, 'b');
+    set_c(is_aux ? 0x2899ff : 0xdfab35);
+    gfx_x = px + 12; gfx_y = py + 7;
+    s_mode = is_aux ? "AUX REF CH 3/4 PHASE CORRELATION" : "STEREO L/R PHASE CORRELATION";
+    gfx_drawstr(s_mode);
+
+    s_val = sprintf(#, "%+2.2f", corr_val);
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    c_val < 0 ? set_c(0xf03344) : (c_val > 0.5 ? set_c(0x0fe49e) : set_c(0xdfab35));
+    gfx_measurestr(s_val, tw, th);
+    gfx_x = px + pw - tw - 12; gfx_y = py + 6;
+    gfx_drawstr(s_val);
+  );
+
+  function panel_frame(px, py, pw, ph, title_str, tag_str) local(tw, th) (
+    set_ca(0x12151e, 0.96); gfx_rect(px, py, pw, ph);
+    set_c(0x222838); gfx_rect(px, py, pw, ph, 0);
+    set_c(0x0d1017); gfx_rect(px + 1, py + 1, pw - 2, 26);
+    set_c(0x2e364c); gfx_line(px, py + 27, px + pw, py + 27);
+    
+    set_c(0xdfab35);
+    gfx_line(px, py, px + 8, py); gfx_line(px, py, px, py + 8);
+    gfx_line(px + pw - 1, py, px + pw - 9, py); gfx_line(px + pw - 1, py, px + pw - 1, py + 8);
+    gfx_line(px, py + ph - 1, px + 8, py + ph - 1); gfx_line(px, py + ph - 1, px, py + ph - 9);
+    gfx_line(px + pw - 1, py + ph - 1, px + pw - 9, py + ph - 1); gfx_line(px + pw - 1, py + ph - 1, px + pw - 1, py + ph - 9);
+    
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    set_c(0xdfab35); gfx_x = px + 12; gfx_y = py + 7; gfx_drawstr(title_str);
+    
+    strlen(tag_str) > 0 ? (
+      gfx_setfont(2, "Consolas", 10);
+      set_c(0x2899ff);
+      gfx_measurestr(tag_str, tw, th);
+      gfx_x = px + pw - tw - 12; gfx_y = py + 8;
+      gfx_drawstr(tag_str);
+    );
+  );
+
+// =============================================================================
+// @slider
+// =============================================================================
+@slider
+  // CRITICAL USER-EDITABILITY RULE: ONLY set slider2 from slider1 when slider1 != last_slider1
+  slider1 != last_slider1 ? (
+    last_slider1 = slider1;
+    slider1 == 0 ? (slider2 = -7.0;) :
+    slider1 == 1 ? (slider2 = -13.0;) :
+    slider1 == 2 ? (slider2 = -15.0;) :
+    slider1 == 3 ? (slider2 = -20.0;) :
+    slider1 == 4 ? (slider2 = -12.0;);
+    sliderchange(slider2);
+  );
+
+  trim_lin = db_to_gain(slider3);
+  ceil_lin = db_to_gain(slider5);
+  pol = slider7 ? -1.0 : 1.0;
+
+  // Micro-delay offsets (Samples)
+  del_l = clamp(BASE_DELAY + slider8 - slider9, 0, DLY_BUF_SZ - 1);
+  del_r = clamp(BASE_DELAY + slider8 + slider9, 0, DLY_BUF_SZ - 1);
+
+  // 1st-order All-Pass Filter Coefficient for slider11
+  ap_t = tan($pi * clamp(slider11, 10.0, srate * 0.45) / srate);
+  ap_a = (ap_t - 1.0) / (ap_t + 1.0);
+
+  // 2-pole Butterworth Subsonic Rumble HPF for slider12
+  setup_hpf(slider12);
+
+// =============================================================================
+// @block
+// =============================================================================
+@block
+  pdc_delay = BASE_DELAY;
+  pdc_bot_ch = 0; pdc_top_ch = 2;
+
+  // Ecosystem producer sync (gmem[200..206])
+  slider13 == 1 && gmem[200] == 0x4452554D && gmem[201] != last_gmem_preset ? (
+    last_gmem_preset = gmem[201];
+    last_gmem_seq = gmem[202];
+    slider14 != gmem[201] ? (
+      slider14 = gmem[201];
+      sliderchange(slider14);
+    );
+  );
+
+  // Sync DSP params every block so @gfx knob drags take effect immediately
+  trim_lin = db_to_gain(slider3);
+  ceil_lin = db_to_gain(slider5);
+  pol = slider7 ? -1.0 : 1.0;
+  del_l = clamp(BASE_DELAY + slider8 - slider9, 0, DLY_BUF_SZ - 1);
+  del_r = clamp(BASE_DELAY + slider8 + slider9, 0, DLY_BUF_SZ - 1);
+  ap_t = tan($pi * clamp(slider11, 10.0, srate * 0.45) / srate);
+  ap_a = (ap_t - 1.0) / (ap_t + 1.0);
+  setup_hpf(slider12);
+
+// =============================================================================
+// @sample
+// =============================================================================
+@sample
+  in_l = spl0; in_r = spl1;
+  ref_l = spl2; ref_r = spl3;
+
+  // Write into circular buffers
+  DLY_BUF_L[dly_write] = in_l;
+  DLY_BUF_R[dly_write] = in_r;
+  DLY_REF_L[dly_write] = ref_l;
+  DLY_REF_R[dly_write] = ref_r;
+
+  // Read delayed main samples
+  read_l = dly_write - del_l;
+  read_l < 0 ? read_l += DLY_BUF_SZ;
+  read_r = dly_write - del_r;
+  read_r < 0 ? read_r += DLY_BUF_SZ;
+
+  proc_l = DLY_BUF_L[read_l];
+  proc_r = DLY_BUF_R[read_r];
+
+  // Aux Ref (Ch 3/4) is un-advanced by PDC (pdc_top_ch=2), so ref_l/ref_r aligns with BASE_DELAY on Ch 1/2
+  al_ref_l = ref_l;
+  al_ref_r = ref_r;
+
+  dly_write = (dly_write + 1) % DLY_BUF_SZ;
+
+  // 1. Phase Polarity Flip (slider7: Normal=1.0, Invert=-1.0)
+  proc_l *= pol;
+  proc_r *= pol;
+
+  // 2. 1st-Order All-Pass Phase Rotator (slider10 == 1)
+  slider10 ? (
+    ap_out_l = ap_a * proc_l + ap_x1_l - ap_a * ap_y1_l;
+    ap_x1_l = proc_l; ap_y1_l = ap_out_l;
+    proc_l = ap_out_l;
+
+    ap_out_r = ap_a * proc_r + ap_x1_r - ap_a * ap_y1_r;
+    ap_x1_r = proc_r; ap_y1_r = ap_out_r;
+    proc_r = ap_out_r;
+  );
+
+  // 3. 2-Pole Butterworth Subsonic Rumble HPF (slider12)
+  hpf_l = hpf_b0 * proc_l + hpf_b1 * hpf_x1_l + hpf_b2 * hpf_x2_l - hpf_a1 * hpf_y1_l - hpf_a2 * hpf_y2_l;
+  hpf_x2_l = hpf_x1_l; hpf_x1_l = proc_l; hpf_y2_l = hpf_y1_l; hpf_y1_l = hpf_l;
+  proc_l = hpf_l;
+
+  hpf_r = hpf_b0 * proc_r + hpf_b1 * hpf_x1_r + hpf_b2 * hpf_x2_r - hpf_a1 * hpf_y1_r - hpf_a2 * hpf_y2_r;
+  hpf_x2_r = hpf_x1_r; hpf_x1_r = proc_r; hpf_y2_r = hpf_y1_r; hpf_y1_r = hpf_r;
+  proc_r = hpf_r;
+
+  // 4. Phase Correlation Accumulation
+  proc_m = (proc_l + proc_r) * 0.5;
+  ref_m = (al_ref_l + al_ref_r) * 0.5;
+
+  aux_acc2 += ref_m * ref_m;
+  corr_acc_xy += proc_m * ref_m;
+  corr_acc_xx += proc_m * proc_m;
+  corr_acc_yy += ref_m * ref_m;
+
+  stereo_acc_xy += proc_l * proc_r;
+  stereo_acc_xx += proc_l * proc_l;
+  stereo_acc_yy += proc_r * proc_r;
+
+  // 5. Input Metering & Ballistics
+  abs_in = max(abs(proc_l), abs(proc_r));
+  pk_in = max(pk_in * 0.99996, abs_in);
+  acc_in2 += proc_m * proc_m;
+  acc_cnt += 1;
+
+  // 6. Gain Trim (slider3)
+  cal_l = proc_l * trim_lin;
+  cal_r = proc_r * trim_lin;
+
+  // 7. True Peak Safety Ceiling (slider4 & slider5)
+  slider4 ? (
+    pk_cal = max(abs(cal_l), abs(cal_r));
+    pk_cal > ceil_lin ? (
+      s_factor = ceil_lin / pk_cal;
+      cal_l *= s_factor;
+      cal_r *= s_factor;
+    );
+  );
+
+  abs_out = max(abs(cal_l), abs(cal_r));
+  pk_out = max(pk_out * 0.99996, abs_out);
+
+  // 8. Ballistics & Correlation Block Update (every 2048 samples)
+  acc_cnt >= 2048 ? (
+    aux_rms = sqrt(aux_acc2 / acc_cnt);
+    is_aux_ref = (aux_rms > 0.0001);
+
+    is_aux_ref ? (
+      denom = sqrt(corr_acc_xx * corr_acc_yy);
+      inst_corr = denom > 0.000000001 ? (corr_acc_xy / denom) : 0.0;
+    ) : (
+      denom = sqrt(stereo_acc_xx * stereo_acc_yy);
+      inst_corr = denom > 0.000000001 ? (stereo_acc_xy / denom) : 1.0;
+    );
+    inst_corr = clamp(inst_corr, -1.0, 1.0);
+    cur_corr += (inst_corr - cur_corr) * 0.25;
+
+    corr_acc_xy = 0; corr_acc_xx = 0; corr_acc_yy = 0;
+    stereo_acc_xy = 0; stereo_acc_xx = 0; stereo_acc_yy = 0;
+    aux_acc2 = 0;
+
+    rms_in = sqrt(acc_in2 / acc_cnt);
+    crest_in = db(pk_in) - db(rms_in);
+
+    // Auto-trim calculation if requested
+    auto_trim_req ? (
+      pk_in > 0.001 ? (
+        cur_pk_db = db(pk_in);
+        delta_needed = slider2 - cur_pk_db;
+        slider3 = clamp(slider3 + delta_needed, -36.0, 36.0);
+        sliderchange(slider3);
+        trim_lin = db_to_gain(slider3);
+      );
+      auto_trim_req = 0;
+    );
+
+    // Ballistic VU calculation (0 VU = -18 dBFS RMS)
+    norm_vu = clamp((db(rms_in) + 36.0) / 36.0, 0.0, 1.0);
+    sifam_vu += (norm_vu - sifam_vu) * 0.2;
+
+    acc_in2 = 0; acc_cnt = 0;
+  );
+
+  // 9. Audition Mode (slider6)
+  slider6 == 1 ? (
+    spl0 = cal_l - proc_l;
+    spl1 = cal_r - proc_r;
+  ) : (
+    spl0 = cal_l;
+    spl1 = cal_r;
+  );
+
+// =============================================================================
+// @gfx 920 560
+// =============================================================================
+@gfx 920 560
+  mouse_down = mouse_cap & 1;
+  mouse_clicked = mouse_down && !last_mouse_down;
+
+  set_c(0x0a0c10); gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // 1. TOP HEADER
+  set_ca(0x12151e, 0.98); gfx_rect(10, 10, gfx_w - 20, 60);
+  set_c(0x2e364c); gfx_rect(10, 10, gfx_w - 20, 60, 0);
+  set_c(0xdfab35); gfx_rect(10, 69, gfx_w - 20, 2);
+
+  gfx_setfont(1, "Orbitron", 17, 'b'); set_c(0xdfab35);
+  gfx_x = 24; gfx_y = 18; gfx_drawstr("DAMEI // STEM CALIBRATOR v2.0");
+
+  gfx_setfont(2, "Segoe UI", 11); set_c(0x6e788d);
+  gfx_x = 24; gfx_y = 42;
+  gfx_drawstr("PHASE ALIGNMENT // MICRO-DELAY TIME-CORRECT // BALLISTIC VU GAIN STAGER");
+
+  // Status Badge top right
+  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  set_c(is_aux_ref ? 0x2899ff : (slider13 ? 0x0fe49e : 0xdfab35));
+  s_badge = is_aux_ref ? "● AUX REF CH 3/4 ACTIVE" : (slider13 ? "● ECOSYSTEM SYNC" : "○ MANUAL LOCK");
+  gfx_measurestr(s_badge, tw, th);
+  gfx_x = gfx_w - tw - 24; gfx_y = 28;
+  gfx_drawstr(s_badge);
+
+  // 2. PROFILE SELECTOR STRIP
+  p_y = 78;
+  panel_frame(10, p_y, gfx_w - 20, 60, "CALIBRATION TARGET PROFILE", "OPERATING WINDOW");
+  
+  btn_w = (gfx_w - 40 - 20) / 6.0;
+  i = 0;
+  loop(6,
+    b_sel = (slider1 == i);
+    b_txt = (i == 0 ? "CLOSE SHELL (-7dB)" :
+             i == 1 ? "CYMBALS/OH (-13dB)" :
+             i == 2 ? "ROOMS (-15dB)" :
+             i == 3 ? "GHOSTS (-20dB)" :
+             i == 4 ? "DIRECT DI (-12dB)" :
+             "CUSTOM TARGET");
+    draw_btn(20 + i * (btn_w + 4), p_y + 30, btn_w, 24, b_txt, b_sel) ? (
+      slider1 = i; sliderchange(slider1);
+    );
+    i += 1;
+  );
+
+  // 3. MAIN WORKSPACE (LEFT: METERS & PHASE | RIGHT: CONTROLS)
+  w_y = 146; w_h = 366; pw_left = 445; pw_right = gfx_w - pw_left - 30;
+
+  // --- LEFT PANEL: PHASE CORRELATION & BALLISTIC RADAR ---
+  panel_frame(10, w_y, pw_left, w_h, "PHASE CORRELATION & HEADROOM RADAR", is_aux_ref ? "AUX CH 3/4 ACTIVE" : "STEREO L/R MODE");
+
+  // A. Phase Correlation Bar Meter
+  draw_phase_corr(20, w_y + 34, pw_left - 20, 56, cur_corr, is_aux_ref);
+
+  // B. Telemetry Rows
+  gfx_setfont(2, "Segoe UI", 11);
+  set_c(0x6e788d); gfx_x = 24; gfx_y = w_y + 100; gfx_drawstr("Incoming Peak Level:");
+  set_c(0xedf1f7); gfx_x = 200; gfx_y = w_y + 100; gfx_drawstr(sprintf(#, "%+2.2f dBFS", db(pk_in)));
+
+  set_c(0x6e788d); gfx_x = 24; gfx_y = w_y + 119; gfx_drawstr("Target Level (Peak):");
+  set_c(0xdfab35); gfx_x = 200; gfx_y = w_y + 119; gfx_drawstr(sprintf(#, "%+2.1f dBFS", slider2));
+
+  set_c(0x6e788d); gfx_x = 24; gfx_y = w_y + 138; gfx_drawstr("Calibrated Output Peak:");
+  pk_c = db(pk_out) > -0.5 ? 0xf03344 : (db(pk_out) > -10.0 ? 0x0fe49e : 0xf58822);
+  set_c(pk_c); gfx_x = 200; gfx_y = w_y + 138; gfx_drawstr(sprintf(#, "%+2.2f dBFS", db(pk_out)));
+
+  set_c(0x6e788d); gfx_x = 24; gfx_y = w_y + 157; gfx_drawstr("Dynamic Crest (PLR):");
+  set_c(0x2899ff); gfx_x = 200; gfx_y = w_y + 157; gfx_drawstr(sprintf(#, "%2.1f dB", crest_in));
+
+  set_c(0x6e788d); gfx_x = 24; gfx_y = w_y + 176; gfx_drawstr("Producer Drive Status:");
+  p_stat = db(pk_out) > -4.0 ? "OVER-DRIVEN (CLIPPING RISK)" : (db(pk_out) > -12.0 ? "CALIBRATED SWEET SPOT" : "UNDER-DRIVEN (TOO QUIET)");
+  set_c(db(pk_out) > -4.0 ? 0xf03344 : (db(pk_out) > -12.0 ? 0x0fe49e : 0xf58822));
+  gfx_x = 200; gfx_y = w_y + 176; gfx_drawstr(p_stat);
+
+  // C. Sifam Ballistic VU Meter
+  draw_sifam(20, w_y + 204, pw_left - 20, 114, "BALLISTIC VU METER (0 VU = -18 dBFS)", sifam_vu, 0);
+
+  // D. Auto-Calibrate Button
+  draw_btn(20, w_y + 326, pw_left - 20, 32, "⚡ AUTO-CALIBRATE TO SWEET SPOT", 1) ? (
+    auto_trim_req = 1;
+  );
+
+  // --- RIGHT PANEL: CALIBRATION & TIME-ALIGN CONTROLS ---
+  panel_frame(10 + pw_left + 10, w_y, pw_right, w_h, "CALIBRATION & TIME-ALIGN CONTROLS", "PRECISION DSP");
+  rx = 10 + pw_left + 10;
+
+  // SUB-SECTION 1: TIME-CORRECT & PHASE ROTATION
+  set_c(0x0e131d); gfx_rect(rx + 10, w_y + 32, pw_right - 20, 22);
+  set_c(0x222c3d); gfx_rect(rx + 10, w_y + 32, pw_right - 20, 22, 0);
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); set_c(0x38b6ff);
+  gfx_x = rx + 18; gfx_y = w_y + 36; gfx_drawstr("1. TIME-CORRECT & PHASE ROTATION");
+
+  // 4 Knobs: Micro-Delay, Symmetry, All-Pass Freq, Rumble HPF
+  kw4 = (pw_right - 20) / 4.0;
+  knob1_y = w_y + 88;
+
+  // Knob 8: Micro-Delay Alignment
+  v = (slider8 + 512.0) / 1024.0;
+  v = draw_knob(rx + 10 + 0.5 * kw4, knob1_y, 21, v, "MICRO-DELAY", sprintf(#, "%+dsmp", slider8), 8);
+  knob_drag == 8 ? (
+    slider8 = clamp(-512 + floor(v * 1024.0 + 0.5), -512, 512);
+    sliderchange(slider8);
+    del_l = clamp(BASE_DELAY + slider8 - slider9, 0, DLY_BUF_SZ - 1);
+    del_r = clamp(BASE_DELAY + slider8 + slider9, 0, DLY_BUF_SZ - 1);
+  );
+
+  // Knob 9: Stereo L/R Symmetry Offset
+  v = (slider9 + 64.0) / 128.0;
+  v = draw_knob(rx + 10 + 1.5 * kw4, knob1_y, 21, v, "L/R SYMMETRY", sprintf(#, "%+dsmp", slider9), 9);
+  knob_drag == 9 ? (
+    slider9 = clamp(-64 + floor(v * 128.0 + 0.5), -64, 64);
+    sliderchange(slider9);
+    del_l = clamp(BASE_DELAY + slider8 - slider9, 0, DLY_BUF_SZ - 1);
+    del_r = clamp(BASE_DELAY + slider8 + slider9, 0, DLY_BUF_SZ - 1);
+  );
+
+  // Knob 11: All-Pass Corner Freq
+  v = (slider11 - 20.0) / 380.0;
+  v = draw_knob(rx + 10 + 2.5 * kw4, knob1_y, 21, v, "ALL-PASS FC", sprintf(#, "%dHz", slider11), 11);
+  knob_drag == 11 ? (
+    slider11 = clamp(20 + floor(v * 380.0 + 0.5), 20, 400);
+    sliderchange(slider11);
+    ap_t = tan($pi * clamp(slider11, 10.0, srate * 0.45) / srate);
+    ap_a = (ap_t - 1.0) / (ap_t + 1.0);
+  );
+
+  // Knob 12: Subsonic Rumble HPF
+  v = (slider12 - 10.0) / 110.0;
+  v = draw_knob(rx + 10 + 3.5 * kw4, knob1_y, 21, v, "RUMBLE HPF", sprintf(#, "%dHz", slider12), 12);
+  knob_drag == 12 ? (
+    slider12 = clamp(10 + floor(v * 110.0 + 0.5), 10, 120);
+    sliderchange(slider12);
+    setup_hpf(slider12);
+  );
+
+  // Toggle Buttons: Polarity & All-Pass
+  btn_half_w = (pw_right - 28) * 0.5;
+  draw_btn(rx + 10, w_y + 130, btn_half_w, 25, slider7 ? "POLARITY: INVERTED (180°)" : "POLARITY: NORMAL (0°)", slider7) ? (
+    slider7 = !slider7; sliderchange(slider7); pol = slider7 ? -1.0 : 1.0;
+  );
+
+  draw_btn(rx + 10 + btn_half_w + 8, w_y + 130, btn_half_w, 25, slider10 ? "ALL-PASS: ACTIVE" : "ALL-PASS: BYPASSED", slider10) ? (
+    slider10 = !slider10; sliderchange(slider10);
+  );
+
+  // SUB-SECTION 2: GAIN STAGING & CEILING DYNAMICS
+  set_c(0x0e131d); gfx_rect(rx + 10, w_y + 166, pw_right - 20, 22);
+  set_c(0x222c3d); gfx_rect(rx + 10, w_y + 166, pw_right - 20, 22, 0);
+  gfx_setfont(1, "Orbitron", 10.5, 'b'); set_c(0xdfab35);
+  gfx_x = rx + 18; gfx_y = w_y + 170; gfx_drawstr("2. GAIN STAGING & CEILING DYNAMICS");
+
+  knob2_y = w_y + 224;
+
+  // Knob 3: Calibration Gain Trim
+  v = (slider3 + 36.0) / 72.0;
+  v = draw_knob(rx + 56, knob2_y, 24, v, "GAIN TRIM", sprintf(#, "%+2.1fdB", slider3), 3);
+  knob_drag == 3 ? (
+    slider3 = clamp(-36.0 + v * 72.0, -36.0, 36.0);
+    sliderchange(slider3);
+    trim_lin = db_to_gain(slider3);
+  );
+
+  // Knob 2: Target Peak Level
+  v = (slider2 + 30.0) / 30.0;
+  v = draw_knob(rx + 154, knob2_y, 24, v, "TARGET PEAK", sprintf(#, "%2.1fdB", slider2), 2);
+  knob_drag == 2 ? (
+    slider2 = clamp(-30.0 + v * 30.0, -30.0, 0.0);
+    sliderchange(slider2);
+  );
+
+  // Quick Trim Buttons (-3dB, -1dB, 0dB, +1dB, +3dB)
+  q_x = rx + 220; q_y = w_y + 212; q_bw = (pw_right - 235) / 5.0;
+  draw_btn(q_x + 0 * q_bw, q_y, q_bw - 3, 24, "-3dB", 0) ? (slider3 = clamp(slider3 - 3.0, -36.0, 36.0); sliderchange(slider3); trim_lin = db_to_gain(slider3););
+  draw_btn(q_x + 1 * q_bw, q_y, q_bw - 3, 24, "-1dB", 0) ? (slider3 = clamp(slider3 - 1.0, -36.0, 36.0); sliderchange(slider3); trim_lin = db_to_gain(slider3););
+  draw_btn(q_x + 2 * q_bw, q_y, q_bw - 3, 24, "RESET", 0) ? (slider3 = 0.0; sliderchange(slider3); trim_lin = db_to_gain(slider3););
+  draw_btn(q_x + 3 * q_bw, q_y, q_bw - 3, 24, "+1dB", 0) ? (slider3 = clamp(slider3 + 1.0, -36.0, 36.0); sliderchange(slider3); trim_lin = db_to_gain(slider3););
+  draw_btn(q_x + 4 * q_bw, q_y, q_bw - 3, 24, "+3dB", 0) ? (slider3 = clamp(slider3 + 3.0, -36.0, 36.0); sliderchange(slider3); trim_lin = db_to_gain(slider3););
+
+  // Safety Ceiling & Audition Mode Toggles
+  draw_btn(rx + 10, w_y + 274, btn_half_w, 26, slider4 ? "SAFETY CEILING: ACTIVE (-0.3dB)" : "SAFETY CEILING: OFF", slider4) ? (
+    slider4 = !slider4; sliderchange(slider4);
+  );
+
+  draw_btn(rx + 10 + btn_half_w + 8, w_y + 274, btn_half_w, 26, slider6 ? "AUDITION: DELTA TRIM" : "AUDITION: CALIBRATED", slider6) ? (
+    slider6 = !slider6; sliderchange(slider6);
+  );
+
+  // Advisory Notes
+  gfx_setfont(2, "Segoe UI", 10.5); set_c(0x6e788d);
+  gfx_x = rx + 14; gfx_y = w_y + 316;
+  gfx_drawstr("Zero-clipping True Peak protection for raw multi-track stems.");
+  gfx_x = rx + 14; gfx_y = w_y + 336;
+  gfx_drawstr("Micro-delay & All-pass phase rotation guarantee maximum transient punch.");
+
+  // 4. BOTTOM STATUS BAR & PRODUCER PRESET SYNC
+  foot_y = gfx_h - 38;
+  set_ca(0x0c1018, 0.98); gfx_rect(10, foot_y, gfx_w - 20, 30);
+  set_c(0x222838); gfx_rect(10, foot_y, gfx_w - 20, 30, 0);
+
+  gfx_setfont(1, "Orbitron", 11, 'b'); set_c(0xdfab35);
+  gfx_x = 22; gfx_y = foot_y + 7;
+  gfx_drawstr("PRODUCER PRESET:");
+
+  slider14 == 0 ? p_name = "Default Neutral Wire" :
+  slider14 == 1 ? p_name = "Lance Prenc (Alpha Wolf)" :
+  slider14 == 2 ? p_name = "Scott Seigel (DIESECT)" :
+  slider14 == 3 ? p_name = "Jonathan Dolese (Mirrorcell)" :
+  slider14 == 4 ? p_name = "Buster Odeholm (thrown / Northlane)" :
+  slider14 == 5 ? p_name = "Lewis Johns & Grant Berry (Love Is Noise)" :
+  slider14 == 6 ? p_name = "Kel Pinchin (Split Chain)" :
+  slider14 == 7 ? p_name = "Dan Lancaster (Don Broco)" :
+  slider14 == 8 ? p_name = "Erik Bickerstaffe (Static Dress)" :
+  slider14 == 9 ? p_name = "Sam Guaiana (Shyeye)" :
+  slider14 == 10 ? p_name = "Zach Tuch (Heavenward)" :
+  slider14 == 11 ? p_name = "Forrester Savell (City Of Souls)" :
+  slider14 == 12 ? p_name = "Leon Schmidt (SUNBORN)" :
+  slider14 == 13 ? p_name = "Ermin Hamidovic (Benchmark)" :
+  slider14 == 14 ? p_name = "Will Putney (Fit For An Autopsy)" :
+  slider14 == 15 ? p_name = "George Lever (Loathe / Sleep Token)" :
+  slider14 == 16 ? p_name = "Sam Bassal (Thornhill)" :
+  slider14 == 17 ? p_name = "Henrik Udd (Architects)" :
+  slider14 == 18 ? p_name = "Dan Braunstein (Spiritbox)" :
+  slider14 == 19 ? p_name = "Zakk Cervini (Bad Omens)" :
+  slider14 == 20 ? p_name = "Jens Bogren (Fascination)" :
+  slider14 == 21 ? p_name = "Adam Nolly (Periphery)" :
+  slider14 == 22 ? p_name = "Acle Kahney (TesseracT)" :
+  slider14 == 23 ? p_name = "Adam Cichocki (heaving.)" :
+                   p_name = "Manuel Renner (SENNA - Out Of The Blue)";
+  gfx_setfont(1, "Orbitron", 11, 'b'); set_c(0xffffff);
+  gfx_x = 160; gfx_y = foot_y + 7;
+  gfx_drawstr(p_name);
+
+  // Prev / Next Arrows
+  draw_btn(530, foot_y + 3, 26, 24, "<", 0) ? (slider14 = max(0, slider14 - 1); sliderchange(slider14););
+  draw_btn(560, foot_y + 3, 26, 24, ">", 0) ? (slider14 = min(24, slider14 + 1); sliderchange(slider14););
+
+  // Ecosystem Sync Toggle
+  draw_btn(598, foot_y + 3, 175, 24, slider13 ? "[ECOSYSTEM AUTO-SYNC]" : "[MANUAL LOCK]", slider13) ? (
+    slider13 = !slider13; sliderchange(slider13);
+  );
+
+  // Ecosystem Link Status Indicator
+  set_c(gmem[200] == 0x4452554D ? 0x0fe49e : 0x6e788d);
+  gfx_setfont(2, "Consolas", 10);
+  gfx_x = 788; gfx_y = foot_y + 8;
+  gfx_drawstr(gmem[200] == 0x4452554D ? "● ECOSYSTEM LINKED" : "○ ECOSYSTEM IDLE");
+
+  last_mouse_down = mouse_down;

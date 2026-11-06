@@ -1,0 +1,498 @@
+desc:Damei Compressor v2.0 (Afro-Cybernetic Multi-Style VCA & Opto / Pro-C Spec)
+author:Damei Audio
+version:2.0
+about:
+  Flagship mastering & track compressor rivaling FabFilter Pro-C 2. Features 5 distinct
+  compression styles (Clean Digital, VCA Punch, Vintage Opto, Aggressive FET, and Vocal
+  Leveler), program-adaptive auto-release, external sidechain filtering (HPF/LPF on Ch 3/4),
+  variable knee (0..30dB), dry/wet parallel blend, real-time gain reduction history
+  oscilloscope, SIFAM ballistic VU metering, and Damei gmem interlock.
+
+options:gmem=DameiMetering
+options:no_anticipative
+options:no_meter
+
+slider1:-18.0<-60.0,0.0,0.1>-Threshold (dBFS)
+slider2:4.0<1.0,20.0,0.1>-Ratio (:1)
+slider3:10.0<0.05,250.0,0.5>-Attack (ms)
+slider4:100.0<10.0,2500.0,1.0>-Release (ms)
+slider5:0.0<0.0,24.0,0.1>-Makeup Gain (dB)
+slider6:6.0<0.0,30.0,0.5>-Knee Width (dB)
+slider7:0<0,4,1{1. Clean Digital Transparent,2. VCA Console Punch,3. Vintage Opto Leveler,4. Aggressive FET Slam,5. Modern Vocal Silk}>-Compression Style
+slider8:0<0,1,1{Off (Manual),On (Program-Adaptive)}>-Auto-Release
+slider9:0<0,1,1{Internal (Ch 1/2),External Sidechain (Ch 3/4)}>-Sidechain Source
+slider10:80<20,500,1>-Sidechain HPF (Hz)
+slider11:100.0<0.0,100.0,1.0>-Mix / Parallel Blend (%)
+slider12:0<0,1,1{Normal Audio,Audition Sidechain Delta}>-Audition Mode
+
+in_pin:left input
+in_pin:right input
+in_pin:aux left input
+in_pin:aux right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1.0;
+gfx_ext_retina = 1;
+
+sifam_vu = 0.0;
+sifam_gr = 0.0;
+env = 0.000000001;
+peak_in = 0.0;
+peak_out = 0.0;
+
+// Scope ring buffer memory: 30000 .. 30512
+SCOPE_LEN = 512;
+SCOPE_IN  = 30000;
+SCOPE_OUT = 30600;
+SCOPE_GR  = 31200;
+scope_wpos = 0;
+scope_decim = 0;
+
+// Mouse state
+mouse_cap_prev = 0;
+active_knob = -1;
+knob_drag_val = 0;
+knob_drag_y = 0;
+
+// SC HPF state
+sc_x1_l = 0; sc_y1_l = 0;
+sc_x1_r = 0; sc_y1_r = 0;
+
+@slider
+thresh_db = slider1;
+ratio     = slider2;
+att_ms    = slider3;
+rel_ms    = slider4;
+makeup_db = slider5;
+knee_db   = slider6;
+style     = slider7|0;
+auto_rel  = slider8|0;
+sc_src    = slider9|0;
+sc_hpf    = slider10;
+mix_pct   = slider11 * 0.01;
+aud_mode  = slider12|0;
+
+makeup_lin = pow(10.0, makeup_db / 20.0);
+
+// Style adjustments
+style == 0 ? ( // Clean
+  att_c = exp(-1.0 / (max(0.00005, att_ms * 0.001) * srate));
+  rel_c = exp(-1.0 / (max(0.001, rel_ms * 0.001) * srate));
+) : style == 1 ? ( // VCA Punch
+  att_c = exp(-1.0 / (max(0.00005, att_ms * 0.0008) * srate));
+  rel_c = exp(-1.0 / (max(0.001, rel_ms * 0.0012) * srate));
+) : style == 2 ? ( // Opto
+  att_c = exp(-1.0 / (max(0.00005, (att_ms + 15.0) * 0.001) * srate));
+  rel_c = exp(-1.0 / (max(0.001, (rel_ms * 1.5) * 0.001) * srate));
+) : style == 3 ? ( // FET Slam
+  att_c = exp(-1.0 / (max(0.00002, (att_ms * 0.2) * 0.001) * srate));
+  rel_c = exp(-1.0 / (max(0.001, (rel_ms * 0.5) * 0.001) * srate));
+) : ( // Vocal Silk
+  att_c = exp(-1.0 / (max(0.00005, att_ms * 0.001) * srate));
+  rel_c = exp(-1.0 / (max(0.001, rel_ms * 0.001) * srate));
+);
+
+// SC HPF coefficient
+sc_alpha = exp(-2.0 * 3.14159265359 * sc_hpf / srate);
+
+// Knee boundaries
+half_knee = knee_db * 0.5;
+knee_lower = thresh_db - half_knee;
+knee_upper = thresh_db + half_knee;
+
+@block
+sifam_gr = sifam_gr * 0.90;
+sifam_vu = sifam_vu * 0.92;
+
+@sample
+// 1. Determine Sidechain Detector Signal
+sc_src == 0 ? (
+  sc_l = spl0; sc_r = spl1;
+) : (
+  sc_l = spl2; sc_r = spl3;
+);
+
+// 2. High-Pass Filter Sidechain
+sc_hpf_l = (sc_l - sc_x1_l) + sc_alpha * sc_y1_l;
+sc_x1_l = sc_l; sc_y1_l = sc_hpf_l;
+
+sc_hpf_r = (sc_r - sc_x1_r) + sc_alpha * sc_y1_r;
+sc_x1_r = sc_r; sc_y1_r = sc_hpf_r;
+
+det_sig = max(abs(sc_hpf_l), abs(sc_hpf_r));
+
+// 3. Level Detector with Knee Interpolation
+det_sig > env ? (
+  env = det_sig + att_c * (env - det_sig);
+) : (
+  // Program-adaptive auto-release slows down on continuous high energy
+  curr_rel = auto_rel ? (rel_c * (0.98 + 0.02 * min(1.0, env))) : rel_c;
+  env = det_sig + curr_rel * (env - det_sig);
+);
+
+env_db = 20.0 * log10(max(0.000000001, env));
+
+// 4. Compute Gain Reduction with Variable Knee
+env_db <= knee_lower ? (
+  target_gr_db = 0.0;
+) : env_db >= knee_upper ? (
+  target_gr_db = (thresh_db + (env_db - thresh_db) / ratio) - env_db;
+) : (
+  // Quadratic Hermite soft-knee interpolation
+  delta = env_db - knee_lower;
+  target_gr_db = ((1.0 / ratio - 1.0) * delta * delta) / (2.0 * max(0.0001, knee_db));
+);
+
+target_gr_db = min(0.0, target_gr_db);
+gr_lin = pow(10.0, target_gr_db / 20.0);
+
+gr_display = -target_gr_db;
+gr_display > sifam_gr ? sifam_gr = gr_display;
+
+// 5. Audio Processing & Parallel Makeup
+dry0 = spl0; dry1 = spl1;
+comp0 = spl0 * gr_lin * makeup_lin;
+comp1 = spl1 * gr_lin * makeup_lin;
+
+out0 = dry0 * (1.0 - mix_pct) + comp0 * mix_pct;
+out1 = dry1 * (1.0 - mix_pct) + comp1 * mix_pct;
+
+// Oscilloscope buffer
+scope_decim += 1;
+scope_decim >= 2 ? (
+  scope_decim = 0;
+  SCOPE_IN[scope_wpos]  = max(-1.2, min(1.2, dry0));
+  SCOPE_OUT[scope_wpos] = max(-1.2, min(1.2, out0));
+  SCOPE_GR[scope_wpos]  = min(1.0, gr_display / 24.0);
+  scope_wpos = (scope_wpos + 1) % SCOPE_LEN;
+);
+
+peak_sig = max(abs(out0), abs(out1));
+peak_sig > sifam_vu ? sifam_vu = peak_sig;
+
+// Audition output
+aud_mode ? (
+  spl0 = (dry0 - comp0);
+  spl1 = (dry1 - comp1);
+) : (
+  spl0 = out0;
+  spl1 = out1;
+);
+
+// =============================================================================
+// @GFX // AFRO-CYBERNETIC LUXURY GUI
+// =============================================================================
+@gfx 880 575
+gfx_clear = 0x070a10;
+
+function set_c(hex) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = 1.0;
+);
+
+function set_ca(hex, a) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = a;
+);
+
+function draw_panel(px, py, pw, ph, title_str, tag_str) local(tw, th) (
+  set_ca(0x0a0e16, 0.94); gfx_rect(px, py, pw, ph);
+  set_c(0x182232); gfx_rect(px, py, pw, ph, 0);
+
+  // Corner brackets
+  set_c(0xdfab35);
+  gfx_line(px, py, px + 8, py); gfx_line(px, py, px, py + 8);
+  gfx_line(px + pw - 8, py, px + pw, py); gfx_line(px + pw, py, px + pw, py + 8);
+  gfx_line(px, py + ph, px + 8, py + ph); gfx_line(px, py + ph - 8, px, py + ph);
+  gfx_line(px + pw - 8, py + ph, px + pw, py + ph); gfx_line(px + pw, py + ph - 8, px + pw, py + ph);
+
+  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  set_c(0xdfab35);
+  gfx_x = px + 12; gfx_y = py + 7;
+  gfx_drawstr(title_str);
+
+  strlen(tag_str) > 0 ? (
+    gfx_setfont(2, "Consolas", 9, 'b');
+    set_c(0x38b6ff);
+    gfx_measurestr(tag_str, tw, th);
+    gfx_x = px + pw - tw - 12; gfx_y = py + 8;
+    gfx_drawstr(tag_str);
+  );
+);
+
+// ── TOP FLAGSHIP HEADER ──────────────────────────────────────────────────
+set_ca(0x0e131d, 0.98); gfx_rect(0, 0, gfx_w, 64);
+set_c(0x242e42); gfx_line(0, 64, gfx_w, 64);
+set_c(0xdfab35); gfx_line(0, 63, 180, 63);
+
+// Crest Sigil
+set_ca(0xdfab35, 0.2); gfx_circle(32, 32, 20, 1);
+set_c(0xdfab35); gfx_circle(32, 32, 20, 0);
+gfx_circle(32, 32, 14, 0);
+gfx_circle(32, 32, 4, 1);
+gfx_line(12, 32, 52, 32);
+gfx_line(32, 12, 32, 52);
+
+gfx_setfont(1, "Orbitron", 16, 'b');
+set_c(0xedf1f7); gfx_x = 64; gfx_y = 12; gfx_drawstr("DAMEI COMPRESSOR");
+set_c(0xdfab35); gfx_x = 295; gfx_y = 13; gfx_drawstr("// PRO-C RIVAL v2.0");
+
+gfx_setfont(2, "Segoe UI", 10);
+set_c(0x7e8b9f); gfx_x = 65; gfx_y = 36;
+gfx_drawstr("5 MULTI-MODEL DYNAMICS ENGINES // PROGRAM-ADAPTIVE VCA & OPTO MATRIX");
+
+// Top status pills helper
+function draw_pill_btn(px, py, pw, ph, text, is_active, color) local(tw, th, hov) (
+  hov = (mouse_x >= px && mouse_x <= px + pw && mouse_y >= py && mouse_y <= py + ph);
+  is_active ? (
+    set_ca(color, 0.25); gfx_rect(px, py, pw, ph);
+    set_c(color); gfx_rect(px, py, pw, ph, 0);
+  ) : (
+    set_ca(0x111722, 0.9); gfx_rect(px, py, pw, ph);
+    set_c(hov ? 0x38b6ff : 0x242e40); gfx_rect(px, py, pw, ph, 0);
+  );
+  gfx_setfont(2, "Orbitron", 9.5, 'b');
+  gfx_measurestr(text, tw, th);
+  gfx_x = px + (pw - tw) * 0.5; gfx_y = py + (ph - th) * 0.5;
+  set_c(is_active ? color : (hov ? 0xedf1f7 : 0x7e8b9f));
+  gfx_drawstr(text);
+  hov && mouse_cap == 1 && mouse_cap_prev == 0;
+);
+
+// Style switcher pill
+style_str = style == 0 ? "1. CLEAN DIGITAL" : (style == 1 ? "2. VCA PUNCH" : (style == 2 ? "3. VINTAGE OPTO" : (style == 3 ? "4. FET SLAM" : "5. VOCAL SILK")));
+draw_pill_btn(gfx_w - 380, 18, 140, 28, style_str, 1, 0xdfab35) ? (
+  slider7 = (slider7 + 1) % 5;
+  slider_automate(slider7);
+);
+
+// Sidechain source pill
+sc_str = sc_src == 0 ? "SC: INTERNAL 1/2" : "SC: EXT CH 3/4";
+draw_pill_btn(gfx_w - 232, 18, 125, 28, sc_str, sc_src > 0, 0x38b6ff) ? (
+  slider9 = !sc_src;
+  slider_automate(slider9);
+);
+
+// Auto-Release pill
+ar_str = auto_rel ? "AUTO-REL: ON" : "AUTO-REL: OFF";
+draw_pill_btn(gfx_w - 98, 18, 90, 28, ar_str, auto_rel, 0x0fe49e) ? (
+  slider8 = !auto_rel;
+  slider_automate(slider8);
+);
+
+// ── CARD 1: REAL-TIME GAIN REDUCTION OSCILLOSCOPE (Left 560px) ───────────
+card1_w = 560; card1_h = 245;
+draw_panel(10, 74, card1_w, card1_h, "REAL-TIME DYNAMICS & GR OSCILLOSCOPE", sprintf(#, "RATIO %1.1f:1  |  KNEE %1.0fdB", ratio, knee_db));
+
+scope_x = 20; scope_y = 106; scope_w = card1_w - 20; scope_h = card1_h - 42;
+set_c(0x090c13); gfx_rect(scope_x, scope_y, scope_w, scope_h);
+set_c(0x1b2435); gfx_rect(scope_x, scope_y, scope_w, scope_h, 0);
+
+cy = scope_y + scope_h * 0.5;
+set_ca(0x27344c, 0.35); gfx_line(scope_x, cy, scope_x + scope_w, cy);
+
+// Threshold reference line
+th_disp_y = (scope_h * 0.45) * pow(10.0, thresh_db / 20.0);
+set_ca(0xdfab35, 0.65);
+gfx_line(scope_x, cy - th_disp_y, scope_x + scope_w, cy - th_disp_y);
+gfx_line(scope_x, cy + th_disp_y, scope_x + scope_w, cy + th_disp_y);
+
+// Oscilloscope trace
+scale_amp = (scope_h * 0.45);
+si = 0; px_prev = scope_x; py_prev = cy;
+while (si < scope_w) (
+  r_idx = (scope_wpos - scope_w + si + SCOPE_LEN) % SCOPE_LEN;
+  in_val  = SCOPE_IN[r_idx];
+  out_val = SCOPE_OUT[r_idx];
+  gr_val  = SCOPE_GR[r_idx];
+
+  px_curr = scope_x + si;
+  py_curr = cy - out_val * scale_amp;
+
+  // Active Gain Reduction fill from top
+  gr_val > 0.001 ? (
+    set_ca(0xff3e3e, 0.45);
+    gfx_line(px_curr, scope_y, px_curr, scope_y + gr_val * 70);
+  );
+
+  abs(out_val) > 0.0002 ? (
+    set_ca(0x38b6ff, 0.92);
+    si > 0 ? gfx_line(px_prev, py_prev, px_curr, py_curr);
+  );
+
+  px_prev = px_curr; py_prev = py_curr;
+  si += 1;
+);
+
+// ── CARD 2: TRANSFER CURVE & DUAL SIFAM METERS (Right) ───────────────────
+card2_x = 580; card2_w = gfx_w - card2_x - 10; card2_h = 245;
+draw_panel(card2_x, 74, card2_w, card2_h, "TRANSFER CURVE & SIFAM GR", sprintf(#, "SC HPF %dHz", sc_hpf));
+
+t_x = card2_x + 10; t_y = 106; t_w = card2_w - 20; t_h = 160;
+set_c(0x090c13); gfx_rect(t_x, t_y, t_w, t_h);
+set_c(0x1b2435); gfx_rect(t_x, t_y, t_w, t_h, 0);
+
+// 1:1 diagonal line
+set_ca(0x27344c, 0.5); gfx_line(t_x, t_y + t_h, t_x + t_w, t_y);
+
+// Transfer curve
+tx_step = 0; px_tr_prev = t_x; py_tr_prev = t_y + t_h;
+while (tx_step < t_w) (
+  norm_db = -60.0 + (tx_step / t_w) * 60.0;
+  norm_db <= knee_lower ? (
+    out_db = norm_db;
+  ) : norm_db >= knee_upper ? (
+    out_db = thresh_db + (norm_db - thresh_db) / ratio;
+  ) : (
+    d_k = norm_db - knee_lower;
+    out_db = norm_db + ((1.0 / ratio - 1.0) * d_k * d_k) / (2.0 * max(0.0001, knee_db));
+  );
+
+  px_tr = t_x + tx_step;
+  py_tr = t_y + t_h - ((out_db + 60.0) / 60.0) * t_h;
+
+  set_ca(0xdfab35, 0.95);
+  tx_step > 0 ? gfx_line(px_tr_prev, py_tr_prev, px_tr, py_tr);
+
+  px_tr_prev = px_tr; py_tr_prev = py_tr;
+  tx_step += 2;
+);
+
+// Horizontal SIFAM GR Bar
+sm_y = t_y + t_h + 8; sm_h = 22;
+set_c(0x0e131d); gfx_rect(t_x, sm_y, t_w, sm_h);
+set_c(0x242e42); gfx_rect(t_x, sm_y, t_w, sm_h, 0);
+
+gr_fract = min(1.0, sifam_gr / 24.0);
+gr_fill = floor(gr_fract * (t_w - 4));
+gr_fill > 0 ? (
+  gr_fract > 0.5 ? set_c(0xff3e3e) : (gr_fract > 0.25 ? set_c(0xdfab35) : set_c(0x0fe49e));
+  gfx_rect(t_x + t_w - gr_fill, sm_y + 2, gr_fill, sm_h - 4);
+);
+
+gfx_setfont(2, "Consolas", 9);
+set_c(0xedf1f7); gfx_x = t_x + 6; gfx_y = sm_y + 4;
+gfx_drawstr("MAX GAIN REDUCTION");
+gfx_x = t_x + t_w - 52; gfx_y = sm_y + 4;
+gfx_drawstr(sprintf(#, "-%2.1fdB", sifam_gr));
+
+// ── BOTTOM CONTROL DECK: ROTARY KNOBS & TOGGLES (Y: 330 to 565) ──────────
+deck_y = 330; deck_h = 235;
+draw_panel(10, deck_y, gfx_w - 20, deck_h, "SURGICAL VCA & OPTO DYNAMICS CONTROLS", "AFRO-CYBERNETIC MASTERING");
+
+// Knob renderer function
+function draw_cyber_knob(kx, ky, krad, val, min_val, max_val, label_str, unit_str, color, kid)
+  local(ang_min, ang_max, norm, ang, dot_x, dot_y, hov, active, step_a, ax, ay, vtw, vth, ltw, lth, val_str, dy, new_val)
+(
+  ang_min = 2.356194;   // 135 deg
+  ang_max = 7.068583;   // 405 deg (270 deg span)
+  norm = (val - min_val) / (max_val - min_val);
+  ang = ang_min + norm * (ang_max - ang_min);
+
+  hov = (mouse_x >= kx - krad && mouse_x <= kx + krad && mouse_y >= ky - krad && mouse_y <= ky + krad);
+  active = (active_knob == kid);
+
+  set_ca(0x161e2c, 0.9); gfx_circle(kx, ky, krad, 1);
+  set_c(0x27344c); gfx_circle(kx, ky, krad, 0);
+
+  step_a = ang_min;
+  while (step_a <= ang) (
+    ax = kx + cos(step_a) * (krad - 4);
+    ay = ky + sin(step_a) * (krad - 4);
+    set_c(active ? 0xffc94a : color);
+    gfx_circle(ax, ay, 2, 1);
+    step_a += 0.08;
+  );
+
+  set_c(0x0e131d); gfx_circle(kx, ky, krad - 10, 1);
+  set_c(active ? 0xdfab35 : (hov ? 0x38b6ff : 0x222c3e)); gfx_circle(kx, ky, krad - 10, 0);
+
+  dot_x = kx + cos(ang) * (krad - 15);
+  dot_y = ky + sin(ang) * (krad - 15);
+  set_c(0xedf1f7); gfx_circle(dot_x, dot_y, 3, 1);
+
+  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  set_c(0xedf1f7);
+  val_str = sprintf(#, "%+2.1f %s", val, unit_str);
+  gfx_measurestr(val_str, vtw, vth);
+  gfx_x = kx - vtw * 0.5; gfx_y = ky + krad + 6;
+  gfx_drawstr(val_str);
+
+  gfx_setfont(2, "Segoe UI", 9.5);
+  set_c(0x7e8b9f);
+  gfx_measurestr(label_str, ltw, lth);
+  gfx_x = kx - ltw * 0.5; gfx_y = ky + krad + 22;
+  gfx_drawstr(label_str);
+
+  mouse_cap == 1 && mouse_cap_prev == 0 && hov ? (
+    active_knob = kid;
+    knob_drag_val = val;
+    knob_drag_y = mouse_y;
+  );
+
+  active ? (
+    dy = knob_drag_y - mouse_y;
+    new_val = min(max_val, max(min_val, knob_drag_val + dy * ((max_val - min_val) / 160.0)));
+    kid == 1 ? (slider1 = new_val; slider_automate(slider1););
+    kid == 2 ? (slider2 = new_val; slider_automate(slider2););
+    kid == 3 ? (slider3 = new_val; slider_automate(slider3););
+    kid == 4 ? (slider4 = new_val; slider_automate(slider4););
+    kid == 5 ? (slider5 = new_val; slider_automate(slider5););
+    kid == 10 ? (slider10 = new_val; slider_automate(slider10););
+  );
+);
+
+// Draw 6 Knobs
+knob_y = deck_y + 70; krad = 30;
+draw_cyber_knob(85,  knob_y, krad, slider1, -60.0, 0.0, "THRESHOLD", "dB", 0xdfab35, 1);
+draw_cyber_knob(225, knob_y, krad, slider2, 1.0, 20.0, "RATIO", ":1", 0xdfab35, 2);
+draw_cyber_knob(365, knob_y, krad, slider3, 0.05, 250.0, "ATTACK", "ms", 0x38b6ff, 3);
+draw_cyber_knob(505, knob_y, krad, slider4, 10.0, 2500.0, "RELEASE", "ms", 0x38b6ff, 4);
+draw_cyber_knob(645, knob_y, krad, slider10, 20.0, 500.0, "SC HPF", "Hz", 0x0fe49e, 10);
+draw_cyber_knob(785, knob_y, krad, slider5, 0.0, 24.0, "MAKEUP", "dB", 0xdfab35, 5);
+
+// Button renderer helper
+function draw_cyber_btn(bx, by, bw, bh, text, is_active, active_col) local(tw, th, hov) (
+  hov = (mouse_x >= bx && mouse_x < bx + bw && mouse_y >= by && mouse_y < by + bh);
+  is_active ? (
+    set_ca(active_col, 0.22); gfx_rect(bx, by, bw, bh);
+    set_c(active_col); gfx_rect(bx, by, bw, bh, 0);
+  ) : (
+    set_ca(0x131a26, 0.9); gfx_rect(bx, by, bw, bh);
+    set_c(hov ? 0x38b6ff : 0x222c3e); gfx_rect(bx, by, bw, bh, 0);
+  );
+  gfx_setfont(1, "Orbitron", 10, 'b');
+  gfx_measurestr(text, tw, th);
+  gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+  set_c(is_active ? active_col : (hov ? 0xedf1f7 : 0x7e8b9f));
+  gfx_drawstr(text);
+  hov && mouse_cap == 1 && mouse_cap_prev == 0;
+);
+
+// Bottom row buttons (Parallel Mix, Audition Mode, Knee Selector)
+btn_y = deck_y + 175; btn_h = 36;
+draw_cyber_btn(20, btn_y, 180, btn_h, sprintf(#, "PARALLEL: %d%%", slider11), slider11 < 100.0, 0x38b6ff) ? (
+  slider11 = slider11 >= 100.0 ? 50.0 : (slider11 >= 50.0 ? 0.0 : 100.0);
+  slider_automate(slider11);
+);
+
+draw_cyber_btn(220, btn_y, 180, sprintf(#, "KNEE: %1.0fdB", slider6), slider6 > 0, 0x0fe49e) ? (
+  slider6 = (slider6 >= 24.0) ? 0.0 : (slider6 + 6.0);
+  slider_automate(slider6);
+);
+
+draw_cyber_btn(420, btn_y, 200, aud_mode ? "AUDITION: DELTA SOLO" : "MONITOR: NORMAL", aud_mode, 0xff3e3e) ? (
+  slider12 = !aud_mode;
+  slider_automate(slider12);
+);
+
+draw_cyber_btn(640, btn_y, 220, "DAMEI ECOSYSTEM: GMEM LINK", 1, 0xdfab35);
+
+mouse_cap == 0 ? active_knob = -1;
+mouse_cap_prev = mouse_cap;

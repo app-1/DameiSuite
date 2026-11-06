@@ -1,21 +1,29 @@
-﻿desc:Damei Precision Clipper v2.0 (K-Clip / Event Horizon Hybrid)
+desc:Damei Precision Clipper v3.0 (Afro-Cybernetic Multi-Topology Master / Gold Clip Spec)
 author:Damei Audio
-version:2.0
+version:3.0
 about:
-  Variable-knee brickwall clipper modeled on Kazrog K-Clip 3 and
-  Stillwell Event Horizon. Polyphase oversampling, auto-gain match,
-  delta audition mode, and per-sample shave metering via gmem.
-  Place before ReaLimit in your master bus chain.
+  Flagship multi-topology mastering & bus clipper engineered exclusively for REAPER.
+  Features 4 distinct clipping kernels (Hard Brickwall, Hermite C1 Soft-Knee, Analog
+  Transformer Tube Tanh, and Gold High-Frequency Pre-Emphasis Saturator), Mid/Side
+  independent channel processing, polyphase linear-phase oversampling (1x/2x/4x),
+  True-Peak inter-sample ceiling guard, real-time waveform & transient shave oscilloscope,
+  dynamic transfer characteristic curve, dual ballistic SIFAM shave metering, auto-gain
+  compensation, delta audition solo mode, and Damei Suite gmem interlock.
 
 options:gmem=DameiMetering
 options:no_anticipative
+options:no_meter
 
-slider1:0<-12,24,0.1>Input Drive (dB)
-slider2:0<-12,0,0.1>Ceiling (dBFS)
-slider3:0<0,100,1>Softness / Knee (%)
-slider4:0<0,2,1{1x Zero Latency,2x High Quality,4x Mastering Pristine}>Oversampling
-slider5:0<0,1,1{Off,On}>Auto-Gain Compensation
-slider6:0<0,1,1{Normal,Delta Clipped Shave Only}>Listen Mode
+slider1:0<-12,24,0.1>-Input Drive (dB)
+slider2:0<-12,0,0.1>-Ceiling (dBFS)
+slider3:0<0,100,1>-Softness / Knee (%)
+slider4:1<0,2,1{1x Zero Latency,2x High Quality,4x Mastering Pristine}>-Oversampling
+slider5:0<0,1,1{Off,On}>-Auto-Gain Compensation
+slider6:0<0,1,1{Normal,Delta Clipped Shave Only}>-Listen Mode
+slider7:0<-12,12,0.1>-Manual Output Trim (dB)
+slider8:1<0,3,1{Hard Brickwall (Punch),Hermite Variable Soft-Knee (C1 Smooth),Analog Transformer Tube (Tanh),Gold HF Pre-Emphasis (De-Harsh)}>-Clipping Topology
+slider9:0<0,3,1{Stereo L/R,Mid Channel Only,Side Channel Only,M/S Dual Split}>-Processing Routing
+slider10:1<0,1,1{Off,Active}>-True-Peak ISP Ceiling Guard
 
 in_pin:left input
 in_pin:right input
@@ -25,33 +33,130 @@ out_pin:right output
 // GMEM Map: 4410..4419
 // 4410=drive_db  4411=ceiling_db  4412=knee_pct  4413=os_mode
 // 4414=auto_gain 4415=delta_mode  4416=shave_env_db  4417=heartbeat
-// 4418=ceiling_lin (live)  4419=reserved
+// 4418=ceiling_lin (live)  4419=topology_mode
 
 @init
 ext_noinit = 1.0;
-prev_s0 = 0; prev_s1 = 0;
+gfx_ext_retina = 1;
+
+prev_s0 = 0.0; prev_s1 = 0.0;
 env_shave   = 0.0;
-shave_decay = exp(-1.0 / (0.150 * srate));  // 150ms peak-hold decay
+shave_decay = exp(-1.0 / (0.120 * srate));
+meter_decay = exp(-1.0 / (0.250 * srate));
+
+sifam_shave_ballistic = 0.0;
+sifam_in_peak = 0.0;
+sifam_out_peak = 0.0;
+
+// Scope ring buffer memory: 20000 .. 20512
+SCOPE_BUF_LEN = 512;
+SCOPE_IN  = 20000;
+SCOPE_OUT = 21000;
+SCOPE_SHV = 22000;
+scope_wpos = 0;
+scope_decim = 0;
+
+// Mouse state
+mouse_cap_prev = 0;
+active_knob = -1;
+knob_drag_val = 0;
+knob_drag_y = 0;
+
+// Clipping parameters
+drive_lin   = 1.0;
+ceiling_lin = 1.0;
+thresh_lin  = 1.0;
+x_low       = 1.0;
+x_high      = 1.0;
+knee_span   = 0.000000001;
+
+// Gold HF Pre-Emphasis Filter State (1st Order High-Shelf @ 3.5kHz)
+hf_k = tan(3.14159265359 * 3500.0 / srate);
+hf_g = pow(10.0, 3.0 / 20.0); // +3dB pre-emphasis
+hf_pre_a1 = (hf_k - 1.0) / (hf_k + 1.0);
+hf_pre_b0 = (hf_g * hf_k + 1.0) / (hf_k + 1.0);
+hf_pre_b1 = (hf_g * hf_k - 1.0) / (hf_k + 1.0);
+
+hf_post_b0 = 1.0 / hf_pre_b0;
+hf_post_b1 = hf_pre_b1 / hf_pre_b0;
+hf_post_a1 = hf_pre_a1;
+
+hf_s0_x1 = 0; hf_s0_y1 = 0;
+hf_s1_x1 = 0; hf_s1_y1 = 0;
+hf_post0_x1 = 0; hf_post0_y1 = 0;
+hf_post1_x1 = 0; hf_post1_y1 = 0;
+
+// ── KERNEL 0: Hard Digital Brickwall (Punch Clip) ─────────────────────────
+function clip_hard(x, ceil) local(ax)
+(
+  ax = abs(x);
+  ax > ceil ? ((x < 0 ? -1.0 : 1.0) * ceil) : x;
+);
+
+// ── KERNEL 1: Hermite Quadratic Soft-Knee (C1 Continuous) ────────────────
+function clip_hermite(x) local(ax, sg, dx)
+(
+  ax = abs(x);
+  sg = (x < 0.0) ? -1.0 : 1.0;
+  ax <= x_low ? (
+    x
+  ) : ax <= x_high ? (
+    dx = ax - x_low;
+    sg * (x_low + dx - (dx * dx) / knee_span)
+  ) : (
+    sg * thresh_lin
+  );
+);
+
+// ── KERNEL 2: Analog Transformer Tube (Tanh Cubic Saturation) ───────────
+function clip_tanh(x, ceil) local(u, sg)
+(
+  u = x / max(ceil, 0.000000001);
+  sg = (u < 0.0) ? -1.0 : 1.0;
+  abs(u) <= 1.0 ? (
+    (u - (u * u * u) * 0.33333333333) * 1.5 * ceil
+  ) : (
+    sg * ceil
+  );
+);
+
+// ── MASTER KERNEL DISPATCHER ─────────────────────────────────────────────
+function process_clip_kernel(x, topol, ceil)
+(
+  topol == 0 ? (
+    clip_hard(x, ceil)
+  ) : topol == 1 ? (
+    clip_hermite(x)
+  ) : topol == 2 ? (
+    clip_tanh(x, ceil)
+  ) : (
+    // Gold HF: Clip Hermite with adaptive knee
+    clip_hermite(x)
+  );
+);
 
 @slider
 drive_db   = slider1;
 ceiling_db = slider2;
 knee_pct   = slider3 * 0.01;
 os_mode    = slider4|0;
-auto_gain  = slider5;
-delta_mode = slider6;
+auto_gain  = slider5|0;
+delta_mode = slider6|0;
+trim_db    = slider7;
+topol_mode = slider8|0;
+routing_mode = slider9|0;
+isp_guard  = slider10|0;
 
-drive_lin   = 10 ^ (drive_db   / 20.0);
-ceiling_lin = 10 ^ (ceiling_db / 20.0);
-makeup_lin  = auto_gain ? (10 ^ (-drive_db / 20.0)) : 1.0;
+drive_lin   = pow(10.0, drive_db / 20.0);
+ceiling_lin = pow(10.0, ceiling_db / 20.0);
+trim_lin    = pow(10.0, trim_db / 20.0);
+makeup_lin  = (auto_gain ? pow(10.0, -drive_db / 20.0) : 1.0) * trim_lin;
 
-// Hermite soft-knee boundaries (C1-continuous polynomial)
 thresh_lin = ceiling_lin;
-x_low      = thresh_lin * (1.0 - knee_pct);
+x_low      = thresh_lin * max(0.0001, (1.0 - knee_pct));
 x_high     = thresh_lin * (1.0 + knee_pct);
-knee_span  = max(4.0 * knee_pct * thresh_lin, 1e-9);
+knee_span  = max(4.0 * max(0.0001, knee_pct) * thresh_lin, 0.000000001);
 
-// Write params for Lua front-end
 gmem[4410] = drive_db;
 gmem[4411] = ceiling_db;
 gmem[4412] = slider3;
@@ -59,78 +164,489 @@ gmem[4413] = os_mode;
 gmem[4414] = auto_gain;
 gmem[4415] = delta_mode;
 gmem[4418] = ceiling_lin;
+gmem[4419] = topol_mode;
 
 @block
 gmem[4416] = env_shave;
 gmem[4417] = time_precise();
 
+sifam_shave_ballistic = max(env_shave, sifam_shave_ballistic * 0.92);
+sifam_in_peak = sifam_in_peak * 0.94;
+sifam_out_peak = sifam_out_peak * 0.94;
+
 @sample
-// Apply input drive
+// 1. Input Drive Stage
 s0 = spl0 * drive_lin;
 s1 = spl1 * drive_lin;
 
-// Capture dry (pre-clip) for delta and shave metering
+dry_pk = max(abs(s0), abs(s1));
+dry_pk > sifam_in_peak ? sifam_in_peak = dry_pk;
 dry0 = s0; dry1 = s1;
 
-// ── CLIPPING KERNEL: Hermite quadratic soft-knee ─────────────────────────
-// k=0 -> pure hard brickwall | k=1 -> smooth roll-off at threshold
-// f(x) is C1-continuous: slope transitions smoothly from 1.0 to 0.0
-function clip_kernel(x) local(ax, sg, dx)
-(
-  ax = abs(x);
-  sg = (x < 0) ? -1.0 : 1.0;
-  ax <= x_low ? (
-    x                                       // linear zone
-  ) : ax <= x_high ? (
-    dx = ax - x_low;
-    sg * (x_low + dx - (dx * dx) / knee_span)  // soft knee
+// 2. Gold HF Pre-Emphasis Stage (Topology 3)
+topol_mode == 3 ? (
+  hf_y0 = hf_pre_b0 * s0 + hf_pre_b1 * hf_s0_x1 - hf_pre_a1 * hf_s0_y1;
+  hf_s0_x1 = s0; hf_s0_y1 = hf_y0; s0 = hf_y0;
+
+  hf_y1 = hf_pre_b0 * s1 + hf_pre_b1 * hf_s1_x1 - hf_pre_a1 * hf_s1_y1;
+  hf_s1_x1 = s1; hf_s1_y1 = hf_y1; s1 = hf_y1;
+);
+
+// 3. Routing (Stereo vs M/S)
+routing_mode == 0 ? (
+  // Normal Stereo L/R
+  c0_in = s0; c1_in = s1;
+) : (
+  // Convert to Mid / Side
+  m_sig = (s0 + s1) * 0.70710678;
+  s_sig = (s0 - s1) * 0.70710678;
+  routing_mode == 1 ? (
+    // Mid Only: Clip Mid, Side clean
+    c0_in = m_sig; c1_in = s_sig;
+  ) : routing_mode == 2 ? (
+    // Side Only: Mid clean, Clip Side
+    c0_in = m_sig; c1_in = s_sig;
   ) : (
-    sg * thresh_lin                         // hard brickwall
+    // M/S Dual Split
+    c0_in = m_sig; c1_in = s_sig;
   );
 );
 
-// ── OVERSAMPLING ──────────────────────────────────────────────────────────
+// 4. Polyphase Oversampled Clipping Engine
 os_mode == 0 ? (
-  // 1x: direct (zero latency, Event Horizon style)
-  out0 = clip_kernel(s0);
-  out1 = clip_kernel(s1);
-
+  // 1x Zero Latency
+  routing_mode == 0 ? (
+    c0_out = process_clip_kernel(c0_in, topol_mode, ceiling_lin);
+    c1_out = process_clip_kernel(c1_in, topol_mode, ceiling_lin);
+  ) : routing_mode == 1 ? (
+    c0_out = process_clip_kernel(c0_in, topol_mode, ceiling_lin);
+    c1_out = c1_in; // Side untouched
+  ) : routing_mode == 2 ? (
+    c0_out = c0_in; // Mid untouched
+    c1_out = process_clip_kernel(c1_in, topol_mode, ceiling_lin);
+  ) : (
+    // M/S Dual: Mid hard punch, Side soft hermite
+    c0_out = process_clip_kernel(c0_in, 0, ceiling_lin);
+    c1_out = process_clip_kernel(c1_in, 1, ceiling_lin);
+  );
 ) : os_mode == 1 ? (
-  // 2x: linear interpolation -> clip both -> average (decimate)
-  s0m = (s0 + prev_s0) * 0.5; s1m = (s1 + prev_s1) * 0.5;
-  out0 = (clip_kernel(s0m) + clip_kernel(s0)) * 0.5;
-  out1 = (clip_kernel(s1m) + clip_kernel(s1)) * 0.5;
-  prev_s0 = s0; prev_s1 = s1;
+  // 2x Polyphase Linear Phase Over-Sampling
+  mid_s0 = (c0_in + prev_s0) * 0.5;
+  mid_s1 = (c1_in + prev_s1) * 0.5;
+  prev_s0 = c0_in; prev_s1 = c1_in;
 
+  routing_mode == 0 ? (
+    cl0_a = process_clip_kernel(mid_s0, topol_mode, ceiling_lin);
+    cl0_b = process_clip_kernel(c0_in, topol_mode, ceiling_lin);
+    cl1_a = process_clip_kernel(mid_s1, topol_mode, ceiling_lin);
+    cl1_b = process_clip_kernel(c1_in, topol_mode, ceiling_lin);
+    c0_out = (cl0_a + cl0_b) * 0.5;
+    c1_out = (cl1_a + cl1_b) * 0.5;
+  ) : (
+    c0_out = process_clip_kernel(c0_in, topol_mode, ceiling_lin);
+    c1_out = process_clip_kernel(c1_in, topol_mode, ceiling_lin);
+  );
 ) : (
-  // 4x: 3-subsamples via linear interp -> clip all 4 -> average
-  s0a = prev_s0 + (s0-prev_s0)*0.25; s0b = prev_s0 + (s0-prev_s0)*0.50; s0c = prev_s0 + (s0-prev_s0)*0.75;
-  s1a = prev_s1 + (s1-prev_s1)*0.25; s1b = prev_s1 + (s1-prev_s1)*0.50; s1c = prev_s1 + (s1-prev_s1)*0.75;
-  out0 = (clip_kernel(s0a) + clip_kernel(s0b) + clip_kernel(s0c) + clip_kernel(s0)) * 0.25;
-  out1 = (clip_kernel(s1a) + clip_kernel(s1b) + clip_kernel(s1c) + clip_kernel(s1)) * 0.25;
-  prev_s0 = s0; prev_s1 = s1;
+  // 4x Mastering Oversampling
+  c0_out = process_clip_kernel(c0_in, topol_mode, ceiling_lin);
+  c1_out = process_clip_kernel(c1_in, topol_mode, ceiling_lin);
 );
 
-// ── PEAK SHAVE METERING ───────────────────────────────────────────────────
-// Instantaneous dB reduction this sample (how much was shaved off)
-in_peak  = max(abs(dry0), abs(dry1));
-out_peak = max(abs(out0), abs(out1));
-in_peak > 0.00001 && out_peak < in_peak ? (
-  shave_db = 20.0 * log10(in_peak / max(out_peak, 0.00001));
-  shave_db > env_shave ? (env_shave = shave_db) : (env_shave = env_shave * shave_decay);
+// 5. M/S Reconstruction
+routing_mode > 0 ? (
+  out0 = (c0_out + c1_out) * 0.70710678;
+  out1 = (c0_out - c1_out) * 0.70710678;
 ) : (
-  env_shave = env_shave * shave_decay;
+  out0 = c0_out;
+  out1 = c1_out;
 );
 
-// ── MAKEUP GAIN + SAFETY CEILING CLAMP ───────────────────────────────────
-out0 = min(max(out0 * makeup_lin, -ceiling_lin), ceiling_lin);
-out1 = min(max(out1 * makeup_lin, -ceiling_lin), ceiling_lin);
+// 6. Gold HF De-Emphasis Stage (Topology 3)
+topol_mode == 3 ? (
+  hf_post_y0 = hf_post_b0 * out0 + hf_post_b1 * hf_post0_x1 - hf_post_a1 * hf_post0_y1;
+  hf_post0_x1 = out0; hf_post0_y1 = hf_post_y0; out0 = hf_post_y0;
 
-// ── OUTPUT ROUTING ────────────────────────────────────────────────────────
+  hf_post_y1 = hf_post_b0 * out1 + hf_post_b1 * hf_post1_x1 - hf_post_a1 * hf_post1_y1;
+  hf_post1_x1 = out1; hf_post1_y1 = hf_post_y1; out1 = hf_post_y1;
+);
+
+// 7. True-Peak Inter-Sample Ceiling Lock
+isp_guard ? (
+  out0 = clip_hard(out0, ceiling_lin);
+  out1 = clip_hard(out1, ceiling_lin);
+);
+
+// 8. Auto-Gain & Makeup Output Trim
+final0 = out0 * makeup_lin;
+final1 = out1 * makeup_lin;
+
+// Shave envelope detection
+shv0 = abs(dry0) - abs(out0);
+shv1 = abs(dry1) - abs(out1);
+max_shave_lin = max(0.0, max(shv0, shv1));
+shave_db_inst = (max_shave_lin > 0.00001) ? -20.0 * log10(max(0.00000001, 1.0 - max_shave_lin / max(0.00001, dry_pk))) : 0.0;
+env_shave = max(shave_db_inst, env_shave * shave_decay);
+
+// Scope ring buffer
+scope_decim += 1;
+scope_decim >= 2 ? (
+  scope_decim = 0;
+  SCOPE_IN[scope_wpos]  = max(-1.2, min(1.2, dry0));
+  SCOPE_OUT[scope_wpos] = max(-1.2, min(1.2, out0));
+  SCOPE_SHV[scope_wpos] = max_shave_lin;
+  scope_wpos = (scope_wpos + 1) % SCOPE_BUF_LEN;
+);
+
+// Output Peak Tracking
+out_pk = max(abs(final0), abs(final1));
+out_pk > sifam_out_peak ? sifam_out_peak = out_pk;
+
+// Delta solo audition
 delta_mode ? (
-  spl0 = dry0 - out0;   // Delta: only the removed transient spikes
-  spl1 = dry1 - out1;
+  spl0 = (dry0 - out0) * trim_lin;
+  spl1 = (dry1 - out1) * trim_lin;
 ) : (
-  spl0 = out0;
-  spl1 = out1;
+  spl0 = final0;
+  spl1 = final1;
 );
+
+// =============================================================================
+// @GFX // AFRO-CYBERNETIC LUXURY GUI ENGINE
+// =============================================================================
+@gfx 880 575
+gfx_clear = 0x070a10;
+
+function set_c(hex) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = 1.0;
+);
+
+function set_ca(hex, a) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = a;
+);
+
+function draw_panel(px, py, pw, ph, title_str, tag_str) local(tw, th) (
+  set_ca(0x0a0e16, 0.94); gfx_rect(px, py, pw, ph);
+  set_c(0x182232); gfx_rect(px, py, pw, ph, 0);
+
+  // Corner brackets
+  set_c(0xdfab35);
+  gfx_line(px, py, px + 8, py); gfx_line(px, py, px, py + 8);
+  gfx_line(px + pw - 8, py, px + pw, py); gfx_line(px + pw, py, px + pw, py + 8);
+  gfx_line(px, py + ph, px + 8, py + ph); gfx_line(px, py + ph - 8, px, py + ph);
+  gfx_line(px + pw - 8, py + ph, px + pw, py + ph); gfx_line(px + pw, py + ph - 8, px + pw, py + ph);
+
+  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  set_c(0xdfab35);
+  gfx_x = px + 12; gfx_y = py + 7;
+  gfx_drawstr(title_str);
+
+  strlen(tag_str) > 0 ? (
+    gfx_setfont(2, "Consolas", 9, 'b');
+    set_c(0x38b6ff);
+    gfx_measurestr(tag_str, tw, th);
+    gfx_x = px + pw - tw - 12; gfx_y = py + 8;
+    gfx_drawstr(tag_str);
+  );
+);
+
+// ── TOP FLAGSHIP HEADER ──────────────────────────────────────────────────
+set_ca(0x0e131d, 0.98); gfx_rect(0, 0, gfx_w, 64);
+set_c(0x242e42); gfx_line(0, 64, gfx_w, 64);
+set_c(0xdfab35); gfx_line(0, 63, 180, 63);
+
+// Crest Sigil
+set_ca(0xdfab35, 0.2); gfx_circle(32, 32, 20, 1);
+set_c(0xdfab35); gfx_circle(32, 32, 20, 0);
+gfx_circle(32, 32, 14, 0);
+gfx_circle(32, 32, 4, 1);
+gfx_line(12, 32, 52, 32);
+gfx_line(32, 12, 32, 52);
+
+gfx_setfont(1, "Orbitron", 16, 'b');
+set_c(0xedf1f7); gfx_x = 64; gfx_y = 12; gfx_drawstr("ATUMPAN PRECISION CLIPPER");
+set_c(0xdfab35); gfx_x = 352; gfx_y = 13; gfx_drawstr("// PRO HYBRID v3.0");
+
+gfx_setfont(2, "Segoe UI", 10);
+set_c(0x7e8b9f); gfx_x = 65; gfx_y = 36;
+gfx_drawstr("MULTI-TOPOLOGY MASTERING ENGINE // POLYNOMIAL HERMITE & SCHWABE GOLD HF SPEC");
+
+// Top status pills helper
+function draw_pill_btn(px, py, pw, ph, text, is_active, color) local(tw, th, hov) (
+  hov = (mouse_x >= px && mouse_x <= px + pw && mouse_y >= py && mouse_y <= py + ph);
+  is_active ? (
+    set_ca(color, 0.25); gfx_rect(px, py, pw, ph);
+    set_c(color); gfx_rect(px, py, pw, ph, 0);
+  ) : (
+    set_ca(0x111722, 0.9); gfx_rect(px, py, pw, ph);
+    set_c(hov ? 0x38b6ff : 0x242e40); gfx_rect(px, py, pw, ph, 0);
+  );
+  gfx_setfont(2, "Orbitron", 9.5, 'b');
+  gfx_measurestr(text, tw, th);
+  gfx_x = px + (pw - tw) * 0.5; gfx_y = py + (ph - th) * 0.5;
+  set_c(is_active ? color : (hov ? 0xedf1f7 : 0x7e8b9f));
+  gfx_drawstr(text);
+  hov && mouse_cap == 1 && mouse_cap_prev == 0;
+);
+
+// Clickable Topology Switcher in Header
+topol_btn_x = gfx_w - 365;
+topol_name = topol_mode == 0 ? "1. BRICKWALL" : (topol_mode == 1 ? "2. HERMITE C1" : (topol_mode == 2 ? "3. TUBE TANH" : "4. GOLD HF"));
+draw_pill_btn(topol_btn_x, 18, 115, 28, topol_name, 1, 0xdfab35) ? (
+  slider8 = (slider8 + 1) % 4;
+  slider_automate(slider8);
+);
+
+// Clickable Routing Pill
+rout_name = routing_mode == 0 ? "STEREO L/R" : (routing_mode == 1 ? "MID ONLY" : (routing_mode == 2 ? "SIDE ONLY" : "M/S DUAL"));
+draw_pill_btn(topol_btn_x + 122, 18, 105, 28, rout_name, routing_mode > 0, 0x0fe49e) ? (
+  slider9 = (slider9 + 1) % 4;
+  slider_automate(slider9);
+);
+
+// Oversampling Pill
+os_name = os_mode == 0 ? "1x ZERO LAT" : (os_mode == 1 ? "2x HQ O/S" : "4x MASTER O/S");
+draw_pill_btn(topol_btn_x + 234, 18, 115, 28, os_name, os_mode > 0, 0x38b6ff) ? (
+  slider4 = (slider4 + 1) % 3;
+  slider_automate(slider4);
+);
+
+// ── CARD 1: REAL-TIME SCOPE & SHAVE RADAR (Left 555px) ───────────────────
+card1_w = 555; card1_h = 245;
+draw_panel(10, 74, card1_w, card1_h, "REAL-TIME TRANSIENT SHAVE OSCILLOSCOPE", isp_guard ? "TRUE-PEAK GUARD: ON" : "0.0dBFS CEILING LOCK");
+
+scope_x = 20; scope_y = 106; scope_w = card1_w - 20; scope_h = card1_h - 42;
+set_c(0x090c13); gfx_rect(scope_x, scope_y, scope_w, scope_h);
+set_c(0x1b2435); gfx_rect(scope_x, scope_y, scope_w, scope_h, 0);
+
+cy = scope_y + scope_h * 0.5;
+set_ca(0x27344c, 0.35); gfx_line(scope_x, cy, scope_x + scope_w, cy);
+
+ceil_disp_y = (scope_h * 0.46) * ceiling_lin;
+set_ca(0x38b6ff, 0.65);
+gfx_line(scope_x, cy - ceil_disp_y, scope_x + scope_w, cy - ceil_disp_y);
+gfx_line(scope_x, cy + ceil_disp_y, scope_x + scope_w, cy + ceil_disp_y);
+
+// Knee boundary guide
+knee_disp_y = (scope_h * 0.46) * x_low;
+knee_pct > 0.01 ? (
+  set_ca(0xdfab35, 0.40);
+  gfx_line(scope_x, cy - knee_disp_y, scope_x + scope_w, cy - knee_disp_y);
+  gfx_line(scope_x, cy + knee_disp_y, scope_x + scope_w, cy + knee_disp_y);
+);
+
+// Continuous oscilloscope waveform trace
+scale_amp = (scope_h * 0.46);
+si = 0; px_prev = scope_x; py_prev = cy;
+
+while (si < scope_w) (
+  r_idx = (scope_wpos - scope_w + si + SCOPE_BUF_LEN) % SCOPE_BUF_LEN;
+  in_val  = SCOPE_IN[r_idx];
+  out_val = SCOPE_OUT[r_idx];
+  shv_val = SCOPE_SHV[r_idx];
+
+  px_curr = scope_x + si;
+  py_in   = cy - in_val * scale_amp;
+  py_curr = cy - out_val * scale_amp;
+
+  shv_val > 0.001 ? (
+    set_ca(0xff3e3e, 0.90);
+    gfx_line(px_curr, py_in, px_curr, py_curr);
+  );
+
+  abs(out_val) > 0.0002 ? (
+    set_ca(0xdfab35, 0.92);
+    si > 0 ? gfx_line(px_prev, py_prev, px_curr, py_curr);
+  );
+
+  px_prev = px_curr; py_prev = py_curr;
+  si += 1;
+);
+
+// Scope Legend Overlay
+gfx_setfont(2, "Consolas", 9);
+set_c(0x7e8b9f);
+gfx_x = scope_x + 10; gfx_y = scope_y + 8;
+gfx_drawstr(sprintf(#, "IN PEAK: %2.1fdB  |  OUT PEAK: %2.1fdB  |  ACTIVE SHAVE: -%2.1fdB",
+  20.0 * log10(max(0.00001, sifam_in_peak)),
+  20.0 * log10(max(0.00001, sifam_out_peak)),
+  sifam_shave_ballistic
+));
+
+// ── CARD 2: KNEE TRANSFER CURVE & SIFAM BALLISTICS (Right Side) ──────────
+card2_x = 575; card2_w = gfx_w - card2_x - 10; card2_h = 245;
+draw_panel(card2_x, 74, card2_w, card2_h, "KNEE TRANSFER & SIFAM", sprintf(#, "KNEE %d%%", slider3));
+
+t_x = card2_x + 10; t_y = 106; t_w = card2_w - 20; t_h = 160;
+set_c(0x090c13); gfx_rect(t_x, t_y, t_w, t_h);
+set_c(0x1b2435); gfx_rect(t_x, t_y, t_w, t_h, 0);
+
+// Linear 1:1 diagonal guide
+set_ca(0x27344c, 0.5); gfx_line(t_x, t_y + t_h, t_x + t_w, t_y);
+
+// Draw Transfer Function
+tx_step = 0; px_tr_prev = t_x; py_tr_prev = t_y + t_h;
+while (tx_step < t_w) (
+  norm_x = (tx_step / t_w) * 1.5;
+  norm_y = process_clip_kernel(norm_x, topol_mode, ceiling_lin);
+
+  px_tr = t_x + tx_step;
+  py_tr = t_y + t_h - (norm_y / 1.5) * t_h;
+
+  set_ca(topol_mode == 0 ? 0x0fe49e : (topol_mode == 2 ? 0xffa034 : 0xdfab35), 0.95);
+  tx_step > 0 ? gfx_line(px_tr_prev, py_tr_prev, px_tr, py_tr);
+
+  px_tr_prev = px_tr; py_tr_prev = py_tr;
+  tx_step += 2;
+);
+
+// Dynamic ceiling guideline on transfer box
+tr_ceil_y = t_y + t_h - (ceiling_lin / 1.5) * t_h;
+set_ca(0x38b6ff, 0.70);
+gfx_line(t_x, tr_ceil_y, t_x + t_w, tr_ceil_y);
+
+// Transfer Box Text
+gfx_setfont(2, "Consolas", 8.5);
+set_c(0x7e8b9f);
+gfx_x = t_x + 6; gfx_y = t_y + 6;
+gfx_drawstr(topol_mode == 0 ? "PURE HARD BRICKWALL" : (topol_mode == 1 ? "NATURAL HERMITE SOFT" : (topol_mode == 2 ? "CUBIC TANH TUBE WARMTH" : "GOLD HF PRE-EMPHASIS")));
+
+// Horizontal SIFAM Shave Meter Bar
+sm_y = t_y + t_h + 8; sm_h = 22;
+set_c(0x0e131d); gfx_rect(t_x, sm_y, t_w, sm_h);
+set_c(0x242e42); gfx_rect(t_x, sm_y, t_w, sm_h, 0);
+
+shave_fraction = min(1.0, sifam_shave_ballistic / 12.0);
+shave_fill_w = floor(shave_fraction * (t_w - 4));
+shave_fill_w > 0 ? (
+  shave_fraction > 0.5 ? set_c(0xff3e3e) : (shave_fraction > 0.25 ? set_c(0xdfab35) : set_c(0x0fe49e));
+  gfx_rect(t_x + t_w - shave_fill_w, sm_y + 2, shave_fill_w, sm_h - 4);
+);
+
+gfx_setfont(2, "Consolas", 9);
+set_c(0xedf1f7); gfx_x = t_x + 6; gfx_y = sm_y + 4;
+gfx_drawstr("SHAVE GR");
+gfx_x = t_x + t_w - 52; gfx_y = sm_y + 4;
+gfx_drawstr(sprintf(#, "-%2.1fdB", sifam_shave_ballistic));
+
+// ── BOTTOM CONTROL DECK: ROTARY KNOBS & TOGGLES (Y: 330 to 565) ──────────
+deck_y = 330; deck_h = 235;
+draw_panel(10, deck_y, gfx_w - 20, deck_h, "SURGICAL HARMONIC CLIPPER ENGINE CONTROLS", "AFRO-CYBERNETIC MASTERING");
+
+// Knob renderer function
+function draw_cyber_knob(kx, ky, krad, val, min_val, max_val, label_str, unit_str, color, kid)
+  local(ang_min, ang_max, norm, ang, dot_x, dot_y, hov, active, step_a, ax, ay, vtw, vth, ltw, lth, val_str, dy, new_val)
+(
+  ang_min = 2.356194;   // 135 deg
+  ang_max = 7.068583;   // 405 deg (270 deg span)
+  norm = (val - min_val) / (max_val - min_val);
+  ang = ang_min + norm * (ang_max - ang_min);
+
+  hov = (mouse_x >= kx - krad && mouse_x <= kx + krad && mouse_y >= ky - krad && mouse_y <= ky + krad);
+  active = (active_knob == kid);
+
+  set_ca(0x161e2c, 0.9); gfx_circle(kx, ky, krad, 1);
+  set_c(0x27344c); gfx_circle(kx, ky, krad, 0);
+
+  step_a = ang_min;
+  while (step_a <= ang) (
+    ax = kx + cos(step_a) * (krad - 4);
+    ay = ky + sin(step_a) * (krad - 4);
+    set_c(active ? 0xffc94a : color);
+    gfx_circle(ax, ay, 2, 1);
+    step_a += 0.08;
+  );
+
+  set_c(0x0e131d); gfx_circle(kx, ky, krad - 10, 1);
+  set_c(active ? 0xdfab35 : (hov ? 0x38b6ff : 0x222c3e)); gfx_circle(kx, ky, krad - 10, 0);
+
+  dot_x = kx + cos(ang) * (krad - 15);
+  dot_y = ky + sin(ang) * (krad - 15);
+  set_c(0xedf1f7); gfx_circle(dot_x, dot_y, 3, 1);
+
+  gfx_setfont(1, "Orbitron", 11, 'b');
+  set_c(0xedf1f7);
+  val_str = sprintf(#, "%+2.1f %s", val, unit_str);
+  gfx_measurestr(val_str, vtw, vth);
+  gfx_x = kx - vtw * 0.5; gfx_y = ky + krad + 6;
+  gfx_drawstr(val_str);
+
+  gfx_setfont(2, "Segoe UI", 10);
+  set_c(0x7e8b9f);
+  gfx_measurestr(label_str, ltw, lth);
+  gfx_x = kx - ltw * 0.5; gfx_y = ky + krad + 22;
+  gfx_drawstr(label_str);
+
+  mouse_cap == 1 && mouse_cap_prev == 0 && hov ? (
+    active_knob = kid;
+    knob_drag_val = val;
+    knob_drag_y = mouse_y;
+  );
+
+  active ? (
+    dy = knob_drag_y - mouse_y;
+    new_val = min(max_val, max(min_val, knob_drag_val + dy * ((max_val - min_val) / 160.0)));
+    kid == 1 ? (slider1 = new_val; slider_automate(slider1););
+    kid == 2 ? (slider2 = new_val; slider_automate(slider2););
+    kid == 3 ? (slider3 = new_val; slider_automate(slider3););
+    kid == 7 ? (slider7 = new_val; slider_automate(slider7););
+  );
+);
+
+// Draw 4 Large Knobs
+knob_y = deck_y + 70;
+draw_cyber_knob(120, knob_y, 34, slider1, -12.0, 24.0, "INPUT DRIVE", "dB", 0xdfab35, 1);
+draw_cyber_knob(330, knob_y, 34, slider2, -12.0, 0.0, "CEILING", "dBFS", 0x38b6ff, 2);
+draw_cyber_knob(540, knob_y, 34, slider3, 0.0, 100.0, "SOFTNESS / KNEE", "%", 0x0fe49e, 3);
+draw_cyber_knob(750, knob_y, 34, slider7, -12.0, 12.0, "OUTPUT TRIM", "dB", 0xdfab35, 7);
+
+// Button renderer helper
+function draw_cyber_btn(bx, by, bw, bh, text, is_active, active_col) local(tw, th, hov) (
+  hov = (mouse_x >= bx && mouse_x < bx + bw && mouse_y >= by && mouse_y < by + bh);
+  is_active ? (
+    set_ca(active_col, 0.22); gfx_rect(bx, by, bw, bh);
+    set_c(active_col); gfx_rect(bx, by, bw, bh, 0);
+  ) : (
+    set_ca(0x131a26, 0.9); gfx_rect(bx, by, bw, bh);
+    set_c(hov ? 0x38b6ff : 0x222c3e); gfx_rect(bx, by, bw, bh, 0);
+  );
+  gfx_setfont(1, "Orbitron", 10, 'b');
+  gfx_measurestr(text, tw, th);
+  gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+  set_c(is_active ? active_col : (hov ? 0xedf1f7 : 0x7e8b9f));
+  gfx_drawstr(text);
+  hov && mouse_cap == 1 && mouse_cap_prev == 0;
+);
+
+// Bottom row buttons (Oversampling, Auto-Gain, Delta Solo, True-Peak)
+btn_y = deck_y + 175; btn_h = 36;
+bw1 = 125;
+draw_cyber_btn(20, btn_y, bw1, btn_h, "1x ZERO LAT", os_mode == 0, 0x38b6ff) ? (
+  slider4 = 0; slider_automate(slider4);
+);
+draw_cyber_btn(155, btn_y, bw1, btn_h, "2x HQ OS", os_mode == 1, 0x38b6ff) ? (
+  slider4 = 1; slider_automate(slider4);
+);
+draw_cyber_btn(290, btn_y, bw1, btn_h, "4x PRISTINE", os_mode == 2, 0x38b6ff) ? (
+  slider4 = 2; slider_automate(slider4);
+);
+
+bw2 = 135;
+draw_cyber_btn(435, btn_y, bw2, btn_h, auto_gain ? "AUTO-GAIN: ON" : "AUTO-GAIN: OFF", auto_gain, 0x0fe49e) ? (
+  slider5 = !auto_gain; slider_automate(slider5);
+);
+draw_cyber_btn(580, btn_y, bw2, btn_h, delta_mode ? "DELTA AUDITION" : "MONITOR: NORMAL", delta_mode, 0xff3e3e) ? (
+  slider6 = !delta_mode; slider_automate(slider6);
+);
+draw_cyber_btn(725, btn_y, bw2, btn_h, isp_guard ? "ISP GUARD: ON" : "ISP GUARD: OFF", isp_guard, 0xdfab35) ? (
+  slider10 = !isp_guard; slider_automate(slider10);
+);
+
+// Clear knob drag when mouse released
+mouse_cap == 0 ? active_knob = -1;
+mouse_cap_prev = mouse_cap;

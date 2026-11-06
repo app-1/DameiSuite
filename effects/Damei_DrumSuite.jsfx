@@ -29,7 +29,7 @@ slider21:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider22:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider23:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider24:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider25:0<0,19,1{Default GGD Modern & Massive,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Drum Signature Preset
+slider25:0<0,26,1{Default Neutral Wire (GGD M&M Wire),Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Grant Berry & Lewis Johns (blanket / Love Is Noise),Kel Pinchin (Split Chain Target),Dan Lancaster (Don Broco - Endorphins),Erik Bickerstaffe (Static Dress - face..),Sam Guaiana (Shyeye / Silverstein),Zach Tuch (Heavenward - Tangerine),Forrester Savell (City Of Souls / Karnivool),Leon Schmidt (SUNBORN - Nebula),Ermin Hamidovic (The Systematic Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Loathe / Sleep Token),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Bad Omens / Blink-182),Jens Bogren (Fascination Street Studios),Adam Nolly Getgood (Periphery / GGD),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue),Matt Thomas (Ashtone - Live Room Authority),Mark Williamson (Sugarhouse - Live Cohesion)}>-Producer Drum Signature Preset
 slider26:0<0,3,1{GetGood Drums Modern & Massive (Optimized),Raw Cambridge MT Stems (Rescue Mode),Sample-Replaced Hybrid Drum Bus,Live Room Acoustic Tracking}>-Drum Kit Source Model
 slider27:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider28:1<0,3,1{Off,Tasteful Auto-Impact,Commercial Drop Slam,Subtle Dynamic Breathing}>-Song Structure & Chorus Impact AI
@@ -480,162 +480,217 @@ function apply_drum_preset(p_idx) (
     slider19 = 2.4; slider20 = 0.0; slider24 = -1.6;
     slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -1.8;
   ) : p_idx == 5 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+    // 5: GRANT BERRY & LEWIS JOHNS (blanket / Love Is Noise) - Shoegaze Room Bloom & Snare Weight
+    slider43 = 0; slider44 = 40; slider45 = 28; slider46 = 58;
+    slider47 = 52; slider48 = 36; slider49 = 75; slider50 = 85; slider51 = 0.0;
+    slider2  = -12.0; slider3  = 20; slider4  = -28.0; slider5  = -2.2; slider6  = 1.5;
+    slider7  = 34; slider8  = 110; slider9  = 76; slider10 = 42;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.8; slider14 = -0.2;
+    slider15 = 70; slider16 = 1.6; slider17 = 2.8; slider18 = -2.4;
+    slider19 = 1.6; slider20 = 0.4; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 75; slider40 = -1.0;
+  ) : p_idx == 6 ? (
+    // 6: KEL PINCHIN (Split Chain / Currents / Invent Animate) - Ultra-Tight Progressive Core
     slider43 = 0; slider44 = 42; slider45 = 24; slider46 = 62;
     slider47 = 53; slider48 = 40; slider49 = 80; slider50 = 85; slider51 = 0.0;
-    // 5: KEL PINCHIN (Currents / Invent Animate) - Ultra-Tight Progressive Metalcore
     slider2  = -12.0; slider3  = 25; slider4  = -27.0; slider5  = -2.0; slider6  = 1.6;
     slider7  = 26; slider8  = 80; slider9  = 82; slider10 = 38;
     slider11 = 0.0; slider12 = -1.6; slider13 = 1.8; slider14 = -0.4;
     slider15 = 68; slider16 = 1.8; slider17 = 2.6; slider18 = -2.8;
     slider19 = 1.8; slider20 = 0.0; slider24 = -1.1;
     slider31 = 0; slider32 = 48; slider39 = 80; slider40 = -1.4;
-  ) : p_idx == 6 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 7 ? (
+    // 7: DAN LANCASTER (Don Broco - Endorphins / BMTH) - Explosive Arena Rock Snare & Punch
+    slider43 = 1; slider44 = 52; slider45 = 36; slider46 = 70;
+    slider47 = 50; slider48 = 44; slider49 = 85; slider50 = 85; slider51 = 0.5;
+    slider2  = -12.0; slider3  = 24; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
+    slider7  = 28; slider8  = 85; slider9  = 80; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.4; slider13 = 2.0; slider14 = -0.4;
+    slider15 = 72; slider16 = 2.0; slider17 = 3.0; slider18 = -2.6;
+    slider19 = 2.0; slider20 = 0.2; slider24 = -1.1;
+    slider31 = 0; slider32 = 48; slider39 = 80; slider40 = -1.2;
+  ) : p_idx == 8 ? (
+    // 8: ERIK BICKERSTAFFE (Static Dress - face.) - Raw Post-Hardcore Tape Grit & Room Snap
+    slider43 = 1; slider44 = 56; slider45 = 44; slider46 = 66;
+    slider47 = 48; slider48 = 38; slider49 = 80; slider50 = 82; slider51 = 0.5;
+    slider2  = -12.0; slider3  = 24; slider4  = -27.0; slider5  = -2.2; slider6  = 1.5;
+    slider7  = 30; slider8  = 95; slider9  = 78; slider10 = 40;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.5; slider14 = -0.3;
+    slider15 = 72; slider16 = 1.6; slider17 = 2.8; slider18 = -2.2;
+    slider19 = 1.8; slider20 = 0.3; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.0;
+  ) : p_idx == 9 ? (
+    // 9: SAM GUAIANA (Shyeye / Silverstein / TDWP) - Punchy Forward Snare Explosion
     slider43 = 0; slider44 = 40; slider45 = 25; slider46 = 58;
     slider47 = 50; slider48 = 35; slider49 = 75; slider50 = 90; slider51 = 0.0;
-    // 6: SAM GUAIANA (Silverstein / The Devil Wears Prada) - Punchy Forward Snare Explosion
     slider2  = -12.0; slider3  = 24; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
     slider7  = 30; slider8  = 90; slider9  = 80; slider10 = 40;
     slider11 = 0.0; slider12 = -1.8; slider13 = 1.4; slider14 = -0.5;
     slider15 = 72; slider16 = 1.5; slider17 = 3.0; slider18 = -2.5;
     slider19 = 1.8; slider20 = 0.0; slider24 = -1.2;
     slider31 = 2; slider32 = 65; slider39 = 85; slider40 = -1.0;
-  ) : p_idx == 7 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 10 ? (
+    // 10: ZACH TUCH (Heavenward - Tangerine) - Warm Alt-Rock Shell Weight & Lush Cymbal Silk
+    slider43 = 0; slider44 = 42; slider45 = 30; slider46 = 60;
+    slider47 = 52; slider48 = 38; slider49 = 78; slider50 = 85; slider51 = 0.0;
+    slider2  = -12.0; slider3  = 20; slider4  = -28.0; slider5  = -2.2; slider6  = 1.4;
+    slider7  = 34; slider8  = 105; slider9  = 76; slider10 = 42;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.8; slider14 = -0.2;
+    slider15 = 70; slider16 = 1.6; slider17 = 2.8; slider18 = -2.4;
+    slider19 = 1.7; slider20 = 0.2; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 78; slider40 = -1.0;
+  ) : p_idx == 11 ? (
+    // 11: FORRESTER SAVELL (City Of Souls / Karnivool) - Organic Progressive Dynamic Breath
     slider43 = 0; slider44 = 32; slider45 = 18; slider46 = 55;
     slider47 = 54; slider48 = 30; slider49 = 70; slider50 = 95; slider51 = -0.5;
-    // 7: FORRESTER SAVELL (Karnivool / Dead Letter Circus) - Organic Progressive Dynamic Breath
     slider2  = -13.0; slider3  = 16; slider4  = -32.0; slider5  = -2.5; slider6  = 1.2;
     slider7  = 42; slider8  = 150; slider9  = 72; slider10 = 45;
     slider11 = 0.0; slider12 = -0.8; slider13 = 2.0; slider14 = 0.0;
     slider15 = 55; slider16 = 1.6; slider17 = 2.4; slider18 = -2.0;
     slider19 = 1.4; slider20 = 0.2; slider24 = -0.9;
     slider31 = 0; slider32 = 50; slider39 = 75; slider40 = -0.6;
-  ) : p_idx == 8 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
-    slider43 = 0; slider44 = 45; slider45 = 28; slider46 = 60;
-    slider47 = 50; slider48 = 38; slider49 = 80; slider50 = 85; slider51 = 0.0;
-    // 8: JENS BOGREN (Fascination Street Studios / Opeth / Sepultura) - Scandinavian Heavy Weight
-    slider2  = -12.0; slider3  = 24; slider4  = -27.0; slider5  = -2.2; slider6  = 1.5;
-    slider7  = 32; slider8  = 100; slider9  = 78; slider10 = 42;
-    slider11 = 0.0; slider12 = -1.5; slider13 = 1.6; slider14 = -0.3;
-    slider15 = 70; slider16 = 1.8; slider17 = 3.0; slider18 = -2.8;
-    slider19 = 1.8; slider20 = 0.0; slider24 = -1.3;
+  ) : p_idx == 12 ? (
+    // 12: LEON SCHMIDT (SUNBORN - Nebula) - Precision German Modern Core & Tight Sub Anchor
+    slider43 = 1; slider44 = 50; slider45 = 34; slider46 = 68;
+    slider47 = 50; slider48 = 42; slider49 = 85; slider50 = 85; slider51 = 0.5;
+    slider2  = -12.0; slider3  = 25; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
+    slider7  = 26; slider8  = 82; slider9  = 82; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.5; slider13 = 1.8; slider14 = -0.4;
+    slider15 = 74; slider16 = 2.0; slider17 = 2.8; slider18 = -2.8;
+    slider19 = 2.0; slider20 = 0.0; slider24 = -1.2;
+    slider31 = 0; slider32 = 48; slider39 = 82; slider40 = -1.4;
+  ) : p_idx == 13 ? (
+    // 13: ERMIN HAMIDOVIC (The Systematic Benchmark) - Surgical Reference Clarity & Punch
+    slider43 = 0; slider44 = 45; slider45 = 26; slider46 = 66;
+    slider47 = 51; slider48 = 40; slider49 = 82; slider50 = 88; slider51 = 0.0;
+    slider2  = -12.0; slider3  = 22; slider4  = -27.0; slider5  = -2.0; slider6  = 1.5;
+    slider7  = 28; slider8  = 88; slider9  = 80; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.4; slider13 = 1.8; slider14 = -0.4;
+    slider15 = 72; slider16 = 1.8; slider17 = 2.8; slider18 = -2.8;
+    slider19 = 1.9; slider20 = 0.0; slider24 = -1.1;
     slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.2;
-  ) : p_idx == 9 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
-    slider43 = 0; slider44 = 40; slider45 = 22; slider46 = 65;
-    slider47 = 52; slider48 = 42; slider49 = 85; slider50 = 90; slider51 = 0.0;
-    // 9: ADAM NOLLY GETGOOD (Periphery / GGD Architect) - Surgical Modern Balance
-    slider2  = -12.0; slider3  = 22; slider4  = -28.0; slider5  = -2.2; slider6  = 1.4;
-    slider7  = 30; slider8  = 95; slider9  = 80; slider10 = 40;
-    slider11 = 0.0; slider12 = -1.4; slider13 = 1.8; slider14 = -0.3;
-    slider15 = 75; slider16 = 1.5; slider17 = 2.6; slider18 = -2.6;
-    slider19 = 1.8; slider20 = 0.0; slider24 = -1.1;
-    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.0;
-  ) : p_idx == 10 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 14 ? (
+    // 14: WILL PUTNEY (Fit For An Autopsy / Knocked Loose) - Raw Aggressive Shell Bite
     slider43 = 1; slider44 = 58; slider45 = 40; slider46 = 70;
     slider47 = 48; slider48 = 44; slider49 = 90; slider50 = 80; slider51 = 0.5;
-    // 10: WILL PUTNEY (Fit For An Autopsy / Knocked Loose) - Raw Aggressive Shell Bite
     slider2  = -11.5; slider3  = 28; slider4  = -25.0; slider5  = -1.8; slider6  = 1.8;
     slider7  = 24; slider8  = 75; slider9  = 85; slider10 = 36;
     slider11 = 0.0; slider12 = -1.6; slider13 = 1.6; slider14 = -0.4;
     slider15 = 72; slider16 = 2.2; slider17 = 3.4; slider18 = -3.2;
     slider19 = 2.2; slider20 = 0.0; slider24 = -1.6;
     slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -1.4;
-  ) : p_idx == 11 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 15 ? (
+    // 15: GEORGE LEVER (Loathe / Sleep Token) - Cinematic Sub Anchor & Ethereal Silk
     slider43 = 0; slider44 = 38; slider45 = 26; slider46 = 52;
     slider47 = 54; slider48 = 36; slider49 = 75; slider50 = 85; slider51 = 0.0;
-    // 11: GEORGE LEVER (Sleep Token / Loathe) - Cinematic Sub Anchor & Ethereal Silk
     slider2  = -13.0; slider3  = 15; slider4  = -32.0; slider5  = -2.5; slider6  = 1.2;
     slider7  = 45; slider8  = 160; slider9  = 72; slider10 = 45;
     slider11 = 0.0; slider12 = -1.2; slider13 = 2.2; slider14 = 0.0;
     slider15 = 52; slider16 = 1.8; slider17 = 2.5; slider18 = -2.0;
     slider19 = 1.5; slider20 = 0.2; slider24 = -0.9;
     slider31 = 0; slider32 = 52; slider39 = 75; slider40 = -0.8;
-  ) : p_idx == 12 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 16 ? (
+    // 16: SAM BASSAL (Thornhill / Ocean Grove) - 90s Alternative Grit & Modern Core Punch
     slider43 = 0; slider44 = 44; slider45 = 28; slider46 = 62;
     slider47 = 51; slider48 = 40; slider49 = 80; slider50 = 85; slider51 = 0.0;
-    // 12: SAM BASSAL (Thornhill / Ocean Grove) - 90s Alternative Grit & Modern Core Punch
     slider2  = -12.0; slider3  = 25; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
     slider7  = 28; slider8  = 80; slider9  = 82; slider10 = 38;
     slider11 = 0.0; slider12 = -1.8; slider13 = 1.2; slider14 = -0.4;
     slider15 = 68; slider16 = 1.6; slider17 = 3.0; slider18 = -2.6;
     slider19 = 2.0; slider20 = 0.0; slider24 = -1.3;
     slider31 = 0; slider32 = 48; slider39 = 80; slider40 = -1.0;
-  ) : p_idx == 13 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 17 ? (
+    // 17: HENRIK UDD (Architects / BMTH) - Massive Polished UK Metal Arena Slam
     slider43 = 0; slider44 = 48; slider45 = 32; slider46 = 66;
     slider47 = 50; slider48 = 42; slider49 = 85; slider50 = 85; slider51 = 0.5;
-    // 13: HENRIK UDD (Architects / Bring Me The Horizon) - Massive Polished UK Metal
     slider2  = -12.0; slider3  = 26; slider4  = -27.0; slider5  = -2.0; slider6  = 1.5;
     slider7  = 28; slider8  = 85; slider9  = 80; slider10 = 38;
     slider11 = 0.0; slider12 = -2.0; slider13 = 1.6; slider14 = -0.5;
     slider15 = 72; slider16 = 1.8; slider17 = 2.8; slider18 = -3.0;
     slider19 = 1.9; slider20 = 0.0; slider24 = -1.4;
     slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.2;
-  ) : p_idx == 14 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
-    slider43 = 1; slider44 = 62; slider45 = 45; slider46 = 75;
-    slider47 = 46; slider48 = 48; slider49 = 90; slider50 = 80; slider51 = 1.0;
-    // 14: JOEY STURGIS (Asking Alexandria / Attack Attack!) - Hyper-Processed 2010s Metalcore Slam
-    slider2  = -11.0; slider3  = 38; slider4  = -24.0; slider5  = -1.5; slider6  = 2.2;
-    slider7  = 22; slider8  = 60; slider9  = 88; slider10 = 34;
-    slider11 = 0.0; slider12 = -1.8; slider13 = 2.6; slider14 = -0.6;
-    slider15 = 60; slider16 = 2.6; slider17 = 3.2; slider18 = -3.8;
-    slider19 = 2.5; slider20 = 0.0; slider24 = -1.8;
-    slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -1.8;
-  ) : p_idx == 15 ? (
-    // BSA Drum Bus Settings (Producer Signature Calibration)
+  ) : p_idx == 18 ? (
+    // 18: DAN BRAUNSTEIN (Spiritbox / Volumes / Dayseeker) - Ethereal Modern Punch & Silk Air
     slider43 = 0; slider44 = 42; slider45 = 26; slider46 = 68;
     slider47 = 52; slider48 = 42; slider49 = 85; slider50 = 85; slider51 = 0.5;
-    // 15: DAN BRAUNSTEIN (Spiritbox / Volumes / Dayseeker) - Ethereal Modern Punch & Silk Air
     slider2  = -12.0; slider3  = 22; slider4  = -27.0; slider5  = -2.2; slider6  = 1.5;
     slider7  = 32; slider8  = 95; slider9  = 78; slider10 = 42;
     slider11 = 0.0; slider12 = -1.5; slider13 = 2.0; slider14 = -0.2;
     slider15 = 74; slider16 = 1.2; slider17 = 3.2; slider18 = -2.8;
     slider19 = 1.8; slider20 = 0.0; slider24 = -1.2;
     slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -2.6;
-  ) : p_idx == 16 ? (
-    // 16: ZAKK CERVINI (Blink-182 / BMTH / Machine Gun Kelly) - Upfront Radio Rimshot Crack
-    slider2  = -11.5; slider3  = 28; slider4  = -25.0; slider5  = -1.8; slider6  = 1.6;
-    slider7  = 24; slider8  = 75; slider9  = 84; slider10 = 36;
-    slider11 = 0.0; slider12 = -1.6; slider13 = 1.8; slider14 = -0.4;
-    slider15 = 75; slider16 = 1.8; slider17 = 3.2; slider18 = -2.6;
-    slider19 = 2.0; slider20 = 0.0; slider24 = -1.5;
+  ) : p_idx == 19 ? ( // 19: Zakk Cervini (Bad Omens / Blink-182)
+    slider43 = 1; slider44 = 55; slider45 = 40; slider46 = 75;
+    slider47 = 50; slider48 = 45; slider49 = 90; slider50 = 85; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 24; slider4 = -26.0; slider5 = -2.0; slider6 = 1.6;
+    slider7 = 25; slider8 = 85; slider9 = 80; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.8; slider14 = -0.5;
+    slider15 = 75; slider16 = 2.0; slider17 = 2.8; slider18 = -2.5;
+    slider19 = 2.2; slider20 = 0.0; slider24 = -1.0;
     slider31 = 0; slider32 = 45; slider39 = 85; slider40 = -1.2;
-  ) : p_idx == 17 ? (
-    // 17: ACLE KAHNEY (TesseracT - King) - Surgical Djent Punch & Transparent Silk
-    slider2  = -12.0; slider3  = 20; slider4  = -28.0; slider5  = -2.5; slider6  = 1.4;
-    slider7  = 30; slider8  = 90; slider9  = 75; slider10 = 40;
-    slider11 = 0.0; slider12 = -1.2; slider13 = 1.6; slider14 = 0.0;
-    slider15 = 75; slider16 = 1.0; slider17 = 2.8; slider18 = -2.5;
-    slider19 = 1.6; slider20 = 0.0; slider24 = -1.0;
-    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -2.0;
-  ) : p_idx == 18 ? (
-    // 18: ADAM CICHOCKI (heaving. - carsick / Timber Studios) - Heavy Saturated Grungegaze & Warm Shells
-    slider43 = 0; slider44 = 45; slider45 = 35; slider46 = 55;
-    slider47 = 48; slider48 = 32; slider49 = 75; slider50 = 85; slider51 = 0.0;
-    slider2  = -12.0; slider3  = 35; slider4  = -25.0; slider5  = -1.8; slider6  = 1.8;
-    slider7  = 26; slider8  = 70; slider9  = 82; slider10 = 35;
-    slider11 = 0.0; slider12 = -1.4; slider13 = 1.5; slider14 = -0.5;
-    slider15 = 75; slider16 = 1.6; slider17 = 3.0; slider18 = -2.4;
-    slider19 = 1.6; slider20 = 0.0; slider24 = -1.4;
-    slider31 = 0; slider32 = 45; slider39 = 75; slider40 = -2.0;
-  ) : (
-    // 19: MANUEL RENNER (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Punch
-    slider43 = 0; slider44 = 48; slider45 = 25; slider46 = 65;
-    slider47 = 54; slider48 = 40; slider49 = 85; slider50 = 88; slider51 = 0.5;
-    slider2  = -12.0; slider3  = 30; slider4  = -26.0; slider5  = -2.0; slider6  = 1.6;
-    slider7  = 30; slider8  = 85; slider9  = 80; slider10 = 40;
-    slider11 = 0.0; slider12 = -1.5; slider13 = 2.2; slider14 = 0.2;
-    slider15 = 80; slider16 = 2.2; slider17 = 3.2; slider18 = -3.2;
+  ) : p_idx == 20 ? ( // 20: Jens Bogren (Fascination Street Studios)
+    slider43 = 1; slider44 = 50; slider45 = 35; slider46 = 70;
+    slider47 = 45; slider48 = 40; slider49 = 85; slider50 = 80; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 22; slider4 = -27.0; slider5 = -2.0; slider6 = 1.5;
+    slider7 = 30; slider8 = 95; slider9 = 78; slider10 = 40;
+    slider11 = 0.0; slider12 = -1.0; slider13 = 1.5; slider14 = -0.4;
+    slider15 = 75; slider16 = 1.8; slider17 = 2.5; slider18 = -2.2;
+    slider19 = 1.8; slider20 = 0.0; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.2;
+  ) : p_idx == 21 ? ( // 21: Adam Nolly Getgood (Periphery / GGD)
+    slider43 = 1; slider44 = 60; slider45 = 42; slider46 = 75;
+    slider47 = 48; slider48 = 45; slider49 = 92; slider50 = 85; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 25; slider4 = -26.0; slider5 = -2.0; slider6 = 1.6;
+    slider7 = 25; slider8 = 80; slider9 = 82; slider10 = 36;
+    slider11 = 0.0; slider12 = -1.5; slider13 = 2.0; slider14 = -0.5;
+    slider15 = 75; slider16 = 2.2; slider17 = 3.0; slider18 = -2.8;
+    slider19 = 2.4; slider20 = 0.0; slider24 = -1.2;
+    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.0;
+  ) : p_idx == 22 ? ( // 22: Acle Kahney (TesseracT - King)
+    slider43 = 1; slider44 = 48; slider45 = 32; slider46 = 68;
+    slider47 = 42; slider48 = 38; slider49 = 82; slider50 = 78; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 20; slider4 = -28.0; slider5 = -2.5; slider6 = 1.4;
+    slider7 = 35; slider8 = 100; slider9 = 75; slider10 = 42;
+    slider11 = 0.0; slider12 = -0.8; slider13 = 1.4; slider14 = -0.3;
+    slider15 = 75; slider16 = 1.5; slider17 = 2.2; slider18 = -2.0;
+    slider19 = 1.5; slider20 = 0.0; slider24 = -0.8;
+    slider31 = 0; slider32 = 50; slider39 = 78; slider40 = -0.8;
+  ) : p_idx == 23 ? ( // 23: Adam Cichocki (heaving. - carsick / Timber Studios)
+    slider43 = 1; slider44 = 58; slider45 = 40; slider46 = 72;
+    slider47 = 46; slider48 = 42; slider49 = 88; slider50 = 82; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 24; slider4 = -26.0; slider5 = -2.0; slider6 = 1.5;
+    slider7 = 28; slider8 = 85; slider9 = 80; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.2; slider13 = 1.8; slider14 = -0.5;
+    slider15 = 75; slider16 = 2.0; slider17 = 2.8; slider18 = -2.6;
+    slider19 = 2.0; slider20 = 0.0; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 82; slider40 = -1.2;
+  ) : p_idx == 24 ? ( // 24: Manuel Renner (SENNA - Out Of The Blue)
+    slider43 = 1; slider44 = 54; slider45 = 38; slider46 = 74;
+    slider47 = 48; slider48 = 44; slider49 = 90; slider50 = 84; slider51 = 0.5;
+    slider2 = -12.0; slider3 = 25; slider4 = -26.0; slider5 = -2.0; slider6 = 1.6;
+    slider7 = 25; slider8 = 80; slider9 = 80; slider10 = 38;
+    slider11 = 0.0; slider12 = -1.4; slider13 = 2.0; slider14 = -0.5;
+    slider15 = 75; slider16 = 0.8; slider17 = 0.8; slider18 = -3.2;
     slider19 = 2.2; slider20 = 0.0; slider24 = -1.2;
-    slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -2.2;
+    slider31 = 0; slider32 = 48; slider39 = 80; slider40 = -2.2;
+  ) : p_idx == 25 ? ( // 25: Matt Thomas (Ashtone - Live Room Authority)
+    slider43 = 0; slider44 = 42; slider45 = 25; slider46 = 78;
+    slider47 = 46; slider48 = 30; slider49 = 100; slider50 = 80; slider51 = 0.0;
+    slider2 = -12.0; slider3 = 18; slider4 = -28.0; slider5 = -2.0; slider6 = 1.4;
+    slider7 = 20; slider8 = 85; slider9 = 82; slider10 = 36;
+    slider11 = -3.0; slider12 = -2.2; slider13 = 1.2; slider14 = -0.8;
+    slider15 = 85; slider16 = 1.8; slider17 = 2.4; slider18 = -4.2;
+    slider19 = 2.5; slider20 = -0.5; slider24 = -1.0;
+    slider31 = 0; slider32 = 50; slider39 = 85; slider40 = -2.0;
+  ) : ( // 26: Mark Williamson (Sugarhouse - Live Cohesion)
+    slider43 = 0; slider44 = 50; slider45 = 32; slider46 = 65;
+    slider47 = 45; slider48 = 28; slider49 = 95; slider50 = 78; slider51 = 0.0;
+    slider2 = -12.5; slider3 = 25; slider4 = -26.0; slider5 = -2.0; slider6 = 1.5;
+    slider7 = 30; slider8 = 95; slider9 = 80; slider10 = 40;
+    slider11 = -2.0; slider12 = -3.8; slider13 = 1.5; slider14 = -1.2;
+    slider15 = 80; slider16 = 1.4; slider17 = 2.0; slider18 = -2.8;
+    slider19 = 1.8; slider20 = -0.8; slider24 = -0.8;
+    slider31 = 0; slider32 = 50; slider39 = 80; slider40 = -1.5;
   );
 
   update_drum_filters();
@@ -659,7 +714,7 @@ function trigger_drum_ai_assist() (
   );
 
   // 2. Dan Braunstein Snare Weight Standard: never allow snare to get lost in mix
-  slider17 < 2.8 ? slider17 = 3.2; // Round 205Hz shell weight
+  slider17 > 1.2 ? slider17 = 0.8; // Round 205Hz shell weight
   slider18 > -2.4 ? slider18 = -2.8; // Clean 340Hz mud scoop
   slider19 < 1.6 ? slider19 = 1.8; // Stick crack transient snap
 
@@ -790,6 +845,11 @@ function load_ab_snapshot(src_buf) local(k) (
 slider25 != prev_preset ? (
   prev_preset = slider25;
   apply_drum_preset(slider25);
+  gmem[200] == 0x4452554D ? (
+    gmem[201] = slider25;
+    gmem[202] += 1;
+    prev_sentry_p = slider25;
+  );
 ) : slider26 != prev_source_model ? (
   prev_source_model = slider26;
   slider26 == 1 ? (
@@ -815,6 +875,18 @@ update_drum_filters();
 
 @block
 mtrim_block();
+(gmem[200] == 0x4452554D && gmem[203] == 1) ? (
+  sentry_p = floor(gmem[201] + 0.5);
+  (sentry_p >= 0 && sentry_p <= 24 && sentry_p != prev_sentry_p) ? (
+    prev_sentry_p = sentry_p;
+    slider25 != sentry_p ? (
+      slider25 = sentry_p;
+      prev_preset = sentry_p;
+      apply_drum_preset(slider25);
+      slider_automate(slider25);
+    );
+  );
+);
 
 
 
@@ -1182,8 +1254,12 @@ slider41 == 1 ? (
 );
 
 // Read Live Master Track RMS from Mixing Suite via gmem[800]
-mst_rms_live = (gmem[800] > -90.0) ? gmem[800] : -18.0;
-drum_to_mix_db = cur_vu_rms - mst_rms_live;
+mst_rms_live = (gmem[800] > -24.0 && gmem[800] < 0.0) ? gmem[800] : (cur_vu_rms + 5.4);
+(cur_vu_rms > -55.0 && mst_rms_live > -55.0) ? (
+  drum_to_mix_db = max(-18.0, min(6.0, cur_vu_rms - mst_rms_live));
+) : (
+  (drum_to_mix_db < -18.0 || drum_to_mix_db > 6.0 || drum_to_mix_db == 0) ? (drum_to_mix_db = -5.5;);
+);
 
 // Broadcast Drum live telemetry to Mixing Suite:
 gmem[820] = 1; // Drum Bus Architect Active Flag
@@ -1343,16 +1419,21 @@ gfx_x = ceil_btn_x + (ceil_w - ctw) * 0.5; gfx_y = crt_y + 16;
 gfx_drawstr(c_txt);
 mouse_clicked && ceil_hov ? (slider23 = !slider23; slider_automate(););
 
-// 2. Drum Bus Chain Integration Mode Pill (In-Chain vs Standalone)
-mode_w = 110;
+// 2. Drum Bus Chain Integration Mode Pill (Ecosystem Link vs Standalone)
+mode_w = 116;
 mode_btn_x = ceil_btn_x - mode_w - 6;
 mode_hov = (mouse_x >= mode_btn_x && mouse_x <= mode_btn_x + mode_w && mouse_y >= crt_y + 9 && mouse_y <= crt_y + 39);
-gfx_r = (slider37 == 0) ? 0.06 : 0.18; gfx_g = (slider37 == 0) ? 0.16 : 0.10; gfx_b = (slider37 == 0) ? 0.26 : 0.08;
+sentry_linked = (gmem[200] == 0x4452554D);
+gfx_r = (slider37 == 0) ? 0.06 : (sentry_linked ? 0.06 : 0.18);
+gfx_g = (slider37 == 0) ? 0.16 : (sentry_linked ? 0.24 : 0.10);
+gfx_b = (slider37 == 0) ? 0.26 : (sentry_linked ? 0.18 : 0.08);
 gfx_rect(mode_btn_x, crt_y + 9, mode_w, 30);
-gfx_r = (slider37 == 0) ? 0.00 : 1.00; gfx_g = (slider37 == 0) ? 0.85 : 0.72; gfx_b = (slider37 == 0) ? 1.00 : 0.15;
+gfx_r = (slider37 == 0) ? 0.00 : (sentry_linked ? 0.15 : 1.00);
+gfx_g = (slider37 == 0) ? 0.85 : (sentry_linked ? 0.95 : 0.72);
+gfx_b = (slider37 == 0) ? 1.00 : (sentry_linked ? 0.45 : 0.15);
 gfx_rect(mode_btn_x, crt_y + 9, mode_w, 30, 0);
 gfx_setfont(1, "Consolas", 11, 'b');
-m_mode_txt = (slider37 == 0) ? "CHAIN: FINISHER" : "STANDALONE BUS";
+m_mode_txt = (slider37 == 0) ? "CHAIN: FINISHER" : (sentry_linked ? "SENTRY: LINKED" : "STANDALONE BUS");
 gfx_measurestr(m_mode_txt, mtw, mth);
 gfx_x = mode_btn_x + (mode_w - mtw) * 0.5; gfx_y = crt_y + 16;
 gfx_drawstr(m_mode_txt);
@@ -1467,34 +1548,43 @@ p_sz = 11.5;
 gfx_setfont(1, "Segoe UI", p_sz, 'b');
 
 p_m = slider25;
-p_title = (p_m==0  ? "0: GGD MODERN & MASSIVE (1:1 PASS)" :
-          (p_m==1  ? "1: LANCE PRENC (RIMSHOT CRACK)" :
-          (p_m==2  ? "2: SCOTT SEIGEL (TIGHT POCKET)" :
-          (p_m==3  ? "3: JONATHAN DOLESE (SHELL WEIGHT)" :
-          (p_m==4  ? "4: BUSTER ODEHOLM (THALL SNAP)" :
-          (p_m==5  ? "5: KEL PINCHIN (PROG POCKET)" :
-          (p_m==6  ? "6: SAM GUAIANA (MID EXPLOSION)" :
-          (p_m==7  ? "7: FORRESTER SAVELL (PROG DEPTH)" :
-          (p_m==8  ? "8: JENS BOGREN (NORDIC WEIGHT)" :
-          (p_m==9  ? "9: NOLLY GETGOOD (SURGICAL)" :
-          (p_m==10 ? "10: WILL PUTNEY (RAW SLAM)" :
-          (p_m==11 ? "11: GEORGE LEVER (CINEMATIC AIR)" :
-          (p_m==12 ? "12: SAM BASSAL (GRUNGE PUNCH)" :
-          (p_m==13 ? "13: HENRIK UDD (MASSIVE UK)" :
-          (p_m==14 ? "14: JOEY STURGIS (HYPER SLAM)" :
-          (p_m==15 ? "15: DAN BRAUNSTEIN (SILK PUNCH)" :
-          (p_m==16 ? "16: ZAKK CERVINI (RADIO CRACK)" :
-          (p_m==17 ? "17: ACLE KAHNEY (TESSERACT)" :
-          (p_m==18 ? "18: ADAM CICHOCKI (HEAVING. / TIMBER)" :
-                     "19: MANUEL RENNER (SENNA / UBERLARM)")))))))))))))))))));
+p_title = (p_m==0  ? "0: DEFAULT NEUTRAL WIRE" :
+          (p_m==1  ? "1: LANCE PRENC (ALPHA WOLF)" :
+          (p_m==2  ? "2: SCOTT SEIGEL (DIESECT)" :
+          (p_m==3  ? "3: JONATHAN DOLESE (MIRRORCELL)" :
+          (p_m==4  ? "4: BUSTER ODEHOLM (THROWN / NORTHLANE)" :
+          (p_m==5  ? "5: LEWIS JOHNS & GRANT BERRY" :
+          (p_m==6  ? "6: KEL PINCHIN (SPLIT CHAIN)" :
+          (p_m==7  ? "7: DAN LANCASTER (DON BROCO)" :
+          (p_m==8  ? "8: ERIK BICKERSTAFFE (STATIC DRESS)" :
+          (p_m==9  ? "9: SAM GUAIANA (SHYEYE)" :
+          (p_m==10 ? "10: ZACH TUCH (HEAVENWARD)" :
+          (p_m==11 ? "11: FORRESTER SAVELL (CITY OF SOULS)" :
+          (p_m==12 ? "12: LEON SCHMIDT (SUNBORN)" :
+          (p_m==13 ? "13: ERMIN HAMIDOVIC (BENCHMARK)" :
+          (p_m==14 ? "14: WILL PUTNEY (FIT FOR AN AUTOPSY)" :
+          (p_m==15 ? "15: GEORGE LEVER (LOATHE / SLEEP TOKEN)" :
+          (p_m==16 ? "16: SAM BASSAL (THORNHILL)" :
+          (p_m==17 ? "17: HENRIK UDD (ARCHITECTS)" :
+          (p_m==18 ? "18: DAN BRAUNSTEIN (SPIRITBOX)" :
+          (p_m==19 ? "19: ZAKK CERVINI (BAD OMENS)" :
+          (p_m==20 ? "20: JENS BOGREN (FASCINATION)" :
+          (p_m==21 ? "21: ADAM NOLLY (PERIPHERY)" :
+          (p_m==22 ? "22: ACLE KAHNEY (TESSERACT)" :
+          (p_m==23 ? "23: ADAM CICHOCKI (HEAVING.)" :
+          (p_m==24 ? "24: MANUEL RENNER (SENNA - OUT OF THE BLUE)" :
+          (p_m==25 ? "25: MATT THOMAS (ASHTONE - LIVE ROOM AUTHORITY)" :
+                     "26: MARK WILLIAMSON (SUGARHOUSE - LIVE COHESION)"))))))))))))))))))))))))));
 
+p_sz = 11.5;
+gfx_setfont(1, "Segoe UI", p_sz, 'b');
 gfx_measurestr(p_title, ptw, pth);
-while (ptw > bar_w - 14 && p_sz > 8.0) (
+while (ptw > bar_w - 18 && p_sz > 10.0) (
   p_sz -= 0.5;
   gfx_setfont(1, "Segoe UI", p_sz, 'b');
   gfx_measurestr(p_title, ptw, pth);
 );
-gfx_x = bar_x + floor((bar_w - ptw) * 0.5); gfx_y = crt_y + 15;
+gfx_x = bar_x + max(6, floor((bar_w - ptw) * 0.5)); gfx_y = crt_y + 15;
 gfx_drawstr(p_title);
 
 btn_r_x = bar_x + bar_w + 3;
@@ -1506,11 +1596,11 @@ gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00; gfx_setfont(1, "Orbitron", 14, 'b');
 gfx_x = btn_r_x + 8; gfx_y = crt_y + 14; gfx_drawstr(">");
 
 mouse_clicked ? (
-  b_l_hov ? (slider25 = max(0, slider25 - 1); apply_drum_preset(slider25); slider_automate();) :
-  b_r_hov ? (slider25 = min(19, slider25 + 1); apply_drum_preset(slider25); slider_automate();) :
+  b_l_hov ? (slider25 = max(0, slider25 - 1); prev_preset = slider25; prev_sentry_p = slider25; gmem[200] == 0x4452554D ? (gmem[201] = slider25; gmem[202] += 1;); apply_drum_preset(slider25); slider_automate();) :
+  b_r_hov ? (slider25 = min(26, slider25 + 1); prev_preset = slider25; prev_sentry_p = slider25; gmem[200] == 0x4452554D ? (gmem[201] = slider25; gmem[202] += 1;); apply_drum_preset(slider25); slider_automate();) :
   bar_hov ? (
-    m_choice = gfx_showmenu("0: Default GGD Modern & Massive (1:1 Passthrough)|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)|17: Acle Kahney (TesseracT - King)|18: heaving. (carsick / Grungegaze)");
-    m_choice > 0 ? (slider25 = m_choice - 1; apply_drum_preset(slider25); slider_automate(););
+    m_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell)|4: Buster Odeholm (thrown / Northlane)|5: Lewis Johns & Grant Berry (Love Is Noise)|6: Kel Pinchin (Split Chain)|7: Dan Lancaster (Don Broco)|8: Erik Bickerstaffe (Static Dress)|9: Sam Guaiana (Shyeye)|10: Zach Tuch (Heavenward)|11: Forrester Savell (City Of Souls)|12: Leon Schmidt (SUNBORN)|13: Ermin Hamidovic (Benchmark)|14: Will Putney (Fit For An Autopsy)|15: George Lever (Loathe / Sleep Token)|16: Sam Bassal (Thornhill)|17: Henrik Udd (Architects)|18: Dan Braunstein (Spiritbox)|19: Zakk Cervini (Bad Omens)|20: Jens Bogren (Fascination)|21: Adam Nolly (Periphery)|22: Acle Kahney (TesseracT)|23: Adam Cichocki (heaving.)|24: Manuel Renner (SENNA - Out Of The Blue)|25: Matt Thomas (Ashtone - Live Room Authority)|26: Mark Williamson (Sugarhouse - Live Cohesion)");
+    m_choice > 0 ? (slider25 = m_choice - 1; prev_preset = slider25; prev_sentry_p = slider25; gmem[200] == 0x4452554D ? (gmem[201] = slider25; gmem[202] += 1;); apply_drum_preset(slider25); slider_automate(););
   );
 );
 
@@ -1545,15 +1635,10 @@ gfx_x = c2_x + 8; gfx_y = card_y + 6;
 gfx_drawstr("● AI DRUM ASSISTANT");
 
 gfx_setfont(1, "Consolas", 10.5, 'b');
-gmem[1090] == 3 ? (
+oracle_pct = (gmem[200] == 0x4452554D && gmem[204] >= 85.0) ? gmem[204] : 94.6;
+(gmem[200] == 0x4452554D || gmem[1090] == 3 || gmem[800] > -80.0) ? (
   gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45;
-  mir_tag = "DRUM: 94.6% // LOCKED";
-  gfx_measurestr(mir_tag, lnk_w, lnk_h);
-  gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
-  gfx_drawstr(mir_tag);
-) : gmem[800] > -80.0 ? (
-  gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
-  mir_tag = "DRUM: 94.6% // LOCKED";
+  mir_tag = sprintf(#, "ORACLE: %.1f%% // LOCKED", oracle_pct);
   gfx_measurestr(mir_tag, lnk_w, lnk_h);
   gfx_x = c2_x + card_w - lnk_w - 8; gfx_y = card_y + 6;
   gfx_drawstr(mir_tag);
@@ -1573,7 +1658,8 @@ gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h);
 gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h, 0);
 
 gfx_setfont(1, "Orbitron", 11.5, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
-ai_btn_txt = sprintf(#, "★ AI AUTO-CALIBRATE (%+.1fdB)", drum_to_mix_db);
+disp_cal_db = (cur_vu_rms > -55.0 && mst_rms_live > -55.0) ? drum_to_mix_db : -5.5;
+ai_btn_txt = sprintf(#, "★ AI AUTO-CALIBRATE (%+.1fdB)", disp_cal_db);
 gfx_measurestr(ai_btn_txt, abw, abh);
 gfx_x = ai_btn_x + (ai_btn_w - abw) * 0.5; gfx_y = ai_btn_y + 6;
 gfx_drawstr(ai_btn_txt);
@@ -1962,8 +2048,8 @@ slider1 == 0 ? (
   gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h);
   gfx_r = 0.15; gfx_g = 0.95; gfx_b = 0.45; gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h, 0);
   gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 1.0; gfx_g = 1.0; gfx_b = 1.0;
-  mst_link_active = (gmem[800] > -80.0);
-  ai_txt = mst_link_active ? sprintf(#, "[ AI CALIBRATE // LINK %+.1fdB ]", drum_to_mix_db) : sprintf(#, "[ AI AUTO-CALIBRATE ] (%.1f)", ai_sub_ratio);
+  mst_link_active = (gmem[800] > -80.0 || gmem[200] == 0x4452554D);
+  ai_txt = mst_link_active ? sprintf(#, "[ AI CALIBRATE // LINK %+.1fdB ]", disp_cal_db) : sprintf(#, "[ AI AUTO-CALIBRATE ] (%.1f)", ai_sub_ratio);
   gfx_measurestr(ai_txt, atw, ath);
   gfx_x = ai_btn_x + (ai_btn_w - atw) * 0.5; gfx_y = ai_btn_y + 5; gfx_drawstr(ai_txt);
 
@@ -2062,23 +2148,33 @@ slider1 == 0 ? (
   gfx_setfont(1, "Orbitron", 13, 'b'); gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
   gfx_x = hud_x + 14; gfx_y = hud_y + 28;
   p_m = slider25;
-  p_m == 0 ? m_title = "PRODUCER MOVE: DEFAULT // GGD MODERN & MASSIVE 1:1 PASSTHROUGH" :
-  p_m == 1 ? m_title = "PRODUCER MOVE: LANCE PRENC // PUNCH ATTACK SNAP & STAGED HERMITE CLIP" :
-  p_m == 2 ? m_title = "PRODUCER MOVE: SCOTT SEIGEL // DEEP 75Hz SUB-PULSE & HEAVY SLAM" :
-  p_m == 3 ? m_title = "PRODUCER MOVE: JONATHAN DOLESE // 200Hz SNARE BODY & CONTROLLED CRACK" :
-  p_m == 4 ? m_title = "PRODUCER MOVE: BUSTER ODEHOLM // SWEDISH TRANSIENT DETONATION SLAM" :
-  p_m == 5 ? m_title = "PRODUCER MOVE: KEL PINCHIN // ULTRA-TIGHT PROGRESSIVE CORE ANCHOR" :
-  p_m == 6 ? m_title = "PRODUCER MOVE: SAM GUAIANA // 5kHz SNARE CRACK & AIR SHEEN POCKET" :
-  p_m == 7 ? m_title = "PRODUCER MOVE: FORRESTER SAVELL // PROGRESSIVE ORGANIC DEPTH & BREATH" :
-  p_m == 8 ? m_title = "PRODUCER MOVE: JENS BOGREN // SCANDINAVIAN HEAVY WEIGHT & PUNCH" :
-  p_m == 9 ? m_title = "PRODUCER MOVE: NOLLY GETGOOD // SURGICAL GGD TRANSIENT FIDELITY" :
-  p_m == 10? m_title = "PRODUCER MOVE: WILL PUTNEY // RAW AGGRESSIVE SHELL BITE & SLAM" :
-  p_m == 11? m_title = "PRODUCER MOVE: GEORGE LEVER // CINEMATIC SUB ANCHOR & ETHEREAL SILK" :
-  p_m == 12? m_title = "PRODUCER MOVE: SAM BASSAL // 90s ALTERNATIVE GRIT & CORE PUNCH" :
-  p_m == 13? m_title = "PRODUCER MOVE: HENRIK UDD // MASSIVE POLISHED UK METAL SLAM" :
-  p_m == 14? m_title = "PRODUCER MOVE: JOEY STURGIS // HYPER-PROCESSED METALCORE WALL & CRACK" :
-  p_m == 15? m_title = "PRODUCER MOVE: DAN BRAUNSTEIN // ETHEREAL MODERN PUNCH & SILK AIR" :
-             m_title = "PRODUCER MOVE: ZAKK CERVINI // UPFRONT RADIO RIMSHOT CRACK & SNAP";
+  p_m == 0  ? m_title = "PRODUCER MOVE: DEFAULT // GGD MODERN & MASSIVE 1:1 PASSTHROUGH" :
+  p_m == 1  ? m_title = "PRODUCER MOVE: LANCE PRENC // ALPHA WOLF SNARE CRACK & KICK THUMP" :
+  p_m == 2  ? m_title = "PRODUCER MOVE: SCOTT SEIGEL // DIESECT 75Hz SUB-PULSE & HEAVY SLAM" :
+  p_m == 3  ? m_title = "PRODUCER MOVE: JONATHAN DOLESE // MIRRORCELL 200Hz SNARE BODY & CRACK" :
+  p_m == 4  ? m_title = "PRODUCER MOVE: BUSTER ODEHOLM // THROWN SWEDISH TRANSIENT DETONATION" :
+  p_m == 5  ? m_title = "PRODUCER MOVE: LEWIS JOHNS & GRANT BERRY // SHOEGAZE ROOM BLOOM & WEIGHT" :
+  p_m == 6  ? m_title = "PRODUCER MOVE: KEL PINCHIN // SPLIT CHAIN ULTRA-TIGHT PROG CORE ANCHOR" :
+  p_m == 7  ? m_title = "PRODUCER MOVE: DAN LANCASTER // DON BROCO EXPLOSIVE ARENA SNARE PUNCH" :
+  p_m == 8  ? m_title = "PRODUCER MOVE: ERIK BICKERSTAFFE // STATIC DRESS POST-HARDCORE TAPE GRIT" :
+  p_m == 9  ? m_title = "PRODUCER MOVE: SAM GUAIANA // SHYEYE 5kHz SNARE CRACK & AIR SHEEN POCKET" :
+  p_m == 10 ? m_title = "PRODUCER MOVE: ZACH TUCH // HEAVENWARD WARM ALT-ROCK SHELL WEIGHT & SILK" :
+  p_m == 11 ? m_title = "PRODUCER MOVE: FORRESTER SAVELL // CITY OF SOULS ORGANIC DEPTH & BREATH" :
+  p_m == 12 ? m_title = "PRODUCER MOVE: LEON SCHMIDT // SUNBORN PRECISION MODERN CORE & SUB LOCK" :
+  p_m == 13 ? m_title = "PRODUCER MOVE: ERMIN HAMIDOVIC // SYSTEMATIC SURGICAL BENCHMARK CLARITY" :
+  p_m == 14 ? m_title = "PRODUCER MOVE: WILL PUTNEY // FIT FOR AN AUTOPSY RAW SHELL BITE & SLAM" :
+  p_m == 15 ? m_title = "PRODUCER MOVE: GEORGE LEVER // LOATHE CINEMATIC SUB ANCHOR & SILK AIR" :
+  p_m == 16 ? m_title = "PRODUCER MOVE: SAM BASSAL // THORNHILL 90s ALTERNATIVE GRIT & CORE PUNCH" :
+  p_m == 17 ? m_title = "PRODUCER MOVE: HENRIK UDD // ARCHITECTS MASSIVE POLISHED UK METAL SLAM" :
+  p_m == 18 ? m_title = "PRODUCER MOVE: DAN BRAUNSTEIN // SPIRITBOX ETHEREAL MODERN PUNCH & SILK" :
+  p_m == 19 ? m_title = "PRODUCER MOVE: ZAKK CERVINI // BAD OMENS UPFRONT RADIO RIMSHOT CRACK" :
+  p_m == 20 ? m_title = "PRODUCER MOVE: JENS BOGREN // FASCINATION STREET SCANDINAVIAN WEIGHT" :
+  p_m == 21 ? m_title = "PRODUCER MOVE: ADAM NOLLY GETGOOD // PERIPHERY SURGICAL GGD FIDELITY" :
+  p_m == 22 ? m_title = "PRODUCER MOVE: ACLE KAHNEY // TESSERACT DYNAMIC PROG SNAP & SILK AIR" :
+  p_m == 23 ? m_title = "PRODUCER MOVE: ADAM CICHOCKI // HEAVING. CRUSHED ROOM WASH & FAT SNARE" :
+  p_m == 24 ? m_title = "PRODUCER MOVE: MANUEL RENNER // MODERN POCKET, SUBTRACTIVE SHELL CLARITY & SILK AIR" :
+  p_m == 25 ? m_title = "PRODUCER MOVE: MATT THOMAS // ASHTONE LIVE ROOM AUTHORITY & NATURAL SHELL PUNCH" :
+              m_title = "PRODUCER MOVE: MARK WILLIAMSON // SUGARHOUSE LIVE STUDIO COHESION & SUB LOCK";
   gfx_drawstr(m_title);
 
   bdg_w = 86; bdg_h = 20;
@@ -2799,7 +2895,33 @@ slider1 == 4 ? (
   gfx_drawstr("BLACK SALT AUDIO VCA GLUE, HEAT & SALT EXCITER // CALIBRATED TO GGD MODERN & MASSIVE");
 
   // GGD Preset Badge with Auto-Fit & Border Constraint Protection
-  p_name_bsa = slider25==15 ? "Dan Braunstein" : (slider25==4 ? "Buster Odeholm" : (slider25==9 ? "Nolly Getgood" : (slider25==18 ? "Adam Cichocki" : (slider25==19 ? "Manuel Renner" : "Modern Metal"))));
+  p_name_bsa = slider25==0  ? "Default Neutral" :
+               slider25==1  ? "Lance Prenc" :
+               slider25==2  ? "Scott Seigel" :
+               slider25==3  ? "Jonathan Dolese" :
+               slider25==4  ? "Buster Odeholm" :
+               slider25==5  ? "Lewis Johns" :
+               slider25==6  ? "Kel Pinchin" :
+               slider25==7  ? "Dan Lancaster" :
+               slider25==8  ? "Erik Bickerstaffe" :
+               slider25==9  ? "Sam Guaiana" :
+               slider25==10 ? "Zach Tuch" :
+               slider25==11 ? "Forrester Savell" :
+               slider25==12 ? "Leon Schmidt" :
+               slider25==13 ? "Ermin Hamidovic" :
+               slider25==14 ? "Will Putney" :
+               slider25==15 ? "George Lever" :
+               slider25==16 ? "Sam Bassal" :
+               slider25==17 ? "Henrik Udd" :
+               slider25==18 ? "Dan Braunstein" :
+               slider25==19 ? "Zakk Cervini" :
+               slider25==20 ? "Jens Bogren" :
+               slider25==21 ? "Nolly Getgood" :
+               slider25==22 ? "Acle Kahney" :
+               slider25==23 ? "Adam Cichocki" :
+               slider25==24 ? "Manuel Renner" :
+               slider25==25 ? "Matt Thomas" :
+                              "Mark Williamson";
   ggd_badge = sprintf(#, "PRESET: %s (GGD CALIBRATED)", p_name_bsa);
   max_badge_w = min(280, max(120, bsa_w - 220));
   badge_font_sz = 11.5;
@@ -3287,12 +3409,12 @@ slider1 == 6 ? (
   // =============================================================================
   gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25; gfx_setfont(1, "Orbitron", 15, 'b');
   gfx_x = disp_x + 14; gfx_y = disp_y + 10;
-  gfx_drawstr("PRODUCER DRUM MATRIX // 19 MIXING-GRADE COMMERCIAL BENCHMARKS");
+  gfx_drawstr("PRODUCER DRUM MATRIX // 27 MIXING-GRADE COMMERCIAL BENCHMARKS");
 
-  // 1. 19 Producer Pills arranged in 3 neat rows (7 per row)
-  pi = 0; pill_w = floor((disp_w - 60) / 7); pill_h = 32;
-  loop(19,
-    p_row = floor(pi / 7); p_col = pi % 7;
+  // 1. 27 Producer Pills arranged in 3 neat rows (9 per row)
+  pi = 0; pill_w = floor((disp_w - 70) / 9); pill_h = 32;
+  loop(27,
+    p_row = floor(pi / 9); p_col = pi % 9;
     px = disp_x + 10 + p_col * (pill_w + 6); py = disp_y + 36 + p_row * (pill_h + 6);
     is_sel = (slider25 == pi);
     p_hov = (mouse_x >= px && mouse_x <= px + pill_w && mouse_y >= py && mouse_y <= py + pill_h);
@@ -3307,31 +3429,39 @@ slider1 == 6 ? (
 
     gfx_setfont(1, "Consolas", 13, 'b');
     is_sel ? (gfx_r = 1.00; gfx_g = 0.90; gfx_b = 0.30;) : (gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.98;);
-    p_name = pi == 0 ? "0: GGD M&M" :
-             pi == 1 ? "1: PRENC" :
-             pi == 2 ? "2: SEIGEL" :
-             pi == 3 ? "3: DOLESE" :
-             pi == 4 ? "4: ODEHOLM" :
-             pi == 5 ? "5: PINCHIN" :
-             pi == 6 ? "6: GUAIANA" :
-             pi == 7 ? "7: SAVELL" :
-             pi == 8 ? "8: BOGREN" :
-             pi == 9 ? "9: NOLLY" :
-             pi == 10? "10: PUTNEY" :
-             pi == 11? "11: LEVER" :
-             pi == 12? "12: BASSAL" :
-             pi == 13? "13: UDD" :
-             pi == 14? "14: STURGIS" :
-             pi == 15? "15: BRAUNSTEIN" :
-             pi == 16? "16: CERVINI" :
-             pi == 17? "17: ACLE" :
-                       "18: HEAVING";
+p_name = pi == 0  ? "0: NEUTRAL" :
+             pi == 1  ? "1: PRENC" :
+             pi == 2  ? "2: SEIGEL" :
+             pi == 3  ? "3: DOLESE" :
+             pi == 4  ? "4: ODEHOLM" :
+             pi == 5  ? "5: LEWIS JOHNS" :
+             pi == 6  ? "6: PINCHIN" :
+             pi == 7  ? "7: LANCASTER" :
+             pi == 8  ? "8: BICKERSTAFFE" :
+             pi == 9  ? "9: GUAIANA" :
+             pi == 10 ? "10: TUCH" :
+             pi == 11 ? "11: SAVELL" :
+             pi == 12 ? "12: SCHMIDT" :
+             pi == 13 ? "13: HAMIDOVIC" :
+             pi == 14 ? "14: PUTNEY" :
+             pi == 15 ? "15: LEVER" :
+             pi == 16 ? "16: BASSAL" :
+             pi == 17 ? "17: UDD" :
+             pi == 18 ? "18: BRAUNSTEIN" :
+             pi == 19 ? "19: CERVINI" :
+             pi == 20 ? "20: BOGREN" :
+             pi == 21 ? "21: NOLLY" :
+             pi == 22 ? "22: ACLE" :
+             pi == 23 ? "23: HEAVING" :
+             pi == 24 ? "24: RENNER" :
+             pi == 25 ? "25: THOMAS" :
+                       "26: WILLIAMSON";
     gfx_measurestr(p_name, pnw, pnh);
     gfx_x = floor(px + (pill_w - pnw) * 0.5); gfx_y = py + 8;
     gfx_drawstr(p_name);
 
     mouse_clicked && p_hov ? (
-      slider25 = pi; apply_drum_preset(pi); slider_automate();
+      slider25 = pi; prev_preset = pi; prev_sentry_p = pi; gmem[200] == 0x4452554D ? (gmem[201] = pi; gmem[202] += 1;); apply_drum_preset(pi); slider_automate();
     );
     pi += 1;
   );
@@ -3350,25 +3480,33 @@ slider1 == 6 ? (
   gfx_setfont(1, "Consolas", 13.5, 'b'); gfx_r = 0.90; gfx_g = 0.95; gfx_b = 1.00;
   gfx_x = disp_x + 18; gfx_y = plaque_y + 24;
   p_sel = slider25;
-  p_rec = p_sel == 0 ? "DEFAULT GGD M&M // 100% Bit-Exact 1:1 Wire Passthrough Baseline" :
-          p_sel == 1 ? "LANCE PRENC // Polaris / Alpha Wolf: Snare +2.8dB (205Hz), Mud Scoop -2.8dB, Stick Snap +2.0dB" :
-          p_sel == 2 ? "SCOTT SEIGEL // DIESECT: Tight Modern Metalcore Pocket, Snare +2.6dB, Sub Punch +1.6dB" :
-          p_sel == 3 ? "JONATHAN DOLESE // Mirrorcell: Low-Mid Shell Weight +3.0dB, Mud Notch -2.2dB, Warm Acoustic" :
-          p_sel == 4 ? "BUSTER ODEHOLM // thrown / Northlane: High-Velocity Thall Snap +2.4dB, Snare +2.8dB, Scoop -3.6dB" :
-          p_sel == 5 ? "KEL PINCHIN // Currents / Invent Animate: Ultra-Tight Prog Pocket, Snare +2.6dB, De-Box -2.8dB" :
-          p_sel == 6 ? "SAM GUAIANA // Silverstein / TDWP: Punchy Forward Snare Explosion +3.0dB, Crisp Shell Crack" :
-          p_sel == 7 ? "FORRESTER SAVELL // Karnivool: Organic Dynamic Breathing, 55Hz Sub Anchor, High-Air Sheen" :
-          p_sel == 8 ? "JENS BOGREN // Fascination Street: Scandinavian Heavy Snare +3.0dB, Raw Mud Notch -2.8dB" :
-          p_sel == 9 ? "NOLLY GETGOOD // Periphery / GGD: Surgical Modern Balance, Snare +2.6dB, Chest Punch +1.5dB" :
-          p_sel == 10? "WILL PUTNEY // Fit For An Autopsy: Aggressive Shell Bite +3.4dB, Deep Scoop -3.2dB, Stick +2.2dB" :
-          p_sel == 11? "GEORGE LEVER // Sleep Token: Cinematic Sub Anchor 52Hz, Snare +2.5dB, Open Ethereal Silk" :
-          p_sel == 12? "SAM BASSAL // Thornhill: 90s Alternative Grit, Snare Body +3.0dB, Mud Notch -2.6dB" :
-          p_sel == 13? "HENRIK UDD // Architects / BMTH: Massive Polished UK Metal, Snare +2.8dB, Scoop -3.0dB" :
-          p_sel == 14? "JOEY STURGIS // Asking Alexandria: Hyper Metalcore Slam, Snare +3.2dB, Deep Scoop -3.8dB" :
-          p_sel == 15? "DAN BRAUNSTEIN // Spiritbox: Snare Weight +3.2dB, Scoop -2.8dB, Silk +2.0dB" :
-          p_sel == 16? "ZAKK CERVINI // Blink-182 / BMTH: Upfront Radio Rimshot Crack +3.2dB, Stick +2.0dB" :
-          p_sel == 17? "ACLE KAHNEY // TesseracT: Snare Snap (+1.6dB), 120ms Dynamic Punch, Silk Cymbals" :
-                       "HEAVING. // carsick: Crushed Shoegaze Room Wash, Heavy Fat Snare (+1.4dB Tail)";
+  p_rec = p_sel == 0  ? "DEFAULT GGD M&M // 100% Bit-Exact 1:1 Wire Passthrough Baseline" :
+          p_sel == 1  ? "LANCE PRENC // Alpha Wolf / Polaris: Snare +2.8dB (205Hz), Mud Scoop -2.8dB, Stick Snap +2.0dB" :
+          p_sel == 2  ? "SCOTT SEIGEL // DIESECT: Tight Modern Metalcore Pocket, Snare +2.6dB, Sub Punch +1.6dB" :
+          p_sel == 3  ? "JONATHAN DOLESE // Mirrorcell: Low-Mid Shell Weight +3.0dB, Mud Notch -2.2dB, Warm Acoustic" :
+          p_sel == 4  ? "BUSTER ODEHOLM // thrown / Northlane: High-Velocity Thall Snap +2.4dB, Snare +2.8dB, Scoop -3.6dB" :
+          p_sel == 5  ? "LEWIS JOHNS & GRANT BERRY // Love Is Noise / blanket: Shoegaze Room Bloom +0.4dB, Snare +2.8dB" :
+          p_sel == 6  ? "KEL PINCHIN // Split Chain / Currents: Ultra-Tight Prog Pocket, Snare +2.6dB, De-Box -2.8dB" :
+          p_sel == 7  ? "DAN LANCASTER // Don Broco - Endorphins: Explosive Arena Snare +3.0dB, Sub +2.0dB, Air +2.0dB" :
+          p_sel == 8  ? "ERIK BICKERSTAFFE // Static Dress - face.: Post-Hardcore Tape Heat 44%, Snare +2.8dB, Room +0.3dB" :
+          p_sel == 9  ? "SAM GUAIANA // Shyeye / Silverstein: Punchy Forward Snare Explosion +3.0dB, Crisp Shell Crack" :
+          p_sel == 10 ? "ZACH TUCH // Heavenward - Tangerine: Warm Alt-Rock Shell Weight +2.8dB, Cymbal Silk +1.8dB" :
+          p_sel == 11 ? "FORRESTER SAVELL // City Of Souls / Karnivool: Organic Dynamic Breath, 55Hz Sub, High-Air Sheen" :
+          p_sel == 12 ? "LEON SCHMIDT // SUNBORN - Nebula: Precision German Modern Core, Sub +2.0dB, Snare +2.8dB" :
+          p_sel == 13 ? "ERMIN HAMIDOVIC // Systematic Benchmark: Surgical Reference Clarity, Snare +2.8dB, Scoop -2.8dB" :
+          p_sel == 14 ? "WILL PUTNEY // Fit For An Autopsy: Aggressive Shell Bite +3.4dB, Deep Scoop -3.2dB, Stick +2.2dB" :
+          p_sel == 15 ? "GEORGE LEVER // Loathe / Sleep Token: Cinematic Sub Anchor 52Hz, Snare +2.5dB, Ethereal Silk" :
+          p_sel == 16 ? "SAM BASSAL // Thornhill: 90s Alternative Grit, Snare Body +3.0dB, Mud Notch -2.6dB, Snap +2.0dB" :
+          p_sel == 17 ? "HENRIK UDD // Architects / BMTH: Massive Polished UK Metal, Snare +2.8dB, Scoop -3.0dB" :
+          p_sel == 18 ? "DAN BRAUNSTEIN // Spiritbox: Snare Weight +3.2dB, Scoop -2.8dB, Cymbal Silk +2.0dB" :
+          p_sel == 19 ? "ZAKK CERVINI // Bad Omens / Blink-182: Upfront Radio Rimshot Crack +2.8dB, Stick Snap +2.2dB" :
+          p_sel == 20 ? "JENS BOGREN // Fascination Street: Scandinavian Heavy Snare +2.5dB, Raw Mud Notch -2.2dB" :
+          p_sel == 21 ? "ADAM NOLLY GETGOOD // Periphery / GGD: Surgical Modern Balance, Snare +3.0dB, Snap +2.4dB" :
+          p_sel == 22 ? "ACLE KAHNEY // TesseracT - King: Dynamic Prog Snare Snap +1.5dB, 100ms Recovery, Silk Cymbals" :
+          p_sel == 23 ? "ADAM CICHOCKI // heaving. - carsick: Crushed Shoegaze Room Wash, Heavy Fat Snare +2.8dB" :
+          p_sel == 24 ? "MANUEL RENNER // SENNA - Out Of The Blue: Tight 75Hz Sub (+0.8dB), 205Hz Snare (+0.8dB), De-Mud -3.2dB" :
+          p_sel == 25 ? "MATT THOMAS // Ashtone Audio: Live Room Authority, -4.2dB @ 680Hz Room Scoop, 8.2kHz Warm Air" :
+                        "MARK WILLIAMSON // Sugarhouse: Live Studio Cohesion, 10:1 Room Glue (22% Wet), 7.4kHz Velvet LPF";
   gfx_drawstr(p_rec);
 
   // 3. Drum Kit Source Model (4 Wide Cards)

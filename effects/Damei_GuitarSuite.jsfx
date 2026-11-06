@@ -27,8 +27,8 @@ slider19:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider20:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider21:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider22:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider23:0<0,19,1{Default Neutral Wire Passthrough,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane),Kel Pinchin (Currents / Invent Animate),Sam Guaiana (Silverstein / TDWP),Forrester Savell (Karnivool / DLC),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / BMTH),Joey Sturgis (Asking Alexandria),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / BMTH),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Guitar Signature Preset
-slider24:0<0,4,1{Gojira X + GGD Cali (Active Project Quad-Wall),Nolly X + Clean Split,High-Gain 7/8-String Modern Metal,Drop-Tuned Hardcore Raw DIs,Ambient / Shoegaze Layered Wall}>-Guitar Rig Source Model
+slider23:0<0,24,1{Default Neutral Wire Passthrough,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane - Evian),Grant Berry & Lewis Johns (blanket / Love Is Noise),Kel Pinchin (Split Chain Target),Dan Lancaster (Don Broco - Endorphins),Erik Bickerstaffe (Static Dress - face..),Sam Guaiana (Shyeye / Silverstein),Zach Tuch (Heavenward - Tangerine),Forrester Savell (City Of Souls / Karnivool),Leon Schmidt (SUNBORN - Nebula),Ermin Hamidovic (The Systematic Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Loathe / Sleep Token),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Bad Omens / Blink-182),Jens Bogren (Fascination Street Studios),Adam Nolly Getgood (Periphery / GGD),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue)}>-Producer Guitar Signature Preset
+slider24:0<0,5,1{Gojira X + GGD Cali (Active Project Quad-Wall),Nolly X + Clean Split,High-Gain 7/8-String Modern Metal,Drop-Tuned Hardcore Raw DIs,Ambient / Shoegaze Layered Wall,Baked Amp & Cab Stems (Forensic Pre-Mix Calibration)}>-Guitar Rig Source Model
 slider25:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider26:1<0,3,1{Off,Tasteful Auto-Impact (+0.08x Width in Chorus),Commercial Drop Slam (+0.14x Width / +0.8dB Drive),Subtle Dynamic Breathing}>-Song Structure & Chorus Impact AI
 slider27:0<0,2,1{Hybrid Prioritize REAPER Regions,Strict Project Regions,Autonomous Acoustic AI}>-Song Structure Detection Mode
@@ -1119,44 +1119,72 @@ function apply_guitar_preset(p_idx) (
     slider15 = 1.8; slider16 = 1.20; slider17 = -1.6; slider22 = -0.8;
     slider28 = 1; slider37 = 0.4; slider38 = 0.2; slider39 = 0.0;
   ) : p_idx == 16 ? (
-    // 16: ZAKK CERVINI (Blink-182 / BMTH) - Upfront Radio Rock Gloss & Pop-Punk Drive
-    slider34 = 1; slider52 = 1; slider53 = 45; slider54 = 30; slider55 = 38; slider56 = 3.0;
-    slider2  = -12.0; slider3  = 28;  slider4  = 215; slider5  = -22.5; slider6  = 3.5;
-    slider7  = 30; slider8  = 110; slider9  = 84; slider10 = -1.6;
-    slider11 = -2.2; slider12 = -1.8; slider13 = -1.2; slider14 = 2.0;
-    slider15 = 1.5; slider16 = 1.18; slider17 = -1.4; slider22 = -0.7;
-    slider28 = 1; slider37 = 0.4; slider38 = -0.2; slider39 = -0.6;
-  ) : p_idx == 17 ? (
-    // 17: ACLE KAHNEY (TesseracT - King) - Prog Metal / Modern Djent Precision & Ambient Clarity
-    slider34 = 1; slider52 = 1; slider53 = 50; slider54 = 25; slider55 = 30; slider56 = 3.4;
-    slider2  = -12.0; slider3  = 35;  slider4  = 185; slider5  = -23.5; slider6  = 4.0;
+    // 16: SAM BASSAL (Thornhill / Ocean Grove) - Modern Nu-Metalcore Punch & Polished Gloss
+    slider34 = 1; slider52 = 1; slider53 = 44; slider54 = 28; slider55 = 35; slider56 = 3.0;
+    slider2  = -12.0; slider3  = 34;  slider4  = 195; slider5  = -23.5; slider6  = 4.0;
     slider7  = 32; slider8  = 115; slider9  = 85; slider10 = -2.0;
-    slider11 = -2.8; slider12 = -2.2; slider13 = -1.6; slider14 = 1.4;
-    slider15 = 1.8; slider16 = 1.25; slider17 = -1.5; slider22 = -0.8;
-    slider28 = 1; slider37 = 0.2; slider38 = -0.4; slider39 = -0.8;
+    slider11 = -2.5; slider12 = -2.0; slider13 = -1.5; slider14 = 1.8;
+    slider15 = 1.6; slider16 = 1.20; slider17 = -1.6; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.4; slider38 = -0.2; slider39 = -0.8;
+  ) : p_idx == 17 ? (
+    // 17: HENRIK UDD (Architects / BMTH) - British Modern Metal Arena Wall
+    slider34 = 1; slider52 = 1; slider53 = 50; slider54 = 32; slider55 = 38; slider56 = 3.2;
+    slider2  = -12.0; slider3  = 36;  slider4  = 190; slider5  = -24.0; slider6  = 4.2;
+    slider7  = 30; slider8  = 110; slider9  = 86; slider10 = -2.2;
+    slider11 = -2.8; slider12 = -2.4; slider13 = -1.8; slider14 = 2.0;
+    slider15 = 1.8; slider16 = 1.24; slider17 = -1.8; slider22 = -0.9;
+    slider28 = 1; slider37 = 0.6; slider38 = 0.0; slider39 = -1.0;
   ) : p_idx == 18 ? (
-    // 18: ADAM CICHOCKI (heaving. - carsick / Timber Studios) - Thick Grungegaze Wall of Fuzz & Heavy Body
+    // 18: DAN BRAUNSTEIN (Spiritbox / Volumes / Dayseeker) - Modern Weighty Pocket, Smooth Fizz & Ethereal Space
+    slider34 = 1; slider52 = 1; slider53 = 48; slider54 = 28; slider55 = 36; slider56 = 3.2;
+    slider2  = -12.0; slider3  = 32;  slider4  = 190; slider5  = -23.0; slider6  = 3.8;
+    slider7  = 35; slider8  = 120; slider9  = 82; slider10 = -1.8;
+    slider11 = -2.6; slider12 = -2.2; slider13 = -1.5; slider14 = 1.6;
+    slider15 = 1.8; slider16 = 1.20; slider17 = -1.6; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.4; slider38 = 0.2; slider39 = 0.0;
+  ) : p_idx == 19 ? (
+    // 19: ZAKK CERVINI (Bad Omens / Blink-182) - Upfront Radio Rock Gloss & Pop-Punk Drive
+    slider34 = 1; slider52 = 1; slider53 = 48; slider54 = 30; slider55 = 38; slider56 = 3.5;
+    slider2  = -12.0; slider3  = 35;  slider4  = 185; slider5  = -22.0; slider6  = 4.0;
+    slider7  = 30; slider8  = 115; slider9  = 85; slider10 = -1.5;
+    slider11 = -2.5; slider12 = -2.0; slider13 = -1.5; slider14 = 2.0;
+    slider15 = 2.0; slider16 = 1.22; slider17 = -1.5; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.6; slider38 = -0.1; slider39 = -0.5;
+  ) : p_idx == 20 ? ( // Jens Bogren (Fascination Street Studios)
+    slider34 = 1; slider52 = 1; slider53 = 50; slider54 = 32; slider55 = 40; slider56 = 3.6;
+    slider2  = -12.0; slider3  = 36;  slider4  = 190; slider5  = -22.0; slider6  = 3.8;
+    slider7  = 35; slider8  = 120; slider9  = 84; slider10 = -1.4;
+    slider11 = -2.8; slider12 = -2.2; slider13 = -1.6; slider14 = 2.2;
+    slider15 = 2.2; slider16 = 1.25; slider17 = -1.6; slider22 = -0.8;
+    slider28 = 1; slider37 = 0.5; slider38 = -0.1; slider39 = -0.4;
+  ) : p_idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD)
+    slider34 = 1; slider52 = 1; slider53 = 54; slider54 = 35; slider55 = 42; slider56 = 3.8;
+    slider2  = -12.0; slider3  = 40;  slider4  = 185; slider5  = -23.0; slider6  = 4.2;
+    slider7  = 26; slider8  = 105; slider9  = 88; slider10 = -1.8;
+    slider11 = -3.0; slider12 = -2.4; slider13 = -1.8; slider14 = 2.5;
+    slider15 = 2.4; slider16 = 1.26; slider17 = -1.8; slider22 = -1.0;
+    slider28 = 1; slider37 = 0.6; slider38 = -0.2; slider39 = -0.6;
+  ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King)
+    slider34 = 1; slider52 = 1; slider53 = 45; slider54 = 28; slider55 = 35; slider56 = 3.2;
+    slider2  = -12.0; slider3  = 32;  slider4  = 195; slider5  = -21.0; slider6  = 3.5;
+    slider7  = 38; slider8  = 125; slider9  = 82; slider10 = -1.0;
+    slider11 = -2.2; slider12 = -1.8; slider13 = -1.2; slider14 = 1.8;
+    slider15 = 1.8; slider16 = 1.20; slider17 = -1.2; slider22 = -0.6;
+    slider28 = 1; slider37 = 0.4; slider38 = 0.0; slider39 = -0.3;
+  ) : p_idx == 23 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios)
     slider34 = 1; slider52 = 1; slider53 = 60; slider54 = 40; slider55 = 45; slider56 = 3.8;
     slider2  = -12.0; slider3  = 42;  slider4  = 195; slider5  = -21.0; slider6  = 4.5;
     slider7  = 40; slider8  = 130; slider9  = 88; slider10 = -1.2;
     slider11 = -3.2; slider12 = -2.8; slider13 = -2.2; slider14 = 2.5;
     slider15 = 2.4; slider16 = 1.28; slider17 = -1.8; slider22 = -1.0;
     slider28 = 1; slider37 = 0.8; slider38 = 0.6; slider39 = 0.2;
-  ) : p_idx == 19 ? (
-    // 19: MANUEL RENNER (SENNA - Out Of The Blue / Überlärm Studios) - Hyper-Modern German Metalcore Razor Chug & Pristine Bite
+  ) : ( // 24: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)
     slider34 = 1; slider52 = 1; slider53 = 52; slider54 = 32; slider55 = 40; slider56 = 3.6;
     slider2  = -12.0; slider3  = 38;  slider4  = 180; slider5  = -23.0; slider6  = 4.2;
     slider7  = 28; slider8  = 110; slider9  = 86; slider10 = -1.8;
     slider11 = -2.6; slider12 = -2.0; slider13 = -1.4; slider14 = 2.2;
     slider15 = 2.0; slider16 = 1.24; slider17 = -1.6; slider22 = -0.8;
     slider28 = 1; slider37 = 0.5; slider38 = -0.2; slider39 = -0.6;
-  ) : (
-    slider2  = -12.0; slider3  = 0;   slider4  = 190; slider5  = -22.0; slider6  = 3.5;
-    slider7  = 40; slider8  = 140; slider9  = 80; slider10 = 0.0;
-    slider11 = 0.0; slider12 = 0.0; slider13 = 0.0; slider14 = 0.0;
-    slider15 = 0.0; slider16 = 1.00; slider17 = 0.0; slider22 = 0.0;
-    slider28 = 0; slider37 = 0.0; slider38 = 0.0; slider39 = 0.0;
-    slider40 = 0.0; slider41 = 0.0;
   );
 
   dk_preset_changed(p_idx);
@@ -1335,9 +1363,32 @@ slider23 != prev_preset ? (
   ) : slider24 == 3 ? (
     slider9 = 84; slider4 = 195; slider3 = 35; slider6 = 4.0;
     slider10 = -2.0; slider16 = 1.18; slider17 = -1.6;
-  ) : (
+  ) : slider24 == 4 ? (
     slider9 = 75; slider4 = 210; slider3 = 18; slider6 = 2.4;
     slider10 = -1.0; slider16 = 1.28; slider17 = -1.0;
+  ) : (
+    // BAKED AMP & CAB STEMS: FORENSIC PRE-MIX STRATEGY & DETAILED BREAKDOWN
+    slider9  = 82;    // Steep 82Hz Sub-Guitar HPF anchor (cab thump removal)
+    slider10 = -2.2;  // Low-Mid Mud Box Scoop at 380Hz (-2.2dB)
+    slider11 = -3.5;  // Resonant Whistle Notch 1 at 3.2kHz (-3.5dB cab resonance de-fizz)
+    slider12 = -3.0;  // Resonant Whistle Notch 2 at 4.2kHz (-3.0dB cone harshness cut)
+    slider13 = -2.5;  // Cali/Digital Whistle Notch at 6.8kHz (-2.5dB)
+    slider14 = 1.4;   // Pick Attack Bite 1.8kHz (+1.4dB clarity recovery)
+    slider15 = -1.0;  // Air Sheen & Anti-Fizz Low-Pass >9kHz (-1.0dB)
+    slider4  = 185;   // Chug Resonance Center 185Hz
+    slider3  = 45;    // Chug Dynamic Clamp Strength 45%
+    slider5  = -22.0; // Chug Dynamic Threshold -22dBFS
+    slider6  = 4.2;   // Chug Max Attenuation Depth 4.2dB
+    slider7  = 30;    // Fast Chug Attack 30ms
+    slider8  = 120;   // Chug Release Recovery 120ms
+    slider16 = 1.22;  // Quad-Wall Immersion Width 1.22x
+    slider17 = -1.8;  // Center Channel Vocal/Snare Pocket Cut -1.8dB
+    slider28 = 1;     // Active De-Fizz Master Engine
+    slider52 = 1;     // Active MultiBand-Comp Engine
+    slider53 = 45;    // MultiBand Low Chug Clamp 45% (<220Hz)
+    slider54 = 25;    // MultiBand Mid Crunch Punch 25% (220Hz-3.2kHz)
+    slider55 = 35;    // MultiBand High Fizz Tamer 35% (>3.2kHz)
+    slider30 = 0.0;   // Sweet-spot gain staging targeting -18dBFS RMS
   );
   update_guitar_filters();
 );
@@ -1827,10 +1878,10 @@ while (rsw > rgn_pill_w - 14 && r_font_sz > 8.0) (
 gfx_x = floor(rgn_pill_x + (rgn_pill_w - rsw) * 0.5); gfx_y = crt_y + 16;
 gfx_drawstr(r_str);
 
-// 4. Center Preset Selector Box
-avail_mid = max(110, rgn_pill_x - title_end_x - 12);
+// 4. Center Preset Selector Box (Expanded for High-Legibility Display)
+avail_mid = max(280, rgn_pill_x - title_end_x - 12);
 p_btn_w = 26;
-bar_w = min(250, max(120, avail_mid - p_btn_w * 2 - 12));
+bar_w = min(420, max(280, avail_mid - p_btn_w * 2 - 16));
 p_tot_w = p_btn_w * 2 + 6 + bar_w;
 preset_x = title_end_x + max(6, floor((avail_mid - p_tot_w) * 0.5));
 
@@ -1853,32 +1904,37 @@ p_m = slider23;
 p_title = (p_m==0  ? "0: DEFAULT NEUTRAL WIRE" :
           (p_m==1  ? "1: LANCE PRENC (ALPHA WOLF)" :
           (p_m==2  ? "2: SCOTT SEIGEL (DIESECT)" :
-          (p_m==3  ? "3: JONATHAN DOLESE (CANE HILL)" :
-          (p_m==4  ? "4: BUSTER ODEHOLM (THROWN)" :
-          (p_m==5  ? "5: KEL PINCHIN (CURRENTS)" :
-          (p_m==6  ? "6: SAM GUAIANA (SILVERSTEIN)" :
-          (p_m==7  ? "7: FORRESTER SAVELL (KARNIVOOL)" :
-          (p_m==8  ? "8: JENS BOGREN (FASCINATION)" :
-          (p_m==9  ? "9: ADAM NOLLY GETGOOD (GGD)" :
-          (p_m==10 ? "10: WILL PUTNEY (FFAA)" :
-          (p_m==11 ? "11: GEORGE LEVER (SLEEP TOKEN)" :
-          (p_m==12 ? "12: SAM BASSAL (THORNHILL)" :
-          (p_m==13 ? "13: HENRIK UDD (ARCHITECTS)" :
-          (p_m==14 ? "14: JOEY STURGIS (ASKING ALEX)" :
-          (p_m==15 ? "15: DAN BRAUNSTEIN (SPIRITBOX)" :
-          (p_m==16 ? "16: ZAKK CERVINI (BLINK-182)" :
-          (p_m==17 ? "17: ACLE KAHNEY (TESSERACT)" :
-          (p_m==18 ? "18: ADAM CICHOCKI (HEAVING.)" :
-                     "19: MANUEL RENNER (SENNA)")))))))))))))))))));
-pt_sz = 12.0;
+          (p_m==3  ? "3: JONATHAN DOLESE (MIRRORCELL)" :
+          (p_m==4  ? "4: BUSTER ODEHOLM (THROWN / NORTHLANE)" :
+          (p_m==5  ? "5: LEWIS JOHNS & GRANT BERRY" :
+          (p_m==6  ? "6: KEL PINCHIN (SPLIT CHAIN)" :
+          (p_m==7  ? "7: DAN LANCASTER (DON BROCO)" :
+          (p_m==8  ? "8: ERIK BICKERSTAFFE (STATIC DRESS)" :
+          (p_m==9  ? "9: SAM GUAIANA (SHYEYE)" :
+          (p_m==10 ? "10: ZACH TUCH (HEAVENWARD)" :
+          (p_m==11 ? "11: FORRESTER SAVELL (CITY OF SOULS)" :
+          (p_m==12 ? "12: LEON SCHMIDT (SUNBORN)" :
+          (p_m==13 ? "13: ERMIN HAMIDOVIC (BENCHMARK)" :
+          (p_m==14 ? "14: WILL PUTNEY (FIT FOR AN AUTOPSY)" :
+          (p_m==15 ? "15: GEORGE LEVER (LOATHE / SLEEP TOKEN)" :
+          (p_m==16 ? "16: SAM BASSAL (THORNHILL)" :
+          (p_m==17 ? "17: HENRIK UDD (ARCHITECTS)" :
+          (p_m==18 ? "18: DAN BRAUNSTEIN (SPIRITBOX)" :
+          (p_m==19 ? "19: ZAKK CERVINI (BAD OMENS)" :
+          (p_m==20 ? "20: JENS BOGREN (FASCINATION)" :
+          (p_m==21 ? "21: ADAM NOLLY (PERIPHERY)" :
+          (p_m==22 ? "22: ACLE KAHNEY (TESSERACT)" :
+          (p_m==23 ? "23: ADAM CICHOCKI (HEAVING.)" :
+                     "24: MANUEL RENNER (SENNA - OUT OF THE BLUE)"))))))))))))))))))))))));
+pt_sz = 11.5;
 gfx_setfont(1, "Segoe UI", pt_sz, 'b');
 gfx_measurestr(p_title, ptw, pth);
-while (ptw > bar_w - 22 && pt_sz > 8.0) (
+while (ptw > bar_w - 18 && pt_sz > 10.0) (
   pt_sz -= 0.5;
   gfx_setfont(1, "Segoe UI", pt_sz, 'b');
   gfx_measurestr(p_title, ptw, pth);
 );
-gfx_x = bar_x + 8; gfx_y = crt_y + 15;
+gfx_x = bar_x + max(6, floor((bar_w - ptw) * 0.5)); gfx_y = crt_y + 15;
 gfx_drawstr(p_title);
 
 btn_r_x = bar_x + bar_w + 3;
@@ -1891,9 +1947,9 @@ gfx_x = btn_r_x + 8; gfx_y = crt_y + 14; gfx_drawstr(">");
 
 mouse_clicked ? (
   b_l_hov ? (slider23 = max(0, slider23 - 1); apply_guitar_preset(slider23); slider_automate();) :
-  b_r_hov ? (slider23 = min(19, slider23 + 1); apply_guitar_preset(slider23); slider_automate();) :
+  b_r_hov ? (slider23 = min(24, slider23 + 1); apply_guitar_preset(slider23); slider_automate();) :
   bar_hov ? (
-    m_choice = gfx_showmenu("0: Default Neutral Wire Passthrough|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell / Cane Hill)|4: Buster Odeholm (thrown / Northlane)|5: Kel Pinchin (Currents / Invent Animate)|6: Sam Guaiana (Silverstein / TDWP)|7: Forrester Savell (Karnivool / DLC)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery / GGD)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token / Loathe)|12: Sam Bassal (Thornhill / Ocean Grove)|13: Henrik Udd (Architects / BMTH)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox / Dayseeker)|16: Zakk Cervini (Blink-182 / BMTH)|17: Acle Kahney (TesseracT - King)|18: Adam Cichocki (heaving. - carsick / Timber Studios)|19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
+    m_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell)|4: Buster Odeholm (thrown / Northlane)|5: Lewis Johns & Grant Berry (Love Is Noise)|6: Kel Pinchin (Split Chain)|7: Dan Lancaster (Don Broco)|8: Erik Bickerstaffe (Static Dress)|9: Sam Guaiana (Shyeye)|10: Zach Tuch (Heavenward)|11: Forrester Savell (City Of Souls)|12: Leon Schmidt (SUNBORN)|13: Ermin Hamidovic (Benchmark)|14: Will Putney (Fit For An Autopsy)|15: George Lever (Loathe / Sleep Token)|16: Sam Bassal (Thornhill)|17: Henrik Udd (Architects)|18: Dan Braunstein (Spiritbox)|19: Zakk Cervini (Bad Omens)|20: Jens Bogren (Fascination)|21: Adam Nolly (Periphery)|22: Acle Kahney (TesseracT)|23: Adam Cichocki (heaving.)|24: Manuel Renner (SENNA - Out Of The Blue)");
     m_choice > 0 ? (slider23 = m_choice - 1; apply_guitar_preset(slider23); slider_automate(););
   );
 );
@@ -2234,6 +2290,33 @@ slider1 == 0 ? (
   gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
   gfx_x = rc_x + 14; gfx_y = rc_y + 10;
   gfx_drawstr("HARMONIC FORGE DYNAMIC WAVEFORM");
+
+  // BAKED STEM FORENSIC PRE-MIX QUICK TOGGLE BUTTON
+  f_btn_w = 200; f_btn_h = 24;
+  f_btn_x = rc_x + rc_w - f_btn_w - 12; f_btn_y = rc_y + 6;
+  is_baked = (slider24 == 5);
+  f_hov = (mouse_x >= f_btn_x && mouse_x <= f_btn_x + f_btn_w && mouse_y >= f_btn_y && mouse_y <= f_btn_y + f_btn_h);
+  gfx_r = is_baked ? 0.85 : (f_hov ? 0.15 : 0.05);
+  gfx_g = is_baked ? 0.68 : (f_hov ? 0.20 : 0.07);
+  gfx_b = is_baked ? 0.20 : (f_hov ? 0.30 : 0.10);
+  gfx_rect(f_btn_x, f_btn_y, f_btn_w, f_btn_h);
+  gfx_r = is_baked ? 1.00 : 0.35;
+  gfx_g = is_baked ? 0.90 : 0.45;
+  gfx_b = is_baked ? 0.30 : 0.60;
+  gfx_rect(f_btn_x, f_btn_y, f_btn_w, f_btn_h, 0);
+  gfx_setfont(1, "Orbitron", 10.5, 'b');
+  gfx_r = is_baked ? 0.05 : (f_hov ? 1.00 : 0.85);
+  gfx_g = is_baked ? 0.05 : (f_hov ? 0.95 : 0.85);
+  gfx_b = is_baked ? 0.05 : (f_hov ? 0.95 : 0.90);
+  btn_lbl = is_baked ? "[ FORENSIC BAKED ACTIVE ]" : "FORENSIC PRE-MIX: BAKED";
+  gfx_measurestr(btn_lbl, flw, flh);
+  gfx_x = f_btn_x + (f_btn_w - flw) * 0.5; gfx_y = f_btn_y + (f_btn_h - flh) * 0.5;
+  gfx_drawstr(btn_lbl);
+  mouse_clicked && f_hov ? (
+    slider24 = (slider24 == 5 ? 0 : 5);
+    prev_source_model = -1;
+    slider_automate();
+  );
 
   // =========================================================================
   // DEDICATED PRODUCER EAR-CANDY DOCK (CLEANLY POSITIONED BELOW WAVEFORM)
@@ -3299,17 +3382,17 @@ slider1 == 5 ? (
 
   gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 1.00; gfx_g = 0.82; gfx_b = 0.25;
   gfx_x = disp_x + 24; gfx_y = p_y + 14;
-  gfx_drawstr("PRODUCER GUITAR SIGNATURE MATRIX (20 INDUSTRY REFERENCE PROFILES)");
+  gfx_drawstr("PRODUCER GUITAR SIGNATURE MATRIX (25 INDUSTRY REFERENCE PROFILES)");
 
-  // Top Matrix Grid: 4 columns x 5 rows
-  cols = 4;
-  tile_pw = floor((p_w - 40) / cols);
+  // Top Matrix Grid: 5 columns x 5 rows
+  cols = 5;
+  tile_pw = floor((p_w - 48) / cols);
   tile_ph = 36;
   pi = 0;
-  loop(20,
+  loop(25,
     row = floor(pi / cols);
     col = pi % cols;
-    px = disp_x + 16 + col * (tile_pw + 8);
+    px = disp_x + 16 + col * (tile_pw + 6);
     py = p_y + 44 + row * (tile_ph + 5);
 
     is_sel = (slider23 == pi);
@@ -3325,32 +3408,37 @@ slider1 == 5 ? (
     gfx_b = is_sel ? 0.20 : 0.38;
     gfx_rect(px, py, tile_pw, tile_ph, 0);
 
-    gfx_setfont(1, "Orbitron", 12, 'b');
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
     gfx_r = is_sel ? 1.00 : 0.85;
     gfx_g = is_sel ? 0.82 : 0.90;
     gfx_b = is_sel ? 0.25 : 0.95;
 
     p_lbl = (
-      pi == 0  ? "0: Default Neutral Wire" :
-      pi == 1  ? "1: Lance Prenc (Alpha Wolf)" :
-      pi == 2  ? "2: Scott Seigel (DIESECT)" :
-      pi == 3  ? "3: Jonathan Dolese (Cane Hill)" :
-      pi == 4  ? "4: Buster Odeholm (thrown)" :
-      pi == 5  ? "5: Kel Pinchin (Currents)" :
-      pi == 6  ? "6: Sam Guaiana (Silverstein)" :
-      pi == 7  ? "7: Forrester Savell (Karnivool)" :
-      pi == 8  ? "8: Jens Bogren (Fascination)" :
-      pi == 9  ? "9: Adam Nolly (Periphery)" :
-      pi == 10 ? "10: Will Putney (FFAA)" :
-      pi == 11 ? "11: George Lever (Sleep Token)" :
-      pi == 12 ? "12: Sam Bassal (Thornhill)" :
-      pi == 13 ? "13: Henrik Udd (Architects)" :
-      pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
-      pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
-      pi == 16 ? "16: Zakk Cervini (Blink-182)" :
-      pi == 17 ? "17: Acle Kahney (TesseracT)" :
-      pi == 18 ? "18: Adam Cichocki (heaving.)" :
-                 "19: Manuel Renner (SENNA)"
+      pi == 0  ? "0: Neutral Wire" :
+      pi == 1  ? "1: Prenc" :
+      pi == 2  ? "2: Seigel" :
+      pi == 3  ? "3: Dolese" :
+      pi == 4  ? "4: Odeholm" :
+      pi == 5  ? "5: Lewis Johns" :
+      pi == 6  ? "6: Pinchin" :
+      pi == 7  ? "7: Lancaster" :
+      pi == 8  ? "8: Bickerstaffe" :
+      pi == 9  ? "9: Guaiana" :
+      pi == 10 ? "10: Tuch" :
+      pi == 11 ? "11: Savell" :
+      pi == 12 ? "12: Schmidt" :
+      pi == 13 ? "13: Hamidovic" :
+      pi == 14 ? "14: Putney" :
+      pi == 15 ? "15: Lever" :
+      pi == 16 ? "16: Bassal" :
+      pi == 17 ? "17: Udd" :
+      pi == 18 ? "18: Braunstein" :
+      pi == 19 ? "19: Cervini" :
+      pi == 20 ? "20: Bogren" :
+      pi == 21 ? "21: Nolly" :
+      pi == 22 ? "22: Kahney" :
+      pi == 23 ? "23: Cichocki" :
+                 "24: Renner"
     );
 
     gfx_x = px + 10; gfx_y = py + 10;
@@ -3378,7 +3466,7 @@ slider1 == 5 ? (
 
   gfx_setfont(1, "Consolas", 14, 'b'); gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.95;
   p_idx = slider23;
-  p_idx == 15 ? (
+  p_idx == 18 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("DAN BRAUNSTEIN BLUEPRINT: Wide 1.20x Quad-Wall, 3.2k/4.2k De-Fizz (-2.6dB/-2.2dB),");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
@@ -3399,28 +3487,28 @@ slider1 == 5 ? (
     gfx_drawstr("Quad-wall hard panned 100% L/R with 1.18x width. De-Fizz active at 3.2kHz (-2.5dB).");
     gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
     gfx_drawstr("SUB-BUS RULE: Rhythm +0.5dB | Overdub -0.5dB | Cleans -1.0dB | Lead 0.0dB | Amb 0.0dB");
-  ) : p_idx == 9 ? (
+  ) : p_idx == 21 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("ADAM NOLLY GETGOOD BLUEPRINT: Surgical 190Hz Chug Clamp (-3.8dB), Precision 3.2k/4.2k Fizz Cuts.");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
     gfx_drawstr("Quad-Wall 1.20x panoramic spread with -1.6dB center notch carving dedicated pocket for snare.");
     gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
     gfx_drawstr("SUB-BUS RULE: Rhythm +0.4dB | Overdub 0.0dB | Cleans -0.6dB | Lead 0.0dB | Amb 0.0dB");
-  ) : p_idx == 17 ? (
+  ) : p_idx == 22 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("ACLE KAHNEY BLUEPRINT (TesseracT - King): Djent Dynamic Precision & 185Hz Dynamic Clamping,");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
     gfx_drawstr("deep low-mid scoop (-2.0dB at 380Hz), +1.8dB cabinet presence, and 1.25x wide panoramic spread.");
     gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
     gfx_drawstr("SUB-BUS RULE: Rhythm +0.2dB | Overdub -0.4dB | Cleans -0.8dB | Lead 0.0dB | Amb +0.2dB");
-  ) : p_idx == 18 ? (
+  ) : p_idx == 23 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("ADAM CICHOCKI BLUEPRINT (heaving. / Timber Studios): Massive Saturated Wall of Fuzz & Shoegaze Body,");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
     gfx_drawstr("thick 195Hz low-mid saturation, +2.4dB sheen air, and 1.28x panoramic immersion bloom.");
     gfx_x = disp_x + 28; gfx_y = bk_y + 80; gfx_r = 0.00; gfx_g = 0.85; gfx_b = 1.00;
     gfx_drawstr("SUB-BUS RULE: Rhythm +0.8dB | Overdub +0.6dB | Cleans +0.2dB | Lead 0.0dB | Amb +0.5dB");
-  ) : p_idx == 19 ? (
+  ) : p_idx == 24 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("MANUEL RENNER BLUEPRINT (SENNA / Überlärm Studios): Hyper-Modern German Metalcore Razor Chug & Bite,");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;

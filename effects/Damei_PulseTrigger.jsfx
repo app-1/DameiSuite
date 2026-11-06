@@ -1,0 +1,1486 @@
+// ============================================================================
+// DAMEI SUITE -- ATUMPAN PULSE DRUM TRIGGER (v2.5 SLATE TRIGGER 2 ENGINE)
+// Native REAPER Drum Transient Replacement, Augmentation & Multi-Sample Player
+//
+// Reverse-Engineered from Slate Digital Trigger 2 & JS: Pulse Blueprint
+// Afro-Cybernetic Luxury Architecture | Studio Reference Standard
+//
+// Features:
+//   - Multi-Sample Layering (3 Stereo Slots: Close/Direct, Sub/Body, Room/Air)
+//   - Slate Bleed Suppression Circuit (Sidechain Ch 3/4 Leakage Cancellation)
+//   - Tunable Sub-Sine Synthesizer (Instant 808/Boom Low-End Reinforcement)
+//   - Per-Slot Tuning (+/- 12 Semitones Resampling), Pan, Phase Invert (Phase), Solo/Mute
+//   - 2-Pole Biquad Bandpass Detection Filter with Audition/Listen Mode
+//   - Dynamic Velocity Shaping (Linear, Log/Punch, Exp/Ghost, Fixed)
+//   - Dual SIFAM Vintage Moving-Coil Ballistic VU Meters (Detector & Output)
+//   - Responsive Waveform Display with Real-Time Transient Markers & Zoom
+//   - Native Windows File Dialog (Browse) & Drag-and-Drop .WAV Support
+//   - 25 Sankofa Producer Reference Presets (Manuel Renner, George Lever, etc.)
+// ============================================================================
+
+desc:JS: Damei Pulse Drum Trigger (Slate Trigger 2 Engine)
+tags: processing FX drum trigger sample player slate trigger2 damei
+author: Damei Suite / Google DeepMind Pair Programming
+version: 2.5
+
+// --- GLOBAL & DETECTOR SLIDERS (1-10) ---
+slider1:0<-18,18,0.1>Input Gain (dB)
+slider2:32<0,100,1>Detail / Threshold (-dB)
+slider3:45<5,200,1>Sensitivity (%)
+slider4:35<5,250,1>Retrigger Lockout (ms)
+slider5:50<20,1000,1>Detection Low Cut (Hz)
+slider6:8000<500,20000,10>Detection High Cut (Hz)
+slider7:0<0,1,1{Normal Audio,Audition Filter}>Listen Mode
+slider8:0<0,1,1{Disabled,Active}>Bleed Suppression
+slider9:28<0,100,1>Bleed Threshold (-dB)
+slider10:120<10,300,5>Bleed Ratio / Sens (%)
+
+// --- SLOT 1 (CLOSE / DIRECT) SLIDERS (11-16) ---
+slider11:0<-60,12,0.1>Slot 1 Vol (dB)
+slider12:0<-100,100,1>Slot 1 Pan (%)
+slider13:0<-12,12,0.1>Slot 1 Tune (st)
+slider14:0<0,1,1{Normal,Invert 180 deg}>Slot 1 Phase (Phase)
+slider15:0<0,1,1{Active,Muted}>Slot 1 Mute
+slider16:0<0,1,1{Off,Solo}>Slot 1 Solo
+
+// --- SLOT 2 (SUB / BODY) SLIDERS (21-26) ---
+slider21:0<-60,12,0.1>Slot 2 Vol (dB)
+slider22:0<-100,100,1>Slot 2 Pan (%)
+slider23:0<-12,12,0.1>Slot 2 Tune (st)
+slider24:0<0,1,1{Normal,Invert 180 deg}>Slot 2 Phase (Phase)
+slider25:0<0,1,1{Active,Muted}>Slot 2 Mute
+slider26:0<0,1,1{Off,Solo}>Slot 2 Solo
+
+// --- SLOT 3 (ROOM / AMBIENCE) SLIDERS (31-36) ---
+slider31:0<-60,12,0.1>Slot 3 Vol (dB)
+slider32:0<-100,100,1>Slot 3 Pan (%)
+slider33:0<-12,12,0.1>Slot 3 Tune (st)
+slider34:0<0,1,1{Normal,Invert 180 deg}>Slot 3 Phase (Phase)
+slider35:0<0,1,1{Active,Muted}>Slot 3 Mute
+slider36:0<0,1,1{Off,Solo}>Slot 3 Solo
+
+// --- HIDDEN SLIDERS FOR SERIALIZED PATHS (41-43) ---
+slider41:SLOT1/Sample.wav:SAMPLE_PATH:Slot 1 Path (Close)
+slider42:SLOT2/Sample.wav:SAMPLE_PATH:Slot 2 Path (Sub)
+slider43:SLOT3/Sample.wav:SAMPLE_PATH:Slot 3 Path (Room)
+
+// --- SUB SINE SYNTHESIZER (44-47) ---
+slider44:0<0,1,1{Off,Active}>Sub Synth Enable
+slider45:55<30,100,1>Sub Synth Freq (Hz)
+slider46:180<30,600,5>Sub Synth Decay (ms)
+slider47:-6<-48,6,0.5>Sub Synth Vol (dB)
+
+// --- OUTPUT & BLEND (51-58) ---
+slider51:2<0,100,1>Sample Attack (ms)
+slider52:350<10,1000,5>Sample Decay (ms)
+slider53:0<-60,0,1>Dry Volume (dB)
+slider54:0<-60,12,0.1>Wet Volume (dB)
+slider55:100<0,100,1>Mix (%)
+slider56:0<0,2,1{Free Blend,-15 dB Kick Augment,-15 dB Snare Augment}>Augmentation Mode
+slider57:0<0,1,1{Normal,Invert 180 deg}>Master Phase (Phase)
+slider58:0<0,3,1{Linear,Logarithmic (Punch),Exponential (Ghost),Fixed 127}>Velocity Curve
+
+// --- MIDI & PRODUCER PRESET (60-62) ---
+slider60:1<0,1,1{Off,On}>Send MIDI
+slider61:36<0,127,1{36 Kick,37 SideStick,38 Snare,40 Snare Rim,41 Low Tom,43 Mid Tom,45 High Tom}>MIDI Note
+slider62:24<0,24,1{0: George Lever (Loathe),1: Dan Weller (Caskets),2: Buster Odeholm (Vildhjarta),3: Henrik Udd (Architects),4: Will Putney (Knocked Loose),5: Erik Ron (Godsmack),6: Josh Wilbur (Gojira),7: Dan Lancaster (Blink-182),8: Colin Richardson (Slipknot),9: Terry Date (Deftones),10: Brendan O'Brien (RATM),11: Matt Goldman (Underoath),12: Howard Benson (My Chemical Romance),13: George Lever 2 (The End Of All We Know),14: Machine (Lamb of God),15: David Bendeth (Paramore),16: Joey Sturgis (Asking Alexandria),17: Kurt Ballou (Converge),18: Dan Braunstein (Spiritbox),19: Zakk Cervini (Bad Omens),20: Chris Blancato (Northlane),21: Lance Prenc (Love Is Noise),22: Acle Kahney (Tesseract),23: Adam Cichocki (Flake),24: Manuel Renner (SENNA)}>Producer Preset
+
+in_pin:left input
+in_pin:right input
+in_pin:sidechain L (bleed)
+in_pin:sidechain R (bleed)
+out_pin:left output
+out_pin:right output
+
+options:maxmemz=4194304
+options:gfx_hz=60
+options:want_all_kb
+options:no_meter
+
+// ============================================================================
+// DSP Helper Functions (Global Scope)
+// ============================================================================
+function db(v) (
+  v > 0.000000001 ? 20.0 * log10(v) : -120.0;
+);
+
+function db_to_gain(d) (
+  d <= -59.5 ? 0.0 : pow(10.0, d / 20.0);
+);
+
+function clamp(v, mn, mx) (
+  max(mn, min(mx, v));
+);
+
+// 2-Pole Butterworth High-Pass Biquad Setup
+function setup_biquad_hpf(f0, Q) local(omega, sn, cs, alpha, a0) (
+  omega = 2.0 * $pi * clamp(f0, 20.0, srate * 0.45) / srate;
+  sn = sin(omega); cs = cos(omega);
+  alpha = sn / (2.0 * Q);
+  a0 = 1.0 + alpha;
+  b0_hpf = ((1.0 + cs) * 0.5) / a0;
+  b1_hpf = (-(1.0 + cs)) / a0;
+  b2_hpf = ((1.0 + cs) * 0.5) / a0;
+  a1_hpf = (-2.0 * cs) / a0;
+  a2_hpf = (1.0 - alpha) / a0;
+);
+
+// 2-Pole Butterworth Low-Pass Biquad Setup
+function setup_biquad_lpf(f0, Q) local(omega, sn, cs, alpha, a0) (
+  omega = 2.0 * $pi * clamp(f0, 20.0, srate * 0.45) / srate;
+  sn = sin(omega); cs = cos(omega);
+  alpha = sn / (2.0 * Q);
+  a0 = 1.0 + alpha;
+  b0_lpf = ((1.0 - cs) * 0.5) / a0;
+  b1_lpf = (1.0 - cs) / a0;
+  b2_lpf = ((1.0 - cs) * 0.5) / a0;
+  a1_lpf = (-2.0 * cs) / a0;
+  a2_lpf = (1.0 - alpha) / a0;
+);
+
+// Slot Sample Loader
+function load_slot(path_str, buf_off, slot_idx) local(handle, nch, sr, len)
+(
+  strlen(path_str) == 0 ? (
+    slot_idx == 0 ? (sample_len0 = 0; sample_nch0 = 0;) :
+    slot_idx == 1 ? (sample_len1 = 0; sample_nch1 = 0;) :
+                    (sample_len2 = 0; sample_nch2 = 0;);
+    0;
+  ) : (
+    handle = file_open(path_str);
+    handle >= 0 ? (
+      nch = 0; sr = 0;
+      file_riff(handle, nch, sr);
+      nch > 0 ? (
+        len = file_avail(handle);
+        // Max 990,000 samples per slot to prevent boundary overlap
+        len = min(len, 990000 * nch);
+        len > 0 ? (
+          slot_idx == 0 ? (
+            sample_nch0 = nch; sample_sr0 = sr; sample_len0 = floor(len / nch);
+            sample_path_loaded0 = path_str; sample_load_req0 = 0;
+            sample_play_pos0 = 0; sample_playing0 = 0;
+          ) : slot_idx == 1 ? (
+            sample_nch1 = nch; sample_sr1 = sr; sample_len1 = floor(len / nch);
+            sample_path_loaded1 = path_str; sample_load_req1 = 0;
+            sample_play_pos1 = 0; sample_playing1 = 0;
+          ) : (
+            sample_nch2 = nch; sample_sr2 = sr; sample_len2 = floor(len / nch);
+            sample_path_loaded2 = path_str; sample_load_req2 = 0;
+            sample_play_pos2 = 0; sample_playing2 = 0;
+          );
+          file_mem(handle, buf_off, len);
+          file_close(handle);
+          len;
+        ) : (
+          file_close(handle);
+          slot_idx == 0 ? sample_len0 = 0 : slot_idx == 1 ? sample_len1 = 0 : sample_len2 = 0;
+          0;
+        );
+      ) : (
+        file_close(handle);
+        slot_idx == 0 ? sample_len0 = 0 : slot_idx == 1 ? sample_len1 = 0 : sample_len2 = 0;
+        0;
+      );
+    ) : (
+      slot_idx == 0 ? sample_len0 = 0 : slot_idx == 1 ? sample_len1 = 0 : sample_len2 = 0;
+      0;
+    );
+  );
+);
+
+// GUI Helper Functions (Global Scope)
+function set_c(hex) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = 1.0;
+);
+
+function set_ca(hex, a) (
+  gfx_r = ((hex >> 16) & 0xff) / 255.0;
+  gfx_g = ((hex >> 8) & 0xff) / 255.0;
+  gfx_b = (hex & 0xff) / 255.0;
+  gfx_a = a;
+);
+
+function draw_panel(px, py, pw, ph, title_str, tag_str) local(tw, th) (
+  set_ca(0x111620, 0.96); gfx_rect(px, py, pw, ph);
+  set_c(0x222c3d); gfx_rect(px, py, pw, ph, 0);
+  set_c(0x0c0f16); gfx_rect(px + 1, py + 1, pw - 2, 24);
+  set_c(0x1b2331); gfx_line(px, py + 25, px + pw, py + 25);
+  set_c(0xdfb15b);
+  gfx_line(px, py, px + 8, py); gfx_line(px, py, px, py + 8);
+  gfx_line(px + pw - 1, py, px + pw - 9, py); gfx_line(px + pw - 1, py, px + pw - 1, py + 8);
+  gfx_setfont(1, "Orbitron", 10, 'b');
+  set_c(0xdfb15b); gfx_x = px + 10; gfx_y = py + 6; gfx_drawstr(title_str);
+  strlen(tag_str) > 0 ? (
+    gfx_setfont(2, "Consolas", 9.5);
+    set_c(0x2899ff);
+    gfx_measurestr(tag_str, tw, th);
+    gfx_x = px + pw - tw - 10; gfx_y = py + 7;
+    gfx_drawstr(tag_str);
+  );
+);
+
+function draw_knob(cx, cy, radius, val_norm, label_str, val_str, idx)
+local(hov, val_new, a_start, a_end, tw, th) (
+  hov = sqrt((mouse_x - cx)^2 + (cy - mouse_y)^2) < radius + 6;
+  mouse_cap & 1 ? (
+    knob_drag == idx ? (
+      val_new = knob_drag_start_val + (knob_drag_start_y - mouse_y) / 140.0;
+      val_norm = clamp(val_new, 0.0, 1.0);
+    ) : (
+      knob_drag == -1 && hov ? (
+        knob_drag = idx;
+        knob_drag_start_y = mouse_y;
+        knob_drag_start_val = val_norm;
+      );
+    );
+  ) : (
+    knob_drag == idx ? knob_drag = -1;
+  );
+
+  // Outer Bezel & Base
+  set_c(0x131822); gfx_circle(cx, cy, radius, 1, 1);
+  set_c(0x222c3d); gfx_circle(cx, cy, radius, 0, 1);
+
+  // Indicator Sweep Arc (Gold / Cyan)
+  a_start = -4.71; // -270 deg
+  a_end = a_start + (val_norm * 4.71);
+  set_ca(hov ? 0x2899ff : 0xdfb15b, 0.95);
+  gfx_arc(cx, cy, radius - 3, a_start, a_end, 1);
+
+  // Center Cap
+  set_c(0x1c2433); gfx_circle(cx, cy, radius * 0.42, 1, 1);
+  set_c(0x1b2331); gfx_circle(cx, cy, radius * 0.42, 0, 1);
+
+  // Value Display
+  gfx_setfont(1, "Orbitron", 9.5, 'b');
+  set_c(0xedf1f7);
+  gfx_measurestr(val_str, tw, th);
+  gfx_x = cx - tw * 0.5; gfx_y = cy - th * 0.5;
+  gfx_drawstr(val_str);
+
+  // Label Underneath
+  gfx_setfont(2, "Segoe UI", 9.5);
+  set_c(0x6e788d);
+  gfx_measurestr(label_str, tw, th);
+  gfx_x = cx - tw * 0.5; gfx_y = cy + radius + 7;
+  gfx_drawstr(label_str);
+
+  val_norm;
+);
+
+function draw_sifam(mx, my, mw, mh, title_str, norm_val, is_pk)
+local(piv_x, piv_y, r_arc, r_needle, ang_start, ang_end, cur_ang, needle_val, ai, a_step, rad, x1, y1, x2, y2, tw, th, db_val) (
+  set_c(0x181c26); gfx_rect(mx, my, mw, mh);
+  set_c(0x222c3d); gfx_rect(mx, my, mw, mh, 0);
+
+  // Inner Meter Plate
+  set_c(0x0e131d); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8);
+  set_c(0x1a2436); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8, 0);
+
+  piv_x = mx + mw * 0.5;
+  piv_y = my + mh - 8;
+  r_arc = min(mh - 22, mw * 0.44);
+  r_needle = r_arc - 2;
+
+  ang_start = -48.0 * $pi / 180.0;
+  ang_end   =  48.0 * $pi / 180.0;
+
+  // Scale Ticks
+  set_c(0x2d3a50);
+  ai = 0; a_step = (ang_end - ang_start) / 20.0;
+  loop(20,
+    rad = ang_start + ai * a_step;
+    x1 = piv_x + sin(rad) * (r_arc - 2);
+    y1 = piv_y - cos(rad) * (r_arc - 2);
+    x2 = piv_x + sin(rad + a_step) * (r_arc - 2);
+    y2 = piv_y - cos(rad + a_step) * (r_arc - 2);
+    gfx_line(x1, y1, x2, y2);
+    (ai % 4 == 0) ? (
+      set_c(0xdfb15b);
+      gfx_line(x1, y1, piv_x + sin(rad) * (r_arc - 6), piv_y - cos(rad) * (r_arc - 6));
+      set_c(0x2d3a50);
+    );
+    ai += 1;
+  );
+
+  // Redline Zone
+  set_c(0xf03344);
+  rad = ang_start + 16 * a_step;
+  gfx_line(piv_x + sin(rad) * (r_arc - 2), piv_y - cos(rad) * (r_arc - 2),
+           piv_x + sin(ang_end) * (r_arc - 2), piv_y - cos(ang_end) * (r_arc - 2));
+
+  // Needle
+  needle_val = clamp(norm_val, 0.0, 1.0);
+  cur_ang = ang_start + needle_val * (ang_end - ang_start);
+  set_ca(0x000000, 0.4);
+  gfx_line(piv_x + 2, piv_y + 2, piv_x + sin(cur_ang) * r_needle + 2, piv_y - cos(cur_ang) * r_needle + 2);
+  set_c(is_pk ? 0xf03344 : 0xdfb15b);
+  gfx_line(piv_x, piv_y, piv_x + sin(cur_ang) * r_needle, piv_y - cos(cur_ang) * r_needle);
+
+  // Pivot Cap
+  set_c(0x283344); gfx_circle(piv_x, piv_y, 4, 1, 1);
+  set_c(0xdfb15b); gfx_circle(piv_x, piv_y, 4, 0, 1);
+
+  // Title & Reading
+  gfx_setfont(1, "Orbitron", 9, 'b');
+  set_c(0xedf1f7);
+  gfx_measurestr(title_str, tw, th);
+  gfx_x = mx + 8; gfx_y = my + 6;
+  gfx_drawstr(title_str);
+
+  db_val = db(norm_val);
+  sprintf(str_buf, "%.1f dB", db_val);
+  gfx_measurestr(str_buf, tw, th);
+  set_c(is_pk ? 0xf03344 : 0x0fe49e);
+  gfx_x = mx + mw - tw - 8; gfx_y = my + 6;
+  gfx_drawstr(str_buf);
+);
+
+// ============================================================================
+// @init
+// ============================================================================
+@init
+  ext_noinit = 1;
+
+  // --- MEMORY PARTITION MAP ---
+  buf_offset0 = 0;        // Slot 0: 0 to 999,999 (~22s mono / 11s stereo)
+  buf_offset1 = 1000000;  // Slot 1: 1,000,000 to 1,999,999
+  buf_offset2 = 2000000;  // Slot 2: 2,000,000 to 2,999,999
+  wave_buf    = 3000000;  // Waveform display buffer
+  str_buf     = 3100000;  // Temporary string buffer
+
+  // --- ENVELOPE FOLLOWER & DETECTOR STATE ---
+  env_fast = 0;
+  env_slow = 0;
+  bleed_env = 0;
+  retrig_cnt = 999999;
+  trig_flag = 0;
+  peak_smpl = 0;
+  smpl_cnt = 0;
+  trig_pos = 0;
+  trig_mrk = 0;
+  bleed_gated_cnt = 0;
+
+  // --- METERS & BALLISTICS ---
+  in_peak = 0;
+  out_peak = 0;
+  sifam_in = 0;
+  sifam_out = 0;
+
+  // --- MIDI STATE ---
+  note_pitch = 36;
+  note_off = 0;
+  note_off_timer = 0;
+
+  // --- 2-POLE BIQUAD FILTER STATES ---
+  hpf_x1 = 0; hpf_x2 = 0; hpf_y1 = 0; hpf_y2 = 0;
+  lpf_x1 = 0; lpf_x2 = 0; lpf_y1 = 0; lpf_y2 = 0;
+
+  // --- MULTI-SLOT PLAYBACK STATES ---
+  sample_play_pos0 = 0; sample_playing0 = 0; sample_len0 = 0; sample_nch0 = 0; sample_sr0 = 48000; sample_load_req0 = 0; sample_path_loaded0 = -1;
+  sample_play_pos1 = 0; sample_playing1 = 0; sample_len1 = 0; sample_nch1 = 0; sample_sr1 = 48000; sample_load_req1 = 0; sample_path_loaded1 = -1;
+  sample_play_pos2 = 0; sample_playing2 = 0; sample_len2 = 0; sample_nch2 = 0; sample_sr2 = 48000; sample_load_req2 = 0; sample_path_loaded2 = -1;
+
+  // Output Envelopes per slot
+  env_gain0 = 0; attack_phase0 = 0;
+  env_gain1 = 0; attack_phase1 = 0;
+  env_gain2 = 0; attack_phase2 = 0;
+
+  // --- SUB SYNTH STATE ---
+  sub_playing = 0;
+  sub_phase = 0;
+  sub_env = 0;
+
+  // --- UI INTERACTION STATE ---
+  active_tab = 0;
+  browse_request = 0;
+  drag_file = "";
+  knob_drag = -1;
+  knob_drag_start_y = 0;
+  knob_drag_start_val = 0;
+
+  // --- WAVEFORM DISPLAY ---
+  wave_x = 260; wave_y = 52;
+  wave_w = 640; wave_h = 160;
+  wave_div = 200; wave_min_div = 40; wave_max_div = 4000;
+  wave_spos = 0; wave_ppos = 0;
+  wave_min = 1; wave_max = -1;
+  wave_zoom = 1.0;
+
+  gfx_clear = 0x0a0c10;
+  gfx_update = 1;
+
+// ============================================================================
+// @slider
+// ============================================================================
+@slider
+  // Producer Preset Automation
+  cur_preset = slider62;
+  cur_preset != last_preset ? (
+    last_preset = cur_preset;
+    // Preset 24: Manuel Renner (SENNA - Modern Heavy German Production)
+    cur_preset == 24 ? (
+      slider2 = 30;  // Threshold
+      slider3 = 55;  // Sensitivity
+      slider4 = 35;  // Retrigger 35ms
+      slider5 = 60;  // HPF 60Hz
+      slider6 = 9000;// LPF 9kHz
+      slider56 = 1;  // -15 dB Kick Augmentation mode
+    );
+    // Preset 0: George Lever (Loathe - Massive heavy room drums)
+    cur_preset == 0 ? (
+      slider2 = 28; slider3 = 60; slider4 = 40;
+      slider5 = 50; slider6 = 10000; slider44 = 1; slider45 = 50; slider47 = -9;
+    );
+    // Preset 1: Dan Weller (Caskets - Pristine natural tracking)
+    cur_preset == 1 ? (
+      slider2 = 34; slider3 = 40; slider4 = 45;
+      slider5 = 70; slider6 = 8500; slider56 = 2; // -15 dB Snare Augmentation
+    );
+    // Preset 20: Chris Blancato / Lance Prenc (Northlane - Hyper-focused punch)
+    cur_preset == 20 ? (
+      slider2 = 26; slider3 = 70; slider4 = 28;
+      slider5 = 65; slider6 = 12000; slider58 = 1; // Log punch velocity
+    );
+  );
+
+  // Detector filter coefficients
+  setup_biquad_hpf(slider5, 0.707);
+  setup_biquad_lpf(slider6, 0.707);
+
+  // Dual envelope followers
+  ga_fast = exp(-1.0 / (srate * 0.0005));
+  gr_fast = exp(-1.0 / (srate * 0.010));
+  ga_slow = exp(-1.0 / (srate * 0.007));
+  gr_slow = exp(-1.0 / (srate * 0.025));
+
+  // Gains
+  in_gain = db_to_gain(slider1);
+  threshold = pow(10.0, -slider2 / 20.0);
+  sensitivity = slider3 / 100.0;
+  retrig_samples = (slider4 / 1000.0) * srate;
+
+  // Bleed suppression parameters
+  bleed_enable = slider8;
+  bleed_thresh = pow(10.0, -slider9 / 20.0);
+  bleed_sens = slider10 / 100.0;
+
+  // Sample Envelopes
+  attack_samples = max(1, floor((slider51 / 1000.0) * srate));
+  decay_coeff = exp(-1.0 / (srate * (slider52 / 1000.0)));
+
+  // Sub Synth Setup
+  sub_decay_coeff = exp(-1.0 / (srate * (slider46 / 1000.0)));
+  sub_gain = db_to_gain(slider47);
+
+  // Slot gains & pan
+  slot1_vol = db_to_gain(slider11);
+  slot1_pitch = pow(2.0, slider13 / 12.0);
+  slot1_phase = slider14 ? -1.0 : 1.0;
+  slot1_mute = slider15;
+  slot1_solo = slider16;
+
+  slot2_vol = db_to_gain(slider21);
+  slot2_pitch = pow(2.0, slider23 / 12.0);
+  slot2_phase = slider24 ? -1.0 : 1.0;
+  slot2_mute = slider25;
+  slot2_solo = slider26;
+
+  slot3_vol = db_to_gain(slider31);
+  slot3_pitch = pow(2.0, slider33 / 12.0);
+  slot3_phase = slider34 ? -1.0 : 1.0;
+  slot3_mute = slider35;
+  slot3_solo = slider36;
+
+  has_solo = slot1_solo || slot2_solo || slot3_solo;
+
+  // Master Blend
+  aug_mode = slider56;
+  aug_mode == 1 ? (
+    // -15 dB Kick Augmentation
+    dry_gain = 1.0;
+    wet_gain = 0.1778; // -15 dB
+    mix = 1.0;
+  ) : aug_mode == 2 ? (
+    // -15 dB Snare Augmentation
+    dry_gain = 1.0;
+    wet_gain = 0.1778; // -15 dB
+    mix = 1.0;
+  ) : (
+    dry_gain = slider53 <= -59.5 ? 0.0 : db_to_gain(slider53);
+    wet_gain = db_to_gain(slider54);
+    mix = slider55 / 100.0;
+  );
+
+  master_phase = slider57 ? -1.0 : 1.0;
+
+  // Check if any slot path changed -- trigger reload
+  strcmp(slider41, sample_path_loaded0) != 0 ? sample_load_req0 = 1;
+  strcmp(slider42, sample_path_loaded1) != 0 ? sample_load_req1 = 1;
+  strcmp(slider43, sample_path_loaded2) != 0 ? sample_load_req2 = 1;
+
+  // Auto-assign default curated samples if paths are unassigned
+  (strcmp(slider41, "SLOT1/Sample.wav") == 0 || strlen(slider41) == 0) ? (
+    slider61 == 36 ? (
+      slider41 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\01 Loathe Kick.wav";
+      sample_load_req0 = 1;
+    ) : (
+      slider41 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\05 Loathe Snare Close.wav";
+      sample_load_req0 = 1;
+    );
+  );
+  (strcmp(slider42, "SLOT2/Sample.wav") == 0 || strlen(slider42) == 0) ? (
+    slider61 == 36 ? (
+      slider42 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\02 Loathe Sub.wav";
+      sample_load_req1 = 1;
+    );
+  );
+  (strcmp(slider43, "SLOT3/Sample.wav") == 0 || strlen(slider43) == 0) ? (
+    slider61 == 36 ? (
+      slider43 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\03 Loathe Room.wav";
+      sample_load_req2 = 1;
+    ) : (
+      slider43 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\06 Loathe Snare Room.wav";
+      sample_load_req2 = 1;
+    );
+  );
+
+  // Load samples immediately in @slider so they are ready for audio without waiting for @gfx
+  sample_load_req0 ? load_slot(slider41, buf_offset0, 0);
+  sample_load_req1 ? load_slot(slider42, buf_offset1, 1);
+  sample_load_req2 ? load_slot(slider43, buf_offset2, 2);
+
+// ============================================================================
+// @block
+// ============================================================================
+@block
+  block_pos = 0;
+  retrig_cnt += samplesblock;
+
+  // MIDI Note Handling
+  note_pitch != slider61 ? (
+    note_off ? midisend(block_pos, 128, note_pitch, 0);
+    note_off = 0;
+    note_pitch = slider61;
+  );
+
+// ============================================================================
+// @sample
+// ============================================================================
+@sample
+  block_pos += 1;
+
+  // 1. Detect signal from main input
+  raw_in = (spl0 + spl1) * 0.5 * in_gain;
+
+  // 2. 2-Pole Biquad High-Pass Filter on detector
+  hpf_out = b0_hpf * raw_in + b1_hpf * hpf_x1 + b2_hpf * hpf_x2 - a1_hpf * hpf_y1 - a2_hpf * hpf_y2;
+  hpf_x2 = hpf_x1; hpf_x1 = raw_in;
+  hpf_y2 = hpf_y1; hpf_y1 = hpf_out;
+
+  // 3. 2-Pole Biquad Low-Pass Filter on detector
+  lpf_out = b0_lpf * hpf_out + b1_lpf * lpf_x1 + b2_lpf * lpf_x2 - a1_lpf * lpf_y1 - a2_lpf * lpf_y2;
+  lpf_x2 = lpf_x1; lpf_x1 = hpf_out;
+  lpf_y2 = lpf_y1; lpf_y1 = lpf_out;
+
+  det_sig = abs(lpf_out);
+
+  // 4. Sidechain Bleed Signal (Channels 3 & 4)
+  bleed_raw = (spl2 + spl3) * 0.5;
+  bleed_sig = abs(bleed_raw);
+
+  // Envelope Followers
+  env_fast < det_sig ? (
+    env_fast = det_sig + ga_fast * (env_fast - det_sig);
+  ) : (
+    env_fast = det_sig + gr_fast * (env_fast - det_sig);
+  );
+
+  env_slow < det_sig ? (
+    env_slow = det_sig + ga_slow * (env_slow - det_sig);
+  ) : (
+    env_slow = det_sig + gr_slow * (env_slow - det_sig);
+  );
+
+  bleed_env < bleed_sig ? (
+    bleed_env = bleed_sig + ga_fast * (bleed_env - bleed_sig);
+  ) : (
+    bleed_env = bleed_sig + gr_fast * (bleed_env - bleed_sig);
+  );
+
+  // 5. Slate Trigger 2 Detection & Bleed Suppression Logic
+  retrig_cnt > retrig_samples ? (
+    env_fast > threshold && env_slow > 0.00001 && (env_fast / max(env_slow, 0.000001) > sensitivity) ? (
+      // Check if bleed cancellation fires
+      is_bleed = bleed_enable && (bleed_env > bleed_thresh) && ((bleed_env * bleed_sens) > env_fast);
+      is_bleed ? (
+        bleed_gated_cnt = floor(srate * 0.05); // Flash indicator
+      ) : (
+        trig_flag = 1;
+        retrig_cnt = 0;
+        smpl_cnt = 0;
+        peak_smpl = 0;
+      );
+    );
+  );
+
+  bleed_gated_cnt > 0 ? bleed_gated_cnt -= 1;
+
+  // 6. Dynamic Velocity Peak Window (3ms Lookahead / Tracking)
+  trig_flag ? (
+    smpl_cnt < srate * 0.003 ? (
+      peak_smpl = max(peak_smpl, env_fast);
+      smpl_cnt += 1;
+    ) : (
+      trig_flag = 0;
+      trig_pos = block_pos;
+
+      // Dynamic Velocity Curve Shaping
+      v_raw = clamp(peak_smpl * 2.2, 0.0, 1.0);
+      slider58 == 0 ? (
+        v_curved = v_raw;
+      ) : slider58 == 1 ? (
+        v_curved = sqrt(v_raw);
+      ) : slider58 == 2 ? (
+        v_curved = v_raw * v_raw;
+      ) : (
+        v_curved = 1.0;
+      );
+
+      velo_norm = clamp(0.15 + v_curved * 0.85, 0.15, 1.0);
+      velo = min(127, max(1, floor(velo_norm * 127.0)));
+
+      // Trigger All Active Sample Slots
+      sample_playing0 = 1; sample_play_pos0 = 0; attack_phase0 = 0; env_gain0 = 0;
+      sample_playing1 = 1; sample_play_pos1 = 0; attack_phase1 = 0; env_gain1 = 0;
+      sample_playing2 = 1; sample_play_pos2 = 0; attack_phase2 = 0; env_gain2 = 0;
+
+      // Trigger Sub Sine Synthesizer
+      slider44 ? (
+        sub_playing = 1;
+        sub_phase = 0;
+        sub_env = 1.0;
+      );
+
+      // Trigger Waveform Marker
+      trig_mrk = velo_norm;
+
+      // Send MIDI Out
+      slider60 ? (
+        note_off ? midisend(trig_pos, 128, note_pitch, 0);
+        midisend(trig_pos, 144, note_pitch, velo);
+        note_off = 1;
+        note_off_timer = 0;
+      );
+    );
+  );
+
+  // MIDI Note-Off Timer (~80 ms)
+  note_off && slider60 ? (
+    note_off_timer += 1;
+    note_off_timer > (srate * 0.08) ? (
+      midisend(block_pos, 128, note_pitch, 0);
+      note_off = 0;
+      note_off_timer = 0;
+    );
+  );
+
+  // 7. MULTI-SAMPLE PLAYBACK WITH PITCH INTERPOLATION
+
+  // Slot 1: Close / Direct
+  s1_out_l = 0; s1_out_r = 0;
+  sample_playing0 && sample_len0 > 0 ? (
+    sample_play_pos0 < sample_len0 ? (
+      frac = sample_play_pos0 - floor(sample_play_pos0);
+      idx0 = buf_offset0 + floor(sample_play_pos0) * sample_nch0;
+      idx1 = min(buf_offset0 + (sample_len0 - 1) * sample_nch0, idx0 + sample_nch0);
+      s0_l = buf[idx0]; s1_l = buf[idx1];
+      s1_raw_l = s0_l + frac * (s1_l - s0_l);
+      sample_nch0 > 1 ? (
+        s0_r = buf[idx0 + 1]; s1_r = buf[idx1 + 1];
+        s1_raw_r = s0_r + frac * (s1_r - s0_r);
+      ) : (
+        s1_raw_r = s1_raw_l;
+      );
+      sample_play_pos0 += slot1_pitch;
+
+      // Slot 1 Envelope
+      attack_phase0 < attack_samples ? (
+        attack_phase0 += 1;
+        env_gain0 = attack_phase0 / attack_samples;
+      ) : (
+        env_gain0 *= decay_coeff;
+      );
+
+      // Pan & Level
+      s1_pan = slider12 / 100.0;
+      s1_pan_l = clamp(1.0 - s1_pan, 0.0, 1.0);
+      s1_pan_r = clamp(1.0 + s1_pan, 0.0, 1.0);
+      s1_active = has_solo ? slot1_solo : (!slot1_mute);
+      s1_active ? (
+        s1_out_l = s1_raw_l * slot1_vol * env_gain0 * slot1_phase * s1_pan_l;
+        s1_out_r = s1_raw_r * slot1_vol * env_gain0 * slot1_phase * s1_pan_r;
+      );
+    ) : (
+      sample_playing0 = 0;
+    );
+  );
+
+  // Slot 2: Sub / Body
+  s2_out_l = 0; s2_out_r = 0;
+  sample_playing1 && sample_len1 > 0 ? (
+    sample_play_pos1 < sample_len1 ? (
+      frac = sample_play_pos1 - floor(sample_play_pos1);
+      idx0 = buf_offset1 + floor(sample_play_pos1) * sample_nch1;
+      idx1 = min(buf_offset1 + (sample_len1 - 1) * sample_nch1, idx0 + sample_nch1);
+      s0_l = buf[idx0]; s1_l = buf[idx1];
+      s2_raw_l = s0_l + frac * (s1_l - s0_l);
+      sample_nch1 > 1 ? (
+        s0_r = buf[idx0 + 1]; s1_r = buf[idx1 + 1];
+        s2_raw_r = s0_r + frac * (s1_r - s0_r);
+      ) : (
+        s2_raw_r = s2_raw_l;
+      );
+      sample_play_pos1 += slot2_pitch;
+
+      attack_phase1 < attack_samples ? (
+        attack_phase1 += 1;
+        env_gain1 = attack_phase1 / attack_samples;
+      ) : (
+        env_gain1 *= decay_coeff;
+      );
+
+      s2_pan = slider22 / 100.0;
+      s2_pan_l = clamp(1.0 - s2_pan, 0.0, 1.0);
+      s2_pan_r = clamp(1.0 + s2_pan, 0.0, 1.0);
+      s2_active = has_solo ? slot2_solo : (!slot2_mute);
+      s2_active ? (
+        s2_out_l = s2_raw_l * slot2_vol * env_gain1 * slot2_phase * s2_pan_l;
+        s2_out_r = s2_raw_r * slot2_vol * env_gain1 * slot2_phase * s2_pan_r;
+      );
+    ) : (
+      sample_playing1 = 0;
+    );
+  );
+
+  // Slot 3: Room / Ambience
+  s3_out_l = 0; s3_out_r = 0;
+  sample_playing2 && sample_len2 > 0 ? (
+    sample_play_pos2 < sample_len2 ? (
+      frac = sample_play_pos2 - floor(sample_play_pos2);
+      idx0 = buf_offset2 + floor(sample_play_pos2) * sample_nch2;
+      idx1 = min(buf_offset2 + (sample_len2 - 1) * sample_nch2, idx0 + sample_nch2);
+      s0_l = buf[idx0]; s1_l = buf[idx1];
+      s3_raw_l = s0_l + frac * (s1_l - s0_l);
+      sample_nch2 > 1 ? (
+        s0_r = buf[idx0 + 1]; s1_r = buf[idx1 + 1];
+        s3_raw_r = s0_r + frac * (s1_r - s0_r);
+      ) : (
+        s3_raw_r = s3_raw_l;
+      );
+      sample_play_pos2 += slot3_pitch;
+
+      attack_phase2 < attack_samples ? (
+        attack_phase2 += 1;
+        env_gain2 = attack_phase2 / attack_samples;
+      ) : (
+        env_gain2 *= decay_coeff;
+      );
+
+      s3_pan = slider32 / 100.0;
+      s3_pan_l = clamp(1.0 - s3_pan, 0.0, 1.0);
+      s3_pan_r = clamp(1.0 + s3_pan, 0.0, 1.0);
+      s3_active = has_solo ? slot3_solo : (!slot3_mute);
+      s3_active ? (
+        s3_out_l = s3_raw_l * slot3_vol * env_gain2 * slot3_phase * s3_pan_l;
+        s3_out_r = s3_raw_r * slot3_vol * env_gain2 * slot3_phase * s3_pan_r;
+      );
+    ) : (
+      sample_playing2 = 0;
+    );
+  );
+
+  // Sub Sine Synthesizer
+  sub_out = 0;
+  sub_playing ? (
+    sub_out = sin(sub_phase) * sub_env * sub_gain;
+    sub_phase += 2.0 * $pi * slider45 / srate;
+    sub_phase > (2.0 * $pi) ? sub_phase -= (2.0 * $pi);
+    sub_env *= sub_decay_coeff;
+    sub_env < 0.0001 ? sub_playing = 0;
+  );
+
+  // Sum All Triggered Elements
+  total_sample_l = (s1_out_l + s2_out_l + s3_out_l + sub_out) * wet_gain * master_phase;
+  total_sample_r = (s1_out_r + s2_out_r + s3_out_r + sub_out) * wet_gain * master_phase;
+
+  // 8. Output Listen Modes & Mix
+  slider7 == 1 ? (
+    // Audition Filter Listen Mode
+    spl0 = lpf_out;
+    spl1 = lpf_out;
+  ) : (
+    // Standard Output Mix
+    dry_l = spl0 * dry_gain;
+    dry_r = spl1 * dry_gain;
+    spl0 = dry_l * (1.0 - mix) + total_sample_l * mix;
+    spl1 = dry_r * (1.0 - mix) + total_sample_r * mix;
+  );
+
+  // Peak Tracking for SIFAM Ballistics
+  in_peak = max(in_peak * 0.9998, det_sig);
+  out_peak = max(out_peak * 0.9998, max(abs(spl0), abs(spl1)));
+  sifam_in += (in_peak - sifam_in) * 0.15;
+  sifam_out += (out_peak - sifam_out) * 0.15;
+
+  // 9. Waveform Visualizer Buffer Accumulation
+  wave_min = min(wave_min, lpf_out);
+  wave_max = max(wave_max, lpf_out);
+
+  wave_spos >= wave_div ? (
+    buf_sz = wave_w * 3;
+    wave_ppos >= buf_sz ? (
+      memset(wave_buf, 0, buf_sz);
+      wave_ppos = 0;
+    );
+    wave_buf[wave_ppos] = wave_min;
+    wave_buf[wave_ppos + 1] = wave_max;
+    wave_buf[wave_ppos + 2] = trig_mrk;
+    wave_ppos += 3;
+
+    wave_min = 1.0;
+    wave_max = -1.0;
+    trig_mrk = 0;
+    wave_spos = 0;
+  );
+  wave_spos += 1;
+
+// ============================================================================
+// @gfx 940 640
+// ============================================================================
+@gfx 940 640
+
+  // Drag and Drop WAV Handling
+  gfx_getdropfile(0) != -1 ? (
+    gfx_getdropfile(0, drag_file);
+    strlen(drag_file) > 0 ? (
+      active_tab == 1 ? (slider41 = drag_file; sample_load_req0 = 1; sliderchange(slider41);) :
+      active_tab == 2 ? (slider42 = drag_file; sample_load_req1 = 1; sliderchange(slider42);) :
+      active_tab == 3 ? (slider43 = drag_file; sample_load_req2 = 1; sliderchange(slider43);) :
+                        (slider41 = drag_file; sample_load_req0 = 1; sliderchange(slider41););
+    );
+    gfx_dropfile(-1);
+  );
+
+  // Sample Load Requests
+  sample_load_req0 ? load_slot(slider41, buf_offset0, 0);
+  sample_load_req1 ? load_slot(slider42, buf_offset1, 1);
+  sample_load_req2 ? load_slot(slider43, buf_offset2, 2);
+
+  mouse_clicked = (mouse_cap & 1) && !(last_mouse_cap & 1);
+
+  // --- BACKGROUND CANVAS ---
+  set_c(0x0a0c10);
+  gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // --- TOP BAR ---
+  set_c(0x0d111a);
+  gfx_rect(0, 0, gfx_w, 44);
+  set_c(0x1b2331);
+  gfx_line(0, 44, gfx_w, 44);
+
+  // Logo & Title
+  set_c(0xdfb15b);
+  gfx_setfont(1, "Orbitron", 16, 'b');
+  gfx_x = 16; gfx_y = 11;
+  gfx_drawstr("ATUMPAN PULSE");
+
+  gfx_setfont(2, "Segoe UI", 10.5);
+  set_c(0x2899ff);
+  gfx_x = 185; gfx_y = 15;
+  gfx_drawstr("SLATE DIGITAL TRIGGER 2 NATIVE ENGINE");
+
+  // HIT / TRIGGER FLASH INDICATOR
+  is_hit = trig_flag || sample_playing0 || sample_playing1 || sample_playing2 || sub_playing;
+  hit_x = gfx_w - 240; hit_y = 10; hit_w = 60; hit_h = 24;
+  set_ca(is_hit ? 0x0fe49e : 0x141a24, is_hit ? 0.95 : 0.6);
+  gfx_roundrect(hit_x, hit_y, hit_w, hit_h, 3, 1);
+  set_c(is_hit ? 0x0fe49e : 0x1b2331);
+  gfx_roundrect(hit_x, hit_y, hit_w, hit_h, 3, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b');
+  set_c(is_hit ? 0x0a0c10 : 0x6e788d);
+  gfx_measurestr("HIT", tw, th);
+  gfx_x = hit_x + (hit_w - tw) * 0.5; gfx_y = hit_y + (hit_h - th) * 0.5;
+  gfx_drawstr("HIT");
+
+  // BLEED GATED INDICATOR
+  bg_x = gfx_w - 170; bg_y = 10; bg_w = 85; bg_h = 24;
+  is_bg = bleed_gated_cnt > 0;
+  set_ca(is_bg ? 0xf03344 : 0x141a24, is_bg ? 0.95 : 0.6);
+  gfx_roundrect(bg_x, bg_y, bg_w, bg_h, 3, 1);
+  set_c(is_bg ? 0xf03344 : 0x1b2331);
+  gfx_roundrect(bg_x, bg_y, bg_w, bg_h, 3, 0);
+  set_c(is_bg ? 0x0a0c10 : 0x6e788d);
+  gfx_measurestr("BLEED GATED", tw, th);
+  gfx_x = bg_x + (bg_w - tw) * 0.5; gfx_y = bg_y + (bg_h - th) * 0.5;
+  gfx_drawstr("BLEED GATED");
+
+  // --- SANKOFA PRODUCER PRESET SELECTOR ---
+  p_x = gfx_w - 75; p_y = 10;
+  btn_prev = mouse_x >= p_x && mouse_x < p_x + 30 && mouse_y >= p_y && mouse_y < p_y + 24;
+  btn_next = mouse_x >= p_x + 35 && mouse_x < p_x + 65 && mouse_y >= p_y && mouse_y < p_y + 24;
+  set_c(btn_prev ? 0x222c3d : 0x141a24); gfx_rect(p_x, p_y, 30, 24); set_c(0x1b2331); gfx_rect(p_x, p_y, 30, 24, 0);
+  set_c(btn_next ? 0x222c3d : 0x141a24); gfx_rect(p_x + 35, p_y, 30, 24); set_c(0x1b2331); gfx_rect(p_x + 35, p_y, 30, 24, 0);
+  set_c(0xdfb15b); gfx_x = p_x + 10; gfx_y = p_y + 4; gfx_drawstr("<");
+  gfx_x = p_x + 45; gfx_y = p_y + 4; gfx_drawstr(">");
+  mouse_clicked && btn_prev ? (slider62 = max(0, slider62 - 1); sliderchange(slider62););
+  mouse_clicked && btn_next ? (slider62 = min(24, slider62 + 1); sliderchange(slider62););
+
+  // --- TOP DUAL SIFAM METERS (DETECTOR IN & MASTER OUT) ---
+  meter_y = 52;
+  meter_w = 230; meter_h = 105;
+  draw_sifam(16, meter_y, meter_w, meter_h, "DETECTOR INPUT", sifam_in, 0);
+  draw_sifam(16, meter_y + 115, meter_w, meter_h, "MASTER OUTPUT", sifam_out, sifam_out > 0.95);
+
+  // --- CENTER WAVEFORM VIEWPORT ---
+  wave_x = 260; wave_y = 52;
+  wave_w = gfx_w - 276; wave_h = 220;
+
+  draw_panel(wave_x, wave_y, wave_w, wave_h, "TRANSIENT WAVEFORM DETECTOR", "ZOOM: SCROLL WHEEL");
+
+  // Wave Canvas Inside
+  wc_x = wave_x + 2; wc_y = wave_y + 26; wc_w = wave_w - 4; wc_h = wave_h - 28;
+  set_c(0x0a0c10); gfx_rect(wc_x, wc_y, wc_w, wc_h);
+
+  // Grid Lines & Center Axis
+  axis_y = wc_y + wc_h * 0.5;
+  set_ca(0x1b2331, 0.5); gfx_line(wc_x, axis_y, wc_x + wc_w, axis_y);
+
+  // Gold Threshold Bar
+  thresh_y = wc_h * 0.5 * threshold * wave_zoom;
+  thresh_y < (wc_h * 0.5) ? (
+    set_ca(0xdfb15b, 0.6);
+    gfx_line(wc_x, axis_y - thresh_y, wc_x + wc_w, axis_y - thresh_y);
+    gfx_line(wc_x, axis_y + thresh_y, wc_x + wc_w, axis_y + thresh_y);
+    gfx_setfont(2, "Consolas", 8.5);
+    set_c(0xdfb15b);
+    gfx_x = wc_x + 6; gfx_y = axis_y - thresh_y - 11;
+    sprintf(str_buf, "THRESHOLD -%ddB", slider2);
+    gfx_drawstr(str_buf);
+  );
+
+  // Render Waveform Data & Trigger Markers
+  wp = 0; sx = wc_x;
+  loop(min(wc_w, wave_w),
+    w_min = wc_h * 0.5 * wave_buf[wp] * wave_zoom;
+    w_max = wc_h * 0.5 * wave_buf[wp + 1] * wave_zoom;
+    w_min = clamp(w_min, -wc_h * 0.5, wc_h * 0.5);
+    w_max = clamp(w_max, -wc_h * 0.5, wc_h * 0.5);
+
+    // Wave Line
+    set_ca(0x42536d, 0.65);
+    gfx_line(sx, axis_y - w_min, sx, axis_y - w_max);
+
+    // Transient Hit Dots (Glowing Cyan)
+    wave_buf[wp + 2] > 0 ? (
+      set_ca(0x2899ff, 0.95);
+      vy = max(wc_y + 4, wc_y + wc_h - wc_h * wave_buf[wp + 2]);
+      gfx_circle(sx, vy, 3, 1, 1);
+      set_c(0x0fe49e);
+      gfx_line(sx, vy, sx, axis_y);
+    );
+
+    wp += 3; sx += 1;
+  );
+
+  // Waveform Zoom interaction
+  mouse_x >= wc_x && mouse_x < wc_x + wc_w && mouse_y >= wc_y && mouse_y < wc_y + wc_h ? (
+    mouse_wheel != 0 ? (
+      mouse_wheel > 0 ? wave_zoom = min(8.0, wave_zoom * 1.2) : wave_zoom = max(0.5, wave_zoom / 1.2);
+      mouse_wheel = 0;
+    );
+  );
+
+  // --- NAVIGATION TAB BAR ---
+  tab_y = 282; tab_h = 28;
+  tab_w = (gfx_w - 32) / 6.0;
+
+  ti = 0;
+  loop(6,
+    tx = 16 + ti * tab_w;
+    ti == 0 ? tab_lbl = "DETECTOR & BLEED" :
+    ti == 1 ? tab_lbl = "SLOT 1: CLOSE" :
+    ti == 2 ? tab_lbl = "SLOT 2: SUB" :
+    ti == 3 ? tab_lbl = "SLOT 3: ROOM" :
+    ti == 4 ? tab_lbl = "SUB SYNTH" : tab_lbl = "OUTPUT & BLEND";
+
+    t_hov = mouse_x >= tx && mouse_x < tx + tab_w && mouse_y >= tab_y && mouse_y < tab_y + tab_h;
+    set_c(active_tab == ti ? 0xdfb15b : (t_hov ? 0x1f2937 : 0x131822));
+    gfx_rect(tx, tab_y, tab_w - 2, tab_h);
+    set_c(active_tab == ti ? 0xdfb15b : 0x1b2331);
+    gfx_rect(tx, tab_y, tab_w - 2, tab_h, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(active_tab == ti ? 0x0a0c10 : (t_hov ? 0xedf1f7 : 0x6e788d));
+    gfx_measurestr(tab_lbl, tw, th);
+    gfx_x = tx + (tab_w - 2 - tw) * 0.5; gfx_y = tab_y + (tab_h - th) * 0.5;
+    gfx_drawstr(tab_lbl);
+    t_hov && mouse_clicked ? active_tab = ti;
+    ti += 1;
+  );
+
+  // --- TAB PANELS (316 px to 625 px) ---
+  content_y = 316; content_h = 308; content_w = gfx_w - 32;
+
+  // TAB 0: DETECTOR & BLEED
+  active_tab == 0 ? (
+    draw_panel(16, content_y, content_w, content_h, "DETECTION ENGINE & SLATE BLEED SUPPRESSION", "SIDECHAIN: CH 3/4");
+
+    // Detection Controls
+    ky = content_y + 80;
+    // Input Gain
+    v = (slider1 + 18) / 36.0;
+    v = draw_knob(70, ky, 30, v, "INPUT GAIN", sprintf(str_buf, "%.1f dB", slider1), 1);
+    slider1 = -18.0 + v * 36.0;
+
+    // Detail / Threshold
+    v = slider2 / 100.0;
+    v = draw_knob(165, ky, 30, v, "DETAIL", sprintf(str_buf, "-%d dB", slider2), 2);
+    slider2 = floor(v * 100.0);
+
+    // Sensitivity
+    v = (slider3 - 5) / 195.0;
+    v = draw_knob(260, ky, 30, v, "SENSITIVITY", sprintf(str_buf, "%d%%", slider3), 3);
+    slider3 = 5 + floor(v * 195.0);
+
+    // Retrigger
+    v = (slider4 - 5) / 245.0;
+    v = draw_knob(355, ky, 30, v, "RETRIGGER", sprintf(str_buf, "%d ms", slider4), 4);
+    slider4 = 5 + floor(v * 245.0);
+
+    // HPF Filter
+    v = (slider5 - 20) / 980.0;
+    v = draw_knob(450, ky, 30, v, "LOW CUT", sprintf(str_buf, "%d Hz", slider5), 5);
+    slider5 = 20 + floor(v * 980.0);
+
+    // LPF Filter
+    v = (slider6 - 500) / 19500.0;
+    v = draw_knob(545, ky, 30, v, "HIGH CUT", sprintf(str_buf, "%d Hz", slider6), 6);
+    slider6 = 500 + floor(v * 19500.0);
+
+    // Audition Filter Toggle
+    btn_listen = mouse_x >= 630 && mouse_x < 740 && mouse_y >= ky - 20 && mouse_y < ky + 20;
+    set_c(slider7 ? 0xdfb15b : (btn_listen ? 0x222c3d : 0x151b26));
+    gfx_rect(630, ky - 20, 110, 40);
+    set_c(slider7 ? 0xdfb15b : 0x1b2331);
+    gfx_rect(630, ky - 20, 110, 40, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(slider7 ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("AUDITION FILTER", tw, th);
+    gfx_x = 630 + (110 - tw) * 0.5; gfx_y = ky - 20 + (40 - th) * 0.5;
+    gfx_drawstr("AUDITION FILTER");
+    mouse_clicked && btn_listen ? (slider7 = !slider7; sliderchange(slider7););
+
+    // Row 2: Bleed Suppression Circuit
+    by = content_y + 195;
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
+    set_c(0x2899ff); gfx_x = 30; gfx_y = by - 24; gfx_drawstr("SLATE BLEED LEAKAGE SUPPRESSION (CH 3/4)");
+
+    // Bleed Active Toggle
+    btn_bleed = mouse_x >= 30 && mouse_x < 130 && mouse_y >= by && mouse_y < by + 36;
+    set_c(slider8 ? 0x2899ff : (btn_bleed ? 0x222c3d : 0x151b26));
+    gfx_rect(30, by, 100, 36);
+    set_c(slider8 ? 0x2899ff : 0x1b2331);
+    gfx_rect(30, by, 100, 36, 0);
+    set_c(slider8 ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr(slider8 ? "BLEED ON" : "BLEED OFF", tw, th);
+    gfx_x = 30 + (100 - tw) * 0.5; gfx_y = by + (36 - th) * 0.5;
+    gfx_drawstr(slider8 ? "BLEED ON" : "BLEED OFF");
+    mouse_clicked && btn_bleed ? (slider8 = !slider8; sliderchange(slider8););
+
+    // Bleed Threshold
+    v = slider9 / 100.0;
+    v = draw_knob(200, by + 18, 26, v, "BLEED THRESH", sprintf(str_buf, "-%d dB", slider9), 7);
+    slider9 = floor(v * 100.0);
+
+    // Bleed Sensitivity
+    v = (slider10 - 10) / 290.0;
+    v = draw_knob(300, by + 18, 26, v, "BLEED SENS", sprintf(str_buf, "%d%%", slider10), 8);
+    slider10 = 10 + floor(v * 290.0);
+
+    // Velocity Curve Switcher
+    btn_vc = mouse_x >= 400 && mouse_x < 560 && mouse_y >= by && mouse_y < by + 36;
+    set_c(btn_vc ? 0x222c3d : 0x151b26); gfx_rect(400, by, 160, 36);
+    set_c(0x1b2331); gfx_rect(400, by, 160, 36, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(0xdfb15b);
+    slider58 == 0 ? vc_lbl = "CURVE: LINEAR" :
+    slider58 == 1 ? vc_lbl = "CURVE: LOG PUNCH" :
+    slider58 == 2 ? vc_lbl = "CURVE: EXP GHOST" : vc_lbl = "CURVE: FIXED 127";
+    gfx_measurestr(vc_lbl, tw, th);
+    gfx_x = 400 + (160 - tw) * 0.5; gfx_y = by + (36 - th) * 0.5;
+    gfx_drawstr(vc_lbl);
+    mouse_clicked && btn_vc ? (slider58 = (slider58 + 1) % 4; sliderchange(slider58););
+
+    // Producer Preset Quick Tag
+    gfx_setfont(2, "Segoe UI", 11);
+    set_c(0x6e788d);
+    gfx_x = 600; gfx_y = by + 8;
+    sprintf(str_buf, "Target: Preset %d (Sankofa Matrix)", slider62);
+    gfx_drawstr(str_buf);
+  );
+
+  // TABS 1, 2, 3: SAMPLE SLOTS (Close, Sub, Room)
+  (active_tab >= 1 && active_tab <= 3) ? (
+    s_idx = active_tab - 1;
+    s_idx == 0 ? (
+      s_name = "SLOT 1: CLOSE / ATTACK"; s_path = slider41; s_vol = slider11; s_pan = slider12;
+      s_tune = slider13; s_phase = slider14; s_mute = slider15; s_solo = slider16;
+      s_len = sample_len0; s_nch = sample_nch0; s_sr = sample_sr0;
+    ) : s_idx == 1 ? (
+      s_name = "SLOT 2: SUB / BODY"; s_path = slider42; s_vol = slider21; s_pan = slider22;
+      s_tune = slider23; s_phase = slider24; s_mute = slider25; s_solo = slider26;
+      s_len = sample_len1; s_nch = sample_nch1; s_sr = sample_sr1;
+    ) : (
+      s_name = "SLOT 3: ROOM / AMBIENCE"; s_path = slider43; s_vol = slider31; s_pan = slider32;
+      s_tune = slider33; s_phase = slider34; s_mute = slider35; s_solo = slider36;
+      s_len = sample_len2; s_nch = sample_nch2; s_sr = sample_sr2;
+    );
+
+    draw_panel(16, content_y, content_w, content_h, s_name, s_len > 0 ? "SAMPLE LOADED" : "EMPTY");
+
+    // File Info Box & Drop Zone
+    fz_x = 30; fz_y = content_y + 40; fz_w = content_w - 60; fz_h = 50;
+    set_c(0x0e131d); gfx_rect(fz_x, fz_y, fz_w, fz_h);
+    set_c(0x1b2331); gfx_rect(fz_x, fz_y, fz_w, fz_h, 0);
+
+    // Extract filename only
+    fn_len = strlen(s_path);
+    fn_start = fn_len - 1;
+    while(fn_start > 0 && str_getchar(s_path, fn_start) != 47 && str_getchar(s_path, fn_start) != 92;
+      fn_start -= 1;
+    );
+    str_getchar(s_path, fn_start) == 47 || str_getchar(s_path, fn_start) == 92 ? fn_start += 1;
+    strcpy(str_buf, s_path);
+    strcpy_from(str_buf, str_buf, fn_start);
+
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
+    set_c(s_len > 0 ? 0xdfb15b : 0x6e788d);
+    gfx_x = fz_x + 14; gfx_y = fz_y + 12;
+    gfx_drawstr(s_len > 0 ? str_buf : "NO SAMPLE LOADED -- DRAG & DROP .WAV HERE OR CLICK BROWSE");
+
+    gfx_setfont(2, "Consolas", 9.5);
+    set_c(0x2899ff);
+    gfx_x = fz_x + 14; gfx_y = fz_y + 30;
+    s_len > 0 ? (
+      sprintf(str_buf, "%d samples | %.1f ms | %s | %d Hz", s_len, s_len / (s_sr > 0 ? s_sr : 48000) * 1000.0, s_nch > 1 ? "Stereo" : "Mono", s_sr);
+      gfx_drawstr(str_buf);
+    ) : (
+      gfx_drawstr("Slate Trigger 2 Architecture: Close Snap, Sub Body, Ambient Room");
+    );
+
+    // BROWSE BUTTON (Native Windows Dialog via @serialize)
+    bz_x = fz_x + fz_w - 110; bz_y = fz_y + 8; bz_w = 95; bz_h = 34;
+    bz_hov = mouse_x >= bz_x && mouse_x < bz_x + bz_w && mouse_y >= bz_y && mouse_y < bz_y + bz_h;
+    set_c(bz_hov ? 0xdfb15b : 0x1b2331); gfx_rect(bz_x, bz_y, bz_w, bz_h);
+    set_c(0x1b2331); gfx_rect(bz_x, bz_y, bz_w, bz_h, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(bz_hov ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("BROWSE", tw, th);
+    gfx_x = bz_x + (bz_w - tw) * 0.5; gfx_y = bz_y + (bz_h - th) * 0.5;
+    gfx_drawstr("BROWSE");
+    mouse_clicked && bz_hov ? (
+      browse_request = 1;
+    );
+
+    // SLOT MIXING CONTROLS
+    sy = content_y + 130;
+    // Volume Knob
+    v = (s_vol + 60.0) / 72.0;
+    v = draw_knob(70, sy, 30, v, "SLOT VOL", sprintf(str_buf, "%.1f dB", s_vol), 10 + s_idx);
+    new_vol = -60.0 + v * 72.0;
+    s_idx == 0 ? slider11 = new_vol : s_idx == 1 ? slider21 = new_vol : slider31 = new_vol;
+
+    // Pan Knob
+    v = (s_pan + 100.0) / 200.0;
+    v = draw_knob(165, sy, 30, v, "PAN", sprintf(str_buf, "%d%%", s_pan), 20 + s_idx);
+    new_pan = floor(-100.0 + v * 200.0);
+    s_idx == 0 ? slider12 = new_pan : s_idx == 1 ? slider22 = new_pan : slider32 = new_pan;
+
+    // Tune Knob (+/- 12 Semitones)
+    v = (s_tune + 12.0) / 24.0;
+    v = draw_knob(260, sy, 30, v, "TUNE", sprintf(str_buf, "%.1f st", s_tune), 30 + s_idx);
+    new_tune = -12.0 + v * 24.0;
+    s_idx == 0 ? slider13 = new_tune : s_idx == 1 ? slider23 = new_tune : slider33 = new_tune;
+
+    // Phase Invert Toggle (Phase)
+    ph_x = 330; ph_y = sy - 15; ph_w = 60; ph_h = 32;
+    btn_ph = mouse_x >= ph_x && mouse_x < ph_x + ph_w && mouse_y >= ph_y && mouse_y < ph_y + ph_h;
+    set_c(s_phase ? 0xf03344 : (btn_ph ? 0x222c3d : 0x151b26)); gfx_rect(ph_x, ph_y, ph_w, ph_h);
+    set_c(0x1b2331); gfx_rect(ph_x, ph_y, ph_w, ph_h, 0);
+    gfx_setfont(1, "Orbitron", 10, 'b');
+    set_c(s_phase ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("Phase 180 deg", tw, th);
+    gfx_x = ph_x + (ph_w - tw) * 0.5; gfx_y = ph_y + (ph_h - th) * 0.5;
+    gfx_drawstr("Phase 180 deg");
+    mouse_clicked && btn_ph ? (
+      s_idx == 0 ? slider14 = !slider14 : s_idx == 1 ? slider24 = !slider24 : slider34 = !slider34;
+      sliderchange(s_idx == 0 ? slider14 : s_idx == 1 ? slider24 : slider34);
+    );
+
+    // Mute Button
+    m_x = 405; m_y = sy - 15; m_w = 55; m_h = 32;
+    btn_m = mouse_x >= m_x && mouse_x < m_x + m_w && mouse_y >= m_y && mouse_y < m_y + m_h;
+    set_c(s_mute ? 0xf03344 : (btn_m ? 0x222c3d : 0x151b26)); gfx_rect(m_x, m_y, m_w, m_h);
+    set_c(0x1b2331); gfx_rect(m_x, m_y, m_w, m_h, 0);
+    set_c(s_mute ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("MUTE", tw, th);
+    gfx_x = m_x + (m_w - tw) * 0.5; gfx_y = m_y + (m_h - th) * 0.5;
+    gfx_drawstr("MUTE");
+    mouse_clicked && btn_m ? (
+      s_idx == 0 ? slider15 = !slider15 : s_idx == 1 ? slider25 = !slider25 : slider35 = !slider35;
+      sliderchange(s_idx == 0 ? slider15 : s_idx == 1 ? slider25 : slider35);
+    );
+
+    // Solo Button
+    so_x = 475; so_y = sy - 15; so_w = 55; so_h = 32;
+    btn_so = mouse_x >= so_x && mouse_x < so_x + so_w && mouse_y >= so_y && mouse_y < so_y + so_h;
+    set_c(s_solo ? 0xdfb15b : (btn_so ? 0x222c3d : 0x151b26)); gfx_rect(so_x, so_y, so_w, so_h);
+    set_c(0x1b2331); gfx_rect(so_x, so_y, so_w, so_h, 0);
+    set_c(s_solo ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("SOLO", tw, th);
+    gfx_x = so_x + (so_w - tw) * 0.5; gfx_y = so_y + (so_h - th) * 0.5;
+    gfx_drawstr("SOLO");
+    mouse_clicked && btn_so ? (
+      s_idx == 0 ? slider16 = !slider16 : s_idx == 1 ? slider26 = !slider26 : slider36 = !slider36;
+      sliderchange(s_idx == 0 ? slider16 : s_idx == 1 ? slider26 : slider36);
+    );
+
+    // QUICK SAMPLE PACK LOAD BUTTONS
+    qy = content_y + 225;
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(0x2899ff); gfx_x = 30; gfx_y = qy - 18; gfx_drawstr("QUICK LOAD REPUTABLE SAMPLES");
+
+    btn_load_loathe_k = mouse_x >= 30 && mouse_x < 220 && mouse_y >= qy && mouse_y < qy + 30;
+    btn_load_loathe_s = mouse_x >= 235 && mouse_x < 425 && mouse_y >= qy && mouse_y < qy + 30;
+    btn_load_caskets  = mouse_x >= 440 && mouse_x < 630 && mouse_y >= qy && mouse_y < qy + 30;
+
+    set_c(btn_load_loathe_k ? 0xdfb15b : 0x151b26); gfx_rect(30, qy, 190, 30); set_c(0x1b2331); gfx_rect(30, qy, 190, 30, 0);
+    set_c(btn_load_loathe_s ? 0xdfb15b : 0x151b26); gfx_rect(235, qy, 190, 30); set_c(0x1b2331); gfx_rect(235, qy, 190, 30, 0);
+    set_c(btn_load_caskets ? 0xdfb15b : 0x151b26); gfx_rect(440, qy, 190, 30); set_c(0x1b2331); gfx_rect(440, qy, 190, 30, 0);
+
+    set_c(btn_load_loathe_k ? 0x0a0c10 : 0xedf1f7); gfx_x = 40; gfx_y = qy + 8; gfx_drawstr("LOAD 01 LOATHE KICK");
+    set_c(btn_load_loathe_s ? 0x0a0c10 : 0xedf1f7); gfx_x = 245; gfx_y = qy + 8; gfx_drawstr("LOAD 05 LOATHE SNARE");
+    set_c(btn_load_caskets ? 0x0a0c10 : 0xedf1f7); gfx_x = 450; gfx_y = qy + 8; gfx_drawstr("LOAD CASKETS KICK OUT");
+
+    mouse_clicked && btn_load_loathe_k ? (
+      s_idx == 0 ? (
+        slider41 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\01 Loathe Kick.wav";
+        sample_load_req0 = 1; sliderchange(slider41);
+      ) : s_idx == 1 ? (
+        slider42 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\02 Loathe Sub.wav";
+        sample_load_req1 = 1; sliderchange(slider42);
+      ) : (
+        slider43 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\03 Loathe Room.wav";
+        sample_load_req2 = 1; sliderchange(slider43);
+      );
+    );
+
+    mouse_clicked && btn_load_loathe_s ? (
+      s_idx == 0 ? (
+        slider41 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\05 Loathe Snare Close.wav";
+        sample_load_req0 = 1; sliderchange(slider41);
+      ) : (
+        slider43 = "H:\\ReaperDrumSamples\\reaper drum sample replacements\\Drumshotz+-+George+Lever\\Drumshotz - George Lever\\EXTRA\\06 Loathe Snare Room.wav";
+        sample_load_req2 = 1; sliderchange(slider43);
+      );
+    );
+
+    mouse_clicked && btn_load_caskets ? (
+      slider41 = "H:\\CasketsMixTutorial\\CasketsStems\\DRUMS-230131-160927\\DRUMS\\02_Kick_Out.wav";
+      sample_load_req0 = 1; sliderchange(slider41);
+    );
+  );
+
+  // TAB 4: SUB SINE SYNTHESIZER
+  active_tab == 4 ? (
+    draw_panel(16, content_y, content_w, content_h, "TUNABLE SUB-SINE SYNTHESIZER", "INSTANT LOW-END REINFORCEMENT");
+
+    // Enable Toggle
+    btn_sub = mouse_x >= 30 && mouse_x < 150 && mouse_y >= content_y + 40 && mouse_y < content_y + 80;
+    set_c(slider44 ? 0x0fe49e : (btn_sub ? 0x222c3d : 0x151b26));
+    gfx_rect(30, content_y + 40, 120, 40);
+    set_c(slider44 ? 0x0fe49e : 0x1b2331);
+    gfx_rect(30, content_y + 40, 120, 40, 0);
+    gfx_setfont(1, "Orbitron", 10, 'b');
+    set_c(slider44 ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr(slider44 ? "SYNTH ON" : "SYNTH OFF", tw, th);
+    gfx_x = 30 + (120 - tw) * 0.5; gfx_y = content_y + 40 + (40 - th) * 0.5;
+    gfx_drawstr(slider44 ? "SYNTH ON" : "SYNTH OFF");
+    mouse_clicked && btn_sub ? (slider44 = !slider44; sliderchange(slider44););
+
+    // Controls
+    sy = content_y + 140;
+    // Freq Knob (30 - 100 Hz)
+    v = (slider45 - 30) / 70.0;
+    v = draw_knob(90, sy, 34, v, "SUB FREQ", sprintf(str_buf, "%d Hz", slider45), 40);
+    slider45 = 30 + floor(v * 70.0);
+
+    // Decay Knob (30 - 600 ms)
+    v = (slider46 - 30) / 570.0;
+    v = draw_knob(210, sy, 34, v, "SUB DECAY", sprintf(str_buf, "%d ms", slider46), 41);
+    slider46 = 30 + floor(v * 570.0);
+
+    // Volume Knob (-48 to +6 dB)
+    v = (slider47 + 48.0) / 54.0;
+    v = draw_knob(330, sy, 34, v, "SUB LEVEL", sprintf(str_buf, "%.1f dB", slider47), 42);
+    slider47 = -48.0 + v * 54.0;
+
+    gfx_setfont(2, "Segoe UI", 11);
+    set_c(0x6e788d);
+    gfx_x = 420; gfx_y = sy - 20;
+    gfx_drawstr("Generates a phase-locked sub sine wave directly at the acoustic onset.");
+    gfx_x = 420; gfx_y = sy;
+    gfx_drawstr("Tune directly to the key of the song (e.g., 55 Hz = A1, 49 Hz = G1, 41 Hz = E1).");
+  );
+
+  // TAB 5: OUTPUT & AUGMENTATION BLEND
+  active_tab == 5 ? (
+    draw_panel(16, content_y, content_w, content_h, "MASTER ENVELOPE, BLEND & GOLDEN AUGMENTATION", "TARGET: -15 dB AUGMENT");
+
+    oy = content_y + 80;
+    // Attack
+    v = slider51 / 100.0;
+    v = draw_knob(70, oy, 30, v, "ATTACK", sprintf(str_buf, "%d ms", slider51), 50);
+    slider51 = floor(v * 100.0);
+
+    // Decay
+    v = (slider52 - 10) / 990.0;
+    v = draw_knob(165, oy, 30, v, "DECAY", sprintf(str_buf, "%d ms", slider52), 51);
+    slider52 = 10 + floor(v * 990.0);
+
+    // Dry Vol
+    v = (slider53 + 60.0) / 60.0;
+    v = draw_knob(260, oy, 30, v, "DRY VOL", slider53 <= -59.5 ? "-inf" : sprintf(str_buf, "%d dB", slider53), 52);
+    slider53 = floor(-60.0 + v * 60.0);
+
+    // Wet Vol
+    v = (slider54 + 60.0) / 72.0;
+    v = draw_knob(355, oy, 30, v, "WET VOL", sprintf(str_buf, "%.1f dB", slider54), 53);
+    slider54 = -60.0 + v * 72.0;
+
+    // Mix Blend
+    v = slider55 / 100.0;
+    v = draw_knob(450, oy, 30, v, "MIX", sprintf(str_buf, "%d%%", slider55), 54);
+    slider55 = floor(v * 100.0);
+
+    // Master Phase Invert (Phase)
+    btn_mph = mouse_x >= 520 && mouse_x < 590 && mouse_y >= oy - 15 && mouse_y < oy + 25;
+    set_c(slider57 ? 0xf03344 : (btn_mph ? 0x222c3d : 0x151b26)); gfx_rect(520, oy - 15, 70, 40);
+    set_c(0x1b2331); gfx_rect(520, oy - 15, 70, 40, 0);
+    set_c(slider57 ? 0x0a0c10 : 0xedf1f7);
+    gfx_measurestr("MASTER Phase", tw, th);
+    gfx_x = 520 + (70 - tw) * 0.5; gfx_y = oy - 15 + (40 - th) * 0.5;
+    gfx_drawstr("MASTER Phase");
+    mouse_clicked && btn_mph ? (slider57 = !slider57; sliderchange(slider57););
+
+    // GOLDEN RATIO AUGMENTATION BUTTONS
+    ay = content_y + 180;
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
+    set_c(0xdfb15b); gfx_x = 30; gfx_y = ay - 18; gfx_drawstr("DAMEI GOLDEN RATIO STEM AUGMENTATION LOCK");
+
+    btn_free = mouse_x >= 30 && mouse_x < 190 && mouse_y >= ay && mouse_y < ay + 36;
+    btn_k_15 = mouse_x >= 205 && mouse_x < 420 && mouse_y >= ay && mouse_y < ay + 36;
+    btn_s_15 = mouse_x >= 435 && mouse_x < 650 && mouse_y >= ay && mouse_y < ay + 36;
+
+    set_c(slider56 == 0 ? 0xdfb15b : 0x151b26); gfx_rect(30, ay, 160, 36); set_c(0x1b2331); gfx_rect(30, ay, 160, 36, 0);
+    set_c(slider56 == 1 ? 0xdfb15b : 0x151b26); gfx_rect(205, ay, 215, 36); set_c(0x1b2331); gfx_rect(205, ay, 215, 36, 0);
+    set_c(slider56 == 2 ? 0xdfb15b : 0x151b26); gfx_rect(435, ay, 215, 36); set_c(0x1b2331); gfx_rect(435, ay, 215, 36, 0);
+
+    set_c(slider56 == 0 ? 0x0a0c10 : 0xedf1f7); gfx_x = 45; gfx_y = ay + 10; gfx_drawstr("FREE BLEND");
+    set_c(slider56 == 1 ? 0x0a0c10 : 0xedf1f7); gfx_x = 215; gfx_y = ay + 10; gfx_drawstr("-15 dB KICK AUGMENT");
+    set_c(slider56 == 2 ? 0x0a0c10 : 0xedf1f7); gfx_x = 445; gfx_y = ay + 10; gfx_drawstr("-15 dB SNARE AUGMENT");
+
+    mouse_clicked && btn_free ? (slider56 = 0; sliderchange(slider56););
+    mouse_clicked && btn_k_15 ? (slider56 = 1; sliderchange(slider56););
+    mouse_clicked && btn_s_15 ? (slider56 = 2; sliderchange(slider56););
+  );
+
+  // --- FOOTER BAR ---
+  set_c(0x0d111a); gfx_rect(0, gfx_h - 22, gfx_w, 22);
+  set_c(0x1b2331); gfx_line(0, gfx_h - 22, gfx_w, gfx_h - 22);
+  gfx_setfont(2, "Segoe UI", 9);
+  set_c(0x6e788d); gfx_x = 16; gfx_y = gfx_h - 17;
+  gfx_drawstr("Damei Suite Atumpan Pulse v2.5 -- Reverse-Engineered Slate Digital Trigger 2 Architecture -- Zero Latency Phase-Locked");
+
+  // Mouse Up Persistence
+  last_mouse_cap = mouse_cap;
+
+// ============================================================================
+// @serialize
+// ============================================================================
+@serialize
+  browse_request ? (
+    browse_request = 0;
+    active_tab == 1 ? file_open(slider41) :
+    active_tab == 2 ? file_open(slider42) :
+    active_tab == 3 ? file_open(slider43) :
+                      file_open(slider41);
+  );
+
+  file_var(0, slider1);
+  file_var(0, slider2);
+  file_var(0, slider3);
+  file_var(0, slider4);
+  file_var(0, slider5);
+  file_var(0, slider6);
+  file_var(0, slider7);
+  file_var(0, slider8);
+  file_var(0, slider9);
+  file_var(0, slider10);
+
+  file_var(0, slider11);
+  file_var(0, slider12);
+  file_var(0, slider13);
+  file_var(0, slider14);
+  file_var(0, slider15);
+  file_var(0, slider16);
+
+  file_var(0, slider21);
+  file_var(0, slider22);
+  file_var(0, slider23);
+  file_var(0, slider24);
+  file_var(0, slider25);
+  file_var(0, slider26);
+
+  file_var(0, slider31);
+  file_var(0, slider32);
+  file_var(0, slider33);
+  file_var(0, slider34);
+  file_var(0, slider35);
+  file_var(0, slider36);
+
+  file_var(0, slider44);
+  file_var(0, slider45);
+  file_var(0, slider46);
+  file_var(0, slider47);
+
+  file_var(0, slider51);
+  file_var(0, slider52);
+  file_var(0, slider53);
+  file_var(0, slider54);
+  file_var(0, slider55);
+  file_var(0, slider56);
+  file_var(0, slider57);
+  file_var(0, slider58);
+
+  file_var(0, slider60);
+  file_var(0, slider61);
+  file_var(0, slider62);
+
+  file_string(0, slider41);
+  file_string(0, slider42);
+  file_string(0, slider43);

@@ -1,0 +1,803 @@
+// =============================================================================
+// DAMEI SUITE -- ATUMPAN ROOMSCULPTOR (v2.5 FLAGSHIP SPACE INFLATOR & SMASH COMPRESSOR)
+// Acoustic Space Enhancer, Transient Inflator & Distressor Room Smasher
+//
+// Modelled after Oxford Inflator, Empirical Labs Distressor Nuke & Soundtoys Devil-Loc
+// Afro-Cybernetic Luxury Aesthetics | Studio Reference Standard (960 x 660)
+// Interlocked with Atumpan Drum Sentry via gmem=DameiMixMetering
+// =============================================================================
+
+desc:Damei Atumpan RoomSculptor (Acoustic Space Inflator & Smash Compressor)
+author: Damei Suite / Google DeepMind Pair Programming
+version: 2.5
+
+options:gmem=DameiMixMetering
+options:maxmemz=4194304
+options:gfx_hz=60
+options:want_all_kb
+options:no_meter
+
+// --- CONTROLS ---
+slider1:36<0,100,1>-Space Inflation (%)
+slider2:0<-50,50,1>-Inflator Curve (-Warmth / +Excitement)
+slider3:1<0,1,1{Soft Clip Off,Clip 0dBFS Safe}>-Clip 0dBFS Mode
+slider4:1<0,3,1{Pumping Glue 4:1,Punch VCA 10:1,NUKE All-Buttons-In,Opto Bloom}>-Smash Compressor Mode
+slider5:16<0,60,1>-Smash Drive / Threshold (dB)
+slider6:14<0.5,50,0.5>-Attack Time (ms)
+slider7:95<10,800,5>-Release Time (ms)
+slider8:140<30,350,5>-Detector Low-Cut HPF (Hz)
+slider9:55<0,100,1>-Parallel Smash Mix (%)
+slider10:-8.5<-18.0,18.0,0.1>-Output Makeup Trim (dB)
+slider11:0<-256,256,1>-Acoustic Time-Align (Samples)
+slider12:0<0,1,1{Normal Polarity,Invert 180 deg}>-Master Polarity
+slider13:115<0,200,1>-Room Stereo Width (%)
+slider14:24<0,26,1{0: Default Neutral Wire,1: Lance Prenc (Alpha Wolf / Polaris),2: Scott Seigel (DIESECT),3: Jonathan Dolese (Mirrorcell),4: Buster Odeholm (thrown / Northlane),5: Lewis Johns & Grant Berry (Love Is Noise),6: Kel Pinchin (Split Chain),7: Dan Lancaster (Don Broco),8: Erik Bickerstaffe (Static Dress),9: Sam Guaiana (Shyeye),10: Zach Tuch (Heavenward),11: Forrester Savell (City Of Souls),12: Leon Schmidt (SUNBORN),13: Ermin Hamidovic (Benchmark),14: Will Putney (Fit For An Autopsy / Knocked Loose),15: George Lever (Loathe / Sleep Token),16: Sam Bassal (Thornhill),17: Henrik Udd (Architects / BMTH),18: Dan Braunstein (Spiritbox / Dayseeker),19: Zakk Cervini (Bad Omens / Blink-182),20: Jens Bogren (Fascination Street),21: Adam Nolly Getgood (Periphery / GGD),22: Acle Kahney (TesseracT),23: Adam Cichocki (heaving.),24: Manuel Renner (SENNA - Out Of The Blue),25: Matt Thomas (Ashtone - Live Room Authority),26: Mark Williamson (Sugarhouse - Live Cohesion)}>-Producer Signature Preset
+slider15:1.5<0.0,10.0,0.2>-Room Air Shimmer Lift (10kHz) (dB)
+slider16:1<0,2,1{Clean Transparent,Dist 2 Warm Triode,Dist 3 Aggressive Pentode}>-Distressor Harmonic Color
+slider17:4.8<0.0,8.0,0.2>-Room Mud De-Resonator (250Hz) (dB)
+
+in_pin:Room Input L (Ch 1)
+in_pin:Room Input R (Ch 2)
+out_pin:Sculpted Room L (Ch 1)
+out_pin:Sculpted Room R (Ch 2)
+
+// =============================================================================
+// @init
+// =============================================================================
+@init
+  ext_noinit = 1;
+
+  // Delay alignment ring buffer
+  DLY_BUF_L = 0;
+  DLY_BUF_R = 16384;
+  dly_pos = 0;
+  dly_max = 16384;
+
+  // Waveform Scope Ring Buffer
+  WAVE_BUF = 32768;
+  wave_w = 480;
+  wave_h = 160;
+  wave_ppos = 0;
+  wave_spos = 0;
+  wave_div = 150;
+  wave_min = 1.0;
+  wave_max = -1.0;
+  wave_gr = 0.0;
+
+  // Filter & Detector States
+  sc_hpf_x1 = 0; sc_hpf_x2 = 0; sc_hpf_y1 = 0; sc_hpf_y2 = 0;
+  air_x1_l = 0; air_x2_l = 0; air_y1_l = 0; air_y2_l = 0;
+  air_x1_r = 0; air_x2_r = 0; air_y1_r = 0; air_y2_r = 0;
+  mud_x1_l = 0; mud_x2_l = 0; mud_y1_l = 0; mud_y2_l = 0;
+  mud_x1_r = 0; mud_x2_r = 0; mud_y1_r = 0; mud_y2_r = 0;
+
+  comp_env = 0.0;
+  sifam_gr = 0.0;
+  sifam_out = 0.0;
+  out_peak = 0.0;
+
+  knob_drag = -1;
+  knob_start_y = 0;
+  knob_start_val = 0;
+  last_preset = -1;
+  last_sentry_preset = -1;
+
+  function db(v) ( v > 0.000000001 ? 20.0 * log10(v) : -120.0; );
+  function db_to_gain(d) ( pow(10.0, d / 20.0); );
+  function clamp(v, mn, mx) ( max(mn, min(mx, v)); );
+  function sqr(x) ( x * x; );
+
+  function setup_hpf(f0, Q) local(omega, sn, cs, alpha, a0) (
+    omega = 2.0 * $pi * clamp(f0, 20.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn / (2.0 * Q);
+    a0 = 1.0 + alpha;
+    b0_hpf = ((1.0 + cs) * 0.5) / a0;
+    b1_hpf = (-(1.0 + cs)) / a0;
+    b2_hpf = ((1.0 + cs) * 0.5) / a0;
+    a1_hpf = (-2.0 * cs) / a0;
+    a2_hpf = (1.0 - alpha) / a0;
+  );
+
+  function setup_highshelf(f0, gain_db) local(omega, sn, cs, A, alpha, a0) (
+    A = pow(10.0, gain_db / 40.0);
+    omega = 2.0 * $pi * clamp(f0, 1000.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn * 0.5 * sqrt((A + 1.0 / A) * (1.0 / 0.707 - 1.0) + 2.0);
+    a0 = (A + 1.0) - (A - 1.0) * cs + 2.0 * sqrt(A) * alpha;
+    b0_hs = (A * ((A + 1.0) + (A - 1.0) * cs + 2.0 * sqrt(A) * alpha)) / a0;
+    b1_hs = (-2.0 * A * ((A - 1.0) + (A + 1.0) * cs)) / a0;
+    b2_hs = (A * ((A + 1.0) + (A - 1.0) * cs - 2.0 * sqrt(A) * alpha)) / a0;
+    a1_hs = (2.0 * ((A - 1.0) - (A + 1.0) * cs)) / a0;
+    a2_hs = ((A + 1.0) - (A - 1.0) * cs - 2.0 * sqrt(A) * alpha) / a0;
+  );
+
+  function setup_notch(f0, Q, cut_db) local(omega, sn, cs, alpha, A, a0) (
+    A = pow(10.0, -cut_db / 40.0);
+    omega = 2.0 * $pi * clamp(f0, 80.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn / (2.0 * Q);
+    a0 = 1.0 + alpha / A;
+    b0_mud = (1.0 + alpha * A) / a0;
+    b1_mud = (-2.0 * cs) / a0;
+    b2_mud = (1.0 - alpha * A) / a0;
+    a1_mud = (-2.0 * cs) / a0;
+    a2_mud = (1.0 - alpha / A) / a0;
+  );
+
+  // Oxford Inflator waveshaper algorithm
+  function inflator_process(x, infl_amt, curve_val) local(x_abs, x_sgn, y) (
+    x_sgn = x < 0 ? -1.0 : 1.0;
+    x_abs = abs(x);
+    x_abs > 1.0 ? (
+      y = 1.0;
+    ) : (
+      y = (1.0 + curve_val) * x_abs - curve_val * sqr(x_abs);
+      y = 2.0 * y - sqr(y);
+      y = (1.0 - infl_amt) * x_abs + infl_amt * y;
+    );
+    x_sgn * y;
+  );
+
+  // Distressor harmonic saturation curve
+  function distressor_color(x, color_mode) local(y) (
+    color_mode == 1 ? (
+      // Dist 2: Warm 2nd Harmonic Triode Saturation
+      y = x + 0.12 * sqr(x) - 0.04 * (sqr(x) * x);
+    ) : color_mode == 2 ? (
+      // Dist 3: Aggressive 3rd Harmonic Pentode Crunch
+      y = x - 0.15 * (sqr(x) * x);
+    ) : (
+      y = x;
+    );
+    y;
+  );
+
+  function set_c(hex) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = 1.0;
+  );
+
+  function set_ca(hex, a) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = a;
+  );
+
+// =============================================================================
+// 
+  function calibrate_room_preset(p) (
+    p == 1 ? ( // Lance Prenc (Alpha Wolf / Polaris)
+      slider1 = 55; slider2 = 15; slider4 = 2; slider5 = 26; slider6 = 6; slider7 = 75; slider8 = 140; slider9 = 80; slider10 = -10.5; slider15 = 4.5; slider16 = 2;
+    );
+    p == 2 ? ( // Scott Seigel (DIESECT)
+      slider1 = 50; slider2 = 10; slider4 = 2; slider5 = 24; slider6 = 8; slider7 = 85; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.0; slider16 = 2;
+    );
+    p == 3 ? ( // Jonathan Dolese (Mirrorcell)
+      slider1 = 48; slider2 = 8; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 125; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    p == 4 ? ( // Buster Odeholm (thrown / Northlane)
+      slider1 = 65; slider2 = 25; slider4 = 2; slider5 = 30; slider6 = 4; slider7 = 65; slider8 = 150; slider9 = 85; slider10 = -11.0; slider15 = 5.5; slider16 = 2;
+    );
+    p == 5 ? ( // Lewis Johns & Grant Berry (Love Is Noise)
+      slider1 = 45; slider2 = 5; slider4 = 0; slider5 = 18; slider6 = 15; slider7 = 130; slider8 = 115; slider9 = 65; slider10 = -10.0; slider15 = 3.2; slider16 = 1;
+    );
+    p == 6 ? ( // Kel Pinchin (Split Chain)
+      slider1 = 48; slider2 = 8; slider4 = 1; slider5 = 20; slider6 = 12; slider7 = 110; slider8 = 120; slider9 = 68; slider10 = -10.0; slider15 = 3.5; slider16 = 1;
+    );
+    p == 7 ? ( // Dan Lancaster (Don Broco)
+      slider1 = 48; slider2 = 10; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 120; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    p == 14 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose)
+      slider1 = 42; slider2 = 0; slider4 = 1; slider5 = 20; slider6 = 14; slider7 = 120; slider8 = 110; slider9 = 65; slider10 = -10.0; slider15 = 3.0; slider16 = 1;
+    );
+    p == 15 ? ( // George Lever (Loathe / Sleep Token)
+      slider1 = 55; slider2 = 15; slider4 = 2; slider5 = 24; slider6 = 8; slider7 = 90; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.0; slider16 = 2;
+    );
+    p == 17 ? ( // Henrik Udd (Architects / BMTH)
+      slider1 = 52; slider2 = 12; slider4 = 2; slider5 = 25; slider6 = 7; slider7 = 80; slider8 = 135; slider9 = 75; slider10 = -10.5; slider15 = 4.2; slider16 = 2;
+    );
+    p == 18 ? ( // Dan Braunstein (Spiritbox / Dayseeker)
+      slider1 = 48; slider2 = 10; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 120; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    p == 19 ? ( // Zakk Cervini (Bad Omens / Blink-182)
+      slider1 = 50; slider2 = 12; slider4 = 1; slider5 = 23; slider6 = 9; slider7 = 95; slider8 = 125; slider9 = 72; slider10 = -10.0; slider15 = 4.0; slider16 = 2;
+    );
+    p == 20 ? ( // Jens Bogren (Fascination Street)
+      slider1 = 45; slider2 = 5; slider4 = 1; slider5 = 20; slider6 = 12; slider7 = 120; slider8 = 115; slider9 = 68; slider10 = -10.0; slider15 = 3.2; slider16 = 1;
+    );
+    p == 21 ? ( // Adam Nolly Getgood (Periphery / GGD)
+      slider1 = 52; slider2 = 12; slider4 = 2; slider5 = 25; slider6 = 8; slider7 = 85; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.2; slider16 = 2;
+    );
+    p == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue)
+      slider1 = 36; slider2 = 0; slider4 = 1; slider5 = 16; slider6 = 14; slider7 = 95; slider8 = 140; slider9 = 55; slider10 = -8.5; slider15 = 1.5; slider16 = 1; slider17 = 4.8;
+    );
+    p == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider1 = 32; slider2 = -8; slider4 = 1; slider5 = 14; slider6 = 18; slider7 = 85; slider8 = 145; slider9 = 45; slider10 = -7.5; slider15 = 1.0; slider16 = 0; slider17 = 5.2;
+    );
+    p == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider1 = 30; slider2 = -12; slider4 = 1; slider5 = 18; slider6 = 20; slider7 = 110; slider8 = 135; slider9 = 22; slider10 = -6.5; slider15 = 0.8; slider16 = 1; slider17 = 4.2;
+    );
+  );
+
+
+  function draw_knob(cx, cy, radius, val_norm, label_str, val_str, idx)
+  local(hov, val_new, a_start, a_end, tw, th) (
+    hov = sqrt((mouse_x - cx)^2 + (cy - mouse_y)^2) < radius + 8;
+    mouse_cap & 1 ? (
+      knob_drag == idx ? (
+        val_new = knob_start_val + (knob_start_y - mouse_y) / 130.0;
+        val_norm = clamp(val_new, 0.0, 1.0);
+      ) : (
+        knob_drag == -1 && hov ? (
+          knob_drag = idx;
+          knob_start_y = mouse_y;
+          knob_start_val = val_norm;
+        );
+      );
+    ) : (
+      knob_drag == idx ? knob_drag = -1;
+    );
+
+    set_c(0x131822); gfx_circle(cx, cy, radius, 1, 1);
+    set_c(0x222c3d); gfx_circle(cx, cy, radius, 0, 1);
+
+    a_start = -4.71;
+    a_end = a_start + (val_norm * 4.71);
+    set_ca(hov ? 0x2899ff : 0xdfb15b, 0.95);
+    gfx_arc(cx, cy, radius - 3, a_start, a_end, 1);
+
+    set_c(0x1c2433); gfx_circle(cx, cy, radius * 0.44, 1, 1);
+    set_c(0x1b2331); gfx_circle(cx, cy, radius * 0.44, 0, 1);
+
+    // Value text
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    set_c(0xffffff);
+    gfx_measurestr(val_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy - th * 0.5;
+    gfx_drawstr(val_str);
+
+    // Label below knob
+    gfx_setfont(2, "Segoe UI", 11.5, 'b');
+    set_c(hov ? 0x2899ff : 0xd6dde8);
+    gfx_measurestr(label_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy + radius + 8;
+    gfx_drawstr(label_str);
+
+    val_norm;
+  );
+
+  function draw_btn(bx, by, bw, bh, lbl, is_active) local(hov, clk, tw, th) (
+    hov = (mouse_x >= bx && mouse_x < bx + bw && mouse_y >= by && mouse_y < by + bh);
+    clk = hov && mouse_clicked;
+    set_ca(is_active ? 0xdfab35 : (hov ? 0x222c3d : 0x151b26), is_active ? 1.0 : 0.92);
+    gfx_rect(bx, by, bw, bh);
+    set_c(is_active ? 0xdfab35 : (hov ? 0x2899ff : 0x2e364c));
+    gfx_rect(bx, by, bw, bh, 0);
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    set_c(is_active ? 0x0a0c10 : 0xffffff);
+    gfx_measurestr(lbl, tw, th);
+    gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+    gfx_drawstr(lbl);
+    clk;
+  );
+
+  function draw_sifam(mx, my, mw, mh, title_str, norm_val, is_gr)
+  local(piv_x, piv_y, r_arc, r_needle, ang_start, ang_end, cur_ang, needle_val, ai, a_step, rad, x1, y1, x2, y2, tw, th, s_val) (
+    set_c(0x181c26); gfx_rect(mx, my, mw, mh);
+    set_c(0x222c3d); gfx_rect(mx, my, mw, mh, 0);
+
+    set_c(0x0e131d); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8);
+    set_c(0x1a2436); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8, 0);
+
+    piv_x = mx + mw * 0.5; piv_y = my + mh - 8;
+    r_arc = min(mh - 24, mw * 0.44); r_needle = r_arc - 2;
+
+    ang_start = -48.0 * $pi / 180.0; ang_end = 48.0 * $pi / 180.0;
+
+    set_c(0x2d3a50);
+    ai = 0; a_step = (ang_end - ang_start) / 20.0;
+    loop(20,
+      rad = ang_start + ai * a_step;
+      x1 = piv_x + sin(rad) * (r_arc - 2);
+      y1 = piv_y - cos(rad) * (r_arc - 2);
+      x2 = piv_x + sin(rad + a_step) * (r_arc - 2);
+      y2 = piv_y - cos(rad + a_step) * (r_arc - 2);
+      gfx_line(x1, y1, x2, y2);
+      (ai % 4 == 0) ? (
+        set_c(0xdfb15b);
+        gfx_line(x1, y1, piv_x + sin(rad) * (r_arc - 6), piv_y - cos(rad) * (r_arc - 6));
+        set_c(0x2d3a50);
+      );
+      ai += 1;
+    );
+
+    needle_val = clamp(norm_val, 0.0, 1.0);
+    cur_ang = ang_start + needle_val * (ang_end - ang_start);
+    set_ca(0x000000, 0.4);
+    gfx_line(piv_x + 2, piv_y + 2, piv_x + sin(cur_ang) * r_needle + 2, piv_y - cos(cur_ang) * r_needle + 2);
+    set_c(is_gr ? (norm_val > 0.02 ? 0xf03344 : 0x7e8b9b) : (norm_val > 0.95 ? 0xf03344 : 0xdfb15b));
+    gfx_line(piv_x, piv_y, piv_x + sin(cur_ang) * r_needle, piv_y - cos(cur_ang) * r_needle);
+
+    set_c(0x283344); gfx_circle(piv_x, piv_y, 5, 1, 1);
+    set_c(0xdfb15b); gfx_circle(piv_x, piv_y, 5, 0, 1);
+
+    gfx_setfont(1, "Orbitron", 10.5, 'b'); set_c(0xedf1f7);
+    gfx_measurestr(title_str, tw, th); gfx_x = mx + 8; gfx_y = my + 6;
+    gfx_drawstr(title_str);
+
+    s_val = is_gr ? sprintf(#, "-%.1f dB", norm_val * 30.0) : sprintf(#, "%.1f dB", db(norm_val));
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    gfx_measurestr(s_val, tw, th);
+    set_c(is_gr ? (norm_val > 0.02 ? 0xf03344 : 0x7e8b9b) : (norm_val > 0.95 ? 0xf03344 : 0x0fe49e));
+    gfx_x = mx + mw - tw - 8; gfx_y = my + 6;
+    gfx_drawstr(s_val);
+  );
+
+
+@slider
+// =============================================================================
+@slider
+  // Producer Signature Presets (Calibrated from Reference Stems)
+  cur_preset = slider14;
+  cur_preset != last_preset ? (
+    last_preset = cur_preset;
+    cur_preset == 1 ? ( // Lance Prenc (Alpha Wolf / Polaris)
+      slider1 = 55; slider2 = 15; slider4 = 2; slider5 = 26; slider6 = 6; slider7 = 75; slider8 = 140; slider9 = 80; slider10 = -10.5; slider15 = 4.5; slider16 = 2;
+    );
+    cur_preset == 2 ? ( // Scott Seigel (DIESECT)
+      slider1 = 50; slider2 = 10; slider4 = 2; slider5 = 24; slider6 = 8; slider7 = 85; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.0; slider16 = 2;
+    );
+    cur_preset == 3 ? ( // Jonathan Dolese (Mirrorcell)
+      slider1 = 48; slider2 = 8; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 125; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    cur_preset == 4 ? ( // Buster Odeholm (thrown / Northlane)
+      slider1 = 65; slider2 = 25; slider4 = 2; slider5 = 30; slider6 = 4; slider7 = 65; slider8 = 150; slider9 = 85; slider10 = -11.0; slider15 = 5.5; slider16 = 2;
+    );
+    cur_preset == 5 ? ( // Lewis Johns & Grant Berry (Love Is Noise)
+      slider1 = 45; slider2 = 5; slider4 = 0; slider5 = 18; slider6 = 15; slider7 = 130; slider8 = 115; slider9 = 65; slider10 = -10.0; slider15 = 3.2; slider16 = 1;
+    );
+    cur_preset == 6 ? ( // Kel Pinchin (Split Chain)
+      slider1 = 48; slider2 = 8; slider4 = 1; slider5 = 20; slider6 = 12; slider7 = 110; slider8 = 120; slider9 = 68; slider10 = -10.0; slider15 = 3.5; slider16 = 1;
+    );
+    cur_preset == 7 ? ( // Dan Lancaster (Don Broco)
+      slider1 = 48; slider2 = 10; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 120; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    cur_preset == 14 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose)
+      slider1 = 42; slider2 = 0; slider4 = 1; slider5 = 20; slider6 = 14; slider7 = 120; slider8 = 110; slider9 = 65; slider10 = -10.0; slider15 = 3.0; slider16 = 1;
+    );
+    cur_preset == 15 ? ( // George Lever (Loathe / Sleep Token)
+      slider1 = 55; slider2 = 15; slider4 = 2; slider5 = 24; slider6 = 8; slider7 = 90; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.0; slider16 = 2;
+    );
+    cur_preset == 17 ? ( // Henrik Udd (Architects / BMTH)
+      slider1 = 52; slider2 = 12; slider4 = 2; slider5 = 25; slider6 = 7; slider7 = 80; slider8 = 135; slider9 = 75; slider10 = -10.5; slider15 = 4.2; slider16 = 2;
+    );
+    cur_preset == 18 ? ( // Dan Braunstein (Spiritbox / Dayseeker)
+      slider1 = 48; slider2 = 10; slider4 = 1; slider5 = 22; slider6 = 10; slider7 = 100; slider8 = 120; slider9 = 70; slider10 = -10.0; slider15 = 3.8; slider16 = 1;
+    );
+    cur_preset == 19 ? ( // Zakk Cervini (Bad Omens / Blink-182)
+      slider1 = 50; slider2 = 12; slider4 = 1; slider5 = 23; slider6 = 9; slider7 = 95; slider8 = 125; slider9 = 72; slider10 = -10.0; slider15 = 4.0; slider16 = 2;
+    );
+    cur_preset == 20 ? ( // Jens Bogren (Fascination Street)
+      slider1 = 45; slider2 = 5; slider4 = 1; slider5 = 20; slider6 = 12; slider7 = 120; slider8 = 115; slider9 = 68; slider10 = -10.0; slider15 = 3.2; slider16 = 1;
+    );
+    cur_preset == 21 ? ( // Adam Nolly Getgood (Periphery / GGD)
+      slider1 = 52; slider2 = 12; slider4 = 2; slider5 = 25; slider6 = 8; slider7 = 85; slider8 = 130; slider9 = 75; slider10 = -10.5; slider15 = 4.2; slider16 = 2;
+    );
+    cur_preset == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue)
+      slider1 = 36; slider2 = 0; slider4 = 1; slider5 = 16; slider6 = 14; slider7 = 95; slider8 = 140; slider9 = 55; slider10 = -8.5; slider15 = 1.5; slider16 = 1; slider17 = 4.8;
+    );
+    cur_preset == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider1 = 32; slider2 = -8; slider4 = 1; slider5 = 14; slider6 = 18; slider7 = 85; slider8 = 145; slider9 = 45; slider10 = -7.5; slider15 = 1.0; slider16 = 0; slider17 = 5.2;
+    );
+    cur_preset == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider1 = 30; slider2 = -12; slider4 = 1; slider5 = 18; slider6 = 20; slider7 = 110; slider8 = 135; slider9 = 22; slider10 = -6.5; slider15 = 0.8; slider16 = 1; slider17 = 4.2;
+    );
+  );
+
+  infl_amt = slider1 / 100.0;
+  infl_curve = slider2 / 100.0;
+  clip_mode = slider3;
+
+  comp_mode = slider4;
+  comp_drive_db = slider5;
+  comp_drive = db_to_gain(comp_drive_db);
+  
+  // Ratio selection
+  comp_mode == 0 ? comp_ratio = 4.0 :
+  comp_mode == 1 ? comp_ratio = 10.0 :
+  comp_mode == 2 ? comp_ratio = 20.0 :
+                   comp_ratio = 6.0; // Opto
+
+  att_ms = slider6;
+  rel_ms = slider7;
+  ga_comp = exp(-1.0 / (srate * (att_ms / 1000.0)));
+  gr_comp = exp(-1.0 / (srate * (rel_ms / 1000.0)));
+
+  setup_hpf(slider8, 0.707);
+  setup_highshelf(10000.0, slider15);
+  setup_notch(250.0, 1.8, slider17);
+
+  smash_mix = slider9 / 100.0;
+  out_gain = db_to_gain(slider10);
+  delay_smpl = floor(slider11);
+  polarity = slider12 ? -1.0 : 1.0;
+  stereo_w = slider13 / 100.0;
+  dist_mode = slider16;
+
+// =============================================================================
+// 
+// =============================================================================
+// @block
+// =============================================================================
+@block
+  // ECOSYSTEM PRODUCER PRESET COMMS (gmem[200..206])
+  // Only sync preset when gmem[201] actually changes, preserving manual user tweaks!
+  gmem[200] == 0x4452554D && gmem[202] != last_gmem_seq ? (
+    last_gmem_seq = gmem[202];
+    sentry_preset = gmem[201];
+    
+    sentry_preset != last_sentry_preset ? (
+      last_sentry_preset = sentry_preset;
+      slider14 != sentry_preset ? (
+        slider14 = sentry_preset;
+        last_preset = sentry_preset;
+        sliderchange(slider14);
+        calibrate_room_preset(slider14);
+      );
+    );
+    ecosystem_linked = 1;
+  );
+  infl_amt = slider1 / 100.0;
+  infl_curve = slider2 / 100.0;
+  clip_mode = slider3;
+  comp_mode = slider4;
+  comp_drive_db = slider5;
+  comp_drive = db_to_gain(comp_drive_db);
+  comp_mode == 0 ? comp_ratio = 4.0 :
+  comp_mode == 1 ? comp_ratio = 10.0 :
+  comp_mode == 2 ? comp_ratio = 20.0 :
+                   comp_ratio = 6.0;
+  att_ms = slider6;
+  rel_ms = slider7;
+  ga_comp = exp(-1.0 / (srate * (att_ms / 1000.0)));
+  gr_comp = exp(-1.0 / (srate * (rel_ms / 1000.0)));
+  setup_hpf(slider8, 0.707);
+  setup_highshelf(10000.0, slider15);
+  setup_notch(250.0, 1.8, slider17);
+  smash_mix = slider9 / 100.0;
+  out_gain = db_to_gain(slider10);
+  delay_smpl = floor(slider11);
+  polarity = slider12 ? -1.0 : 1.0;
+  stereo_w = slider13 / 100.0;
+  dist_mode = slider16;
+
+@sample
+// =============================================================================
+@sample
+  in_l = spl0;
+  in_r = spl1;
+
+  // 1. Time Alignment Delay
+  dly_pos >= dly_max ? dly_pos = 0;
+  DLY_BUF_L[dly_pos] = in_l;
+  DLY_BUF_R[dly_pos] = in_r;
+  
+  read_pos = dly_pos - delay_smpl;
+  read_pos < 0 ? read_pos += dly_max;
+  read_pos >= dly_max ? read_pos -= dly_max;
+
+  dry_l = DLY_BUF_L[read_pos];
+  dry_r = DLY_BUF_R[read_pos];
+  dly_pos += 1;
+
+  // 2. Smash Compressor Sidechain HPF Detector
+  sc_mono = (dry_l + dry_r) * 0.5 * comp_drive;
+  sc_hp = b0_hpf * sc_mono + b1_hpf * sc_hpf_x1 + b2_hpf * sc_hpf_x2 - a1_hpf * sc_hpf_y1 - a2_hpf * sc_hpf_y2;
+  sc_hpf_x2 = sc_hpf_x1; sc_hpf_x1 = sc_mono;
+  sc_hpf_y2 = sc_hpf_y1; sc_hpf_y1 = sc_hp;
+
+  det_env = abs(sc_hp);
+  comp_env < det_env ? (
+    comp_env = det_env + ga_comp * (comp_env - det_env);
+  ) : (
+    comp_env = det_env + gr_comp * (comp_env - det_env);
+  );
+
+  // Distressor Compression Gain Reduction (Calibrated detector threshold)
+  comp_gr_linear = 1.0;
+  thresh_lin = 0.08; // -22 dBFS detector threshold for sensitive dynamic room breathing
+  comp_env > thresh_lin ? (
+    env_db = db(comp_env);
+    thresh_db = -22.0;
+    gr_db = (env_db - thresh_db) * (1.0 - 1.0 / comp_ratio);
+    comp_gr_linear = db_to_gain(-gr_db);
+  );
+
+  smashed_l = dry_l * comp_drive * comp_gr_linear;
+  smashed_r = dry_r * comp_drive * comp_gr_linear;
+
+  // Distressor Harmonic Coloration (Dist 2 / Dist 3)
+  smashed_l = distressor_color(smashed_l, dist_mode);
+  smashed_r = distressor_color(smashed_r, dist_mode);
+
+  // Parallel Smash Mix
+  wet_comp_l = dry_l * (1.0 - smash_mix) + smashed_l * smash_mix;
+  wet_comp_r = dry_r * (1.0 - smash_mix) + smashed_r * smash_mix;
+
+  // 3. Oxford Space Inflator
+  infl_l = inflator_process(wet_comp_l, infl_amt, infl_curve);
+  infl_r = inflator_process(wet_comp_r, infl_amt, infl_curve);
+
+  // 4. Tone Shaping: Mud De-Resonator (250Hz) & High Air Shimmer (10kHz)
+  mud_l = b0_mud * infl_l + b1_mud * mud_x1_l + b2_mud * mud_x2_l - a1_mud * mud_y1_l - a2_mud * mud_y2_l;
+  mud_x2_l = mud_x1_l; mud_x1_l = infl_l; mud_y2_l = mud_y1_l; mud_y1_l = mud_l;
+  mud_r = b0_mud * infl_r + b1_mud * mud_x1_r + b2_mud * mud_x2_r - a1_mud * mud_y1_r - a2_mud * mud_y2_r;
+  mud_x2_r = mud_x1_r; mud_x1_r = infl_r; mud_y2_r = mud_y1_r; mud_y1_r = mud_r;
+
+  air_l = b0_hs * mud_l + b1_hs * air_x1_l + b2_hs * air_x2_l - a1_hs * air_y1_l - a2_hs * air_y2_l;
+  air_x2_l = air_x1_l; air_x1_l = mud_l; air_y2_l = air_y1_l; air_y1_l = air_l;
+  air_r = b0_hs * mud_r + b1_hs * air_x1_r + b2_hs * air_x2_r - a1_hs * air_y1_r - a2_hs * air_y2_r;
+  air_x2_r = air_x1_r; air_x1_r = mud_r; air_y2_r = air_y1_r; air_y1_r = air_r;
+
+  // 5. Stereo Width Expansion & Polarity
+  mid = (air_l + air_r) * 0.5;
+  side = (air_l - air_r) * 0.5 * stereo_w;
+  out_l = (mid + side) * out_gain * polarity;
+  out_r = (mid - side) * out_gain * polarity;
+
+  // 6. 0dBFS Safe Soft Clipper
+  clip_mode ? (
+    out_l = abs(out_l) > 0.88 ? (sign(out_l) * (0.88 + 0.10 * ((abs(out_l) - 0.88) / (1.0 + abs(out_l) - 0.88)))) : out_l;
+    out_r = abs(out_r) > 0.88 ? (sign(out_r) * (0.88 + 0.10 * ((abs(out_r) - 0.88) / (1.0 + abs(out_r) - 0.88)))) : out_r;
+  );
+
+  spl0 = out_l;
+  spl1 = out_r;
+
+  // Ballistics
+  gr_disp_db = -db(comp_gr_linear);
+  sifam_gr += (gr_disp_db - sifam_gr) * 0.20;
+  out_peak = max(out_peak * 0.9998, max(abs(spl0), abs(spl1)));
+  sifam_out += (out_peak - sifam_out) * 0.15;
+
+  // Scope Buffer
+  wave_min = min(wave_min, spl0);
+  wave_max = max(wave_max, spl0);
+  wave_gr = max(wave_gr, gr_disp_db);
+
+  wave_spos >= wave_div ? (
+    buf_sz = wave_w * 3;
+    wave_ppos >= buf_sz ? (
+      memset(WAVE_BUF, 0, buf_sz);
+      wave_ppos = 0;
+    );
+    WAVE_BUF[wave_ppos] = wave_min;
+    WAVE_BUF[wave_ppos + 1] = wave_max;
+    WAVE_BUF[wave_ppos + 2] = wave_gr;
+    wave_ppos += 3;
+
+    wave_min = 1.0;
+    wave_max = -1.0;
+    wave_gr = 0.0;
+    wave_spos = 0;
+  );
+  wave_spos += 1;
+
+// =============================================================================
+@gfx 980 670
+  mouse_down = mouse_cap & 1;
+  mouse_clicked = mouse_down && !last_mouse_down;
+
+  // Background Obsidian
+  set_c(0x0a0c10); gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // 1. TOP COMMAND BAR (FLAGSHIP STANDARD)
+  set_c(0x0d121c); gfx_rect(0, 0, gfx_w, 54);
+  set_c(0x222e42); gfx_line(0, 54, gfx_w, 54);
+
+  // Title & Subtitle (Large, bold, high contrast)
+  set_c(0xdfab35); gfx_setfont(1, "Orbitron", 17, 'b');
+  gfx_x = 20; gfx_y = 12; gfx_drawstr("ATUMPAN ROOMSCULPTOR");
+
+  gfx_setfont(2, "Segoe UI", 12.5, 'b'); set_c(0x38b6ff);
+  gfx_x = 285; gfx_y = 15; gfx_drawstr("OXFORD INFLATOR & DISTRESSOR NUKE // ACOUSTIC SPACE SMASHER");
+
+  // Ecosystem Comms Sync Pill
+  set_c(ecosystem_linked ? 0x0fe49e : 0xdfab35);
+  set_ca(ecosystem_linked ? 0x0fe49e : 0xdfab35, 0.15);
+  gfx_rect(650, 11, 150, 32);
+  set_c(ecosystem_linked ? 0x0fe49e : 0xdfab35); gfx_rect(650, 11, 150, 32, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b');
+  s_sync = ecosystem_linked ? "SENTRY: SYNCED" : "STANDALONE";
+  gfx_measurestr(s_sync, tw, th);
+  gfx_x = 650 + (150 - tw) * 0.5; gfx_y = 11 + (32 - th) * 0.5; gfx_drawstr(s_sync);
+
+  // Clip 0dBFS Pill (Safe ceiling)
+  btn_clip = mouse_x >= 815 && mouse_x < 960 && mouse_y >= 11 && mouse_y < 43;
+  set_c(slider3 ? 0x0fe49e : (btn_clip ? 0x222e42 : 0x151c28)); gfx_rect(815, 11, 145, 32);
+  set_c(slider3 ? 0x0fe49e : 0x2e3d55); gfx_rect(815, 11, 145, 32, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(slider3 ? 0x0a0c10 : 0xffffff);
+  s_clip = slider3 ? "0dB CEILING: ON" : "0dB CEILING: OFF";
+  gfx_measurestr(s_clip, tw, th); gfx_x = 815 + (145 - tw) * 0.5; gfx_y = 11 + (32 - th) * 0.5; gfx_drawstr(s_clip);
+  mouse_clicked && btn_clip ? (slider3 = !slider3; sliderchange(slider3););
+
+  // 2. UPPER SECTION: DUAL SIFAM METERS & LIVE ROOM BLOOM OSCILLOSCOPE
+  meter_y = 66; meter_w = 215; meter_h = 175;
+  draw_sifam(20, meter_y, meter_w, meter_h, "DISTRESSOR GAIN REDUCTION", clamp(sifam_gr / 30.0, 0.0, 1.0), 1);
+
+  // Center: Live Room Bloom Scope with Gain Reduction Fill
+  scope_x = 250; scope_y = 66; scope_w = gfx_w - 250 - 235; scope_h = 175;
+  set_c(0x121722); gfx_rect(scope_x, scope_y, scope_w, scope_h);
+  set_c(0x253348); gfx_rect(scope_x, scope_y, scope_w, scope_h, 0);
+
+  // Scope Header Card
+  set_c(0x0a0e16); gfx_rect(scope_x + 1, scope_y + 1, scope_w - 2, 28);
+  set_c(0x1e283a); gfx_line(scope_x, scope_y + 29, scope_x + scope_w, scope_y + 29);
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); set_c(0xdfab35);
+  gfx_x = scope_x + 14; gfx_y = scope_y + 7; gfx_drawstr("ACOUSTIC ROOM BLOOM & COMPRESSION PUMP");
+
+  sc_h = scope_h - 32; sc_y = scope_y + 30;
+  axis_y = sc_y + sc_h * 0.5;
+  set_ca(0x1e283a, 0.6); gfx_line(scope_x, axis_y, scope_x + scope_w, axis_y);
+
+  // Draw Waveform and Distortion Trace
+  wp = 0; sx = scope_x + 4;
+  loop(min(scope_w - 8, wave_w),
+    w_min = sc_h * 0.45 * WAVE_BUF[wp];
+    w_max = sc_h * 0.45 * WAVE_BUF[wp + 1];
+    w_min = clamp(w_min, -sc_h * 0.48, sc_h * 0.48);
+    w_max = clamp(w_max, -sc_h * 0.48, sc_h * 0.48);
+    gr_val = WAVE_BUF[wp + 2]; // dB
+
+    set_ca(0xdfab35, 0.85);
+    gfx_line(sx, axis_y - w_min, sx, axis_y - w_max);
+
+    // Reduction trace (Cyan)
+    set_ca(0x0fe49e, 0.95);
+    gr_y = sc_y + clamp((gr_val / 30.0) * sc_h, 4, sc_h - 4);
+    gfx_line(sx, gr_y, sx, gr_y + 2);
+
+    wp += 3; sx += 1;
+  );
+
+  // Right: Master Room Output SIFAM
+  draw_sifam(gfx_w - meter_w - 20, meter_y, meter_w, meter_h, "MASTER ROOM OUTPUT", sifam_out, 0);
+
+  // 3. MIDDLE SECTION: DISTRESSOR COMPRESSION TOPOLOGY SELECTOR (4:1 Glue, 10:1 Punch, NUKE, Opto)
+  top_y = 252; top_h = 42;
+  set_c(0x121722); gfx_rect(20, top_y, gfx_w - 40, top_h);
+  set_c(0x253348); gfx_rect(20, top_y, gfx_w - 40, top_h, 0);
+
+  tb_w = (gfx_w - 60) / 4.0;
+  draw_btn(25 + 0 * tb_w, top_y + 5, tb_w - 5, 32, "PUMPING GLUE (4:1)", slider4 == 0) ? (slider4 = 0; sliderchange(slider4););
+  draw_btn(25 + 1 * tb_w, top_y + 5, tb_w - 5, 32, "PUNCH VCA (10:1)", slider4 == 1) ? (slider4 = 1; sliderchange(slider4););
+  draw_btn(25 + 2 * tb_w, top_y + 5, tb_w - 5, 32, "DISTRESSOR NUKE (20:1)", slider4 == 2) ? (slider4 = 2; sliderchange(slider4););
+  draw_btn(25 + 3 * tb_w, top_y + 5, tb_w - 5, 32, "OPTO WARM BLOOM", slider4 == 3) ? (slider4 = 3; sliderchange(slider4););
+
+  // 4. LOWER SECTION: PARAMETER RACKS (CARD 1: OXFORD INFLATOR // CARD 2: DISTRESSOR & TONE)
+  card_y = 306; card_h = 325; card_w = (gfx_w - 50) * 0.5;
+
+  // CARD 1: OXFORD SPACE INFLATOR
+  set_c(0x121722); gfx_rect(20, card_y, card_w, card_h);
+  set_c(0x253348); gfx_rect(20, card_y, card_w, card_h, 0);
+  set_c(0x0a0e16); gfx_rect(21, card_y + 1, card_w - 2, 32);
+  set_c(0x1e283a); gfx_line(20, card_y + 33, 20 + card_w, card_y + 33);
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); set_c(0xdfab35);
+  gfx_x = 34; gfx_y = card_y + 8; gfx_drawstr("OXFORD SPACE INFLATOR");
+
+  // Knobs Row 1: Space Inflation %, Curve %, Air Shimmer 10kHz, Mud Notch 250Hz
+  kr1_y = card_y + 90; kw = card_w / 4.0;
+  v = slider1 / 100.0;
+  v = draw_knob(20 + 0.5 * kw, kr1_y, 24, v, "INFLATION", sprintf(#, "%d%%", slider1), 1);
+  slider1 = floor(v * 100.0);
+
+  v = (slider2 + 50.0) / 100.0;
+  v = draw_knob(20 + 1.5 * kw, kr1_y, 24, v, "CURVE", sprintf(#, "%+d%%", slider2), 2);
+  slider2 = -50.0 + floor(v * 100.0);
+
+  v = slider15 / 10.0;
+  v = draw_knob(20 + 2.5 * kw, kr1_y, 24, v, "10k SHIMMER", sprintf(#, "+%.1fdB", slider15), 15);
+  slider15 = v * 10.0;
+
+  v = slider17 / 8.0;
+  v = draw_knob(20 + 3.5 * kw, kr1_y, 24, v, "250Hz NOTCH", sprintf(#, "-%.1fdB", slider17), 17);
+  slider17 = v * 8.0;
+
+  // Row 2: Stereo Width %, Polarity Invert Button, Distortion Color Mode
+  kr2_y = card_y + 205;
+  v = slider13 / 200.0;
+  v = draw_knob(20 + 0.8 * kw, kr2_y, 24, v, "STEREO WIDTH", sprintf(#, "%d%%", slider13), 13);
+  slider13 = floor(v * 200.0);
+
+  // Harmonic Color Mode Button (Clean, Dist 2, Dist 3)
+  draw_btn(20 + 1.8 * kw, kr2_y - 18, kw * 1.0, 36, slider16 == 0 ? "COLOR: CLEAN" : (slider16 == 1 ? "COLOR: DIST 2" : "COLOR: DIST 3"), slider16 > 0) ? (
+    slider16 = (slider16 + 1) % 3; sliderchange(slider16);
+  );
+
+  // Polarity Invert Button
+  draw_btn(20 + 2.9 * kw, kr2_y - 18, kw * 0.95, 36, slider12 ? "PHASE: 180 FLIP" : "PHASE: NORMAL", slider12) ? (
+    slider12 = !slider12; sliderchange(slider12);
+  );
+
+  // CARD 2: DISTRESSOR SMASH COMPRESSOR
+  c2_x = 30 + card_w;
+  set_c(0x121722); gfx_rect(c2_x, card_y, card_w, card_h);
+  set_c(0x253348); gfx_rect(c2_x, card_y, card_w, card_h, 0);
+  set_c(0x0a0e16); gfx_rect(c2_x + 1, card_y + 1, card_w - 2, 32);
+  set_c(0x1e283a); gfx_line(c2_x, card_y + 33, c2_x + card_w, card_y + 33);
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); set_c(0x38b6ff);
+  gfx_x = c2_x + 14; gfx_y = card_y + 8; gfx_drawstr("DISTRESSOR ROOM SMASHER");
+
+  // Knobs Row 1: Smash Drive dB, Attack ms, Release ms, Detector HPF Hz
+  v = slider5 / 60.0;
+  v = draw_knob(c2_x + 0.5 * kw, kr1_y, 24, v, "SMASH DRIVE", sprintf(#, "%ddB", slider5), 5);
+  slider5 = floor(v * 60.0);
+
+  v = (slider6 - 0.5) / 49.5;
+  v = draw_knob(c2_x + 1.5 * kw, kr1_y, 24, v, "ATTACK", sprintf(#, "%.1fms", slider6), 6);
+  slider6 = 0.5 + v * 49.5;
+
+  v = (slider7 - 10) / 790.0;
+  v = draw_knob(c2_x + 2.5 * kw, kr1_y, 24, v, "RELEASE", sprintf(#, "%dms", slider7), 7);
+  slider7 = 10 + floor(v * 790.0);
+
+  v = (slider8 - 30) / 320.0;
+  v = draw_knob(c2_x + 3.5 * kw, kr1_y, 24, v, "SIDECHAIN HPF", sprintf(#, "%dHz", slider8), 8);
+  slider8 = 30 + floor(v * 320.0);
+
+  // Knobs Row 2: Parallel Smash Mix %, Output Makeup Trim dB
+  v = slider9 / 100.0;
+  v = draw_knob(c2_x + 1.0 * kw, kr2_y, 24, v, "PARALLEL MIX", sprintf(#, "%d%%", slider9), 9);
+  slider9 = floor(v * 100.0);
+
+  v = (slider10 + 18.0) / 36.0;
+  v = draw_knob(c2_x + 2.6 * kw, kr2_y, 24, v, "OUTPUT TRIM", sprintf(#, "%+.1fdB", slider10), 10);
+  slider10 = -18.0 + v * 36.0;
+
+  // 5. FOOTER COMMAND BAR: ACTIVE PRODUCER PRESET SELECTOR
+  foot_y = gfx_h - 32;
+  set_c(0x0d121c); gfx_rect(0, foot_y, gfx_w, 32);
+  set_c(0x222e42); gfx_line(0, foot_y, gfx_w, foot_y);
+
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(0xdfab35);
+  gfx_x = 20; gfx_y = foot_y + 8;
+  gfx_drawstr("PRODUCER DNA PRESET: ");
+
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(0xffffff);
+  slider14 == 0 ? p_name = "Default Neutral Wire" :
+  slider14 == 1 ? p_name = "Lance Prenc (Alpha Wolf / Polaris)" :
+  slider14 == 2 ? p_name = "Scott Seigel (DIESECT)" :
+  slider14 == 3 ? p_name = "Jonathan Dolese (Mirrorcell)" :
+  slider14 == 4 ? p_name = "Buster Odeholm (thrown / Northlane)" :
+  slider14 == 5 ? p_name = "Lewis Johns & Grant Berry (Love Is Noise)" :
+  slider14 == 6 ? p_name = "Kel Pinchin (Split Chain)" :
+  slider14 == 7 ? p_name = "Dan Lancaster (Don Broco)" :
+  slider14 == 8 ? p_name = "Erik Bickerstaffe (Static Dress)" :
+  slider14 == 9 ? p_name = "Sam Guaiana (Shyeye)" :
+  slider14 == 10 ? p_name = "Zach Tuch (Heavenward)" :
+  slider14 == 11 ? p_name = "Forrester Savell (City Of Souls)" :
+  slider14 == 12 ? p_name = "Leon Schmidt (SUNBORN)" :
+  slider14 == 13 ? p_name = "Ermin Hamidovic (Benchmark)" :
+  slider14 == 14 ? p_name = "Will Putney (Fit For An Autopsy / Knocked Loose)" :
+  slider14 == 15 ? p_name = "George Lever (Loathe / Sleep Token)" :
+  slider14 == 16 ? p_name = "Sam Bassal (Thornhill)" :
+  slider14 == 17 ? p_name = "Henrik Udd (Architects / BMTH)" :
+  slider14 == 18 ? p_name = "Dan Braunstein (Spiritbox / Dayseeker)" :
+  slider14 == 19 ? p_name = "Zakk Cervini (Bad Omens / Blink-182)" :
+  slider14 == 20 ? p_name = "Jens Bogren (Fascination Street)" :
+  slider14 == 21 ? p_name = "Adam Nolly Getgood (Periphery / GGD)" :
+  slider14 == 22 ? p_name = "Acle Kahney (TesseracT)" :
+  slider14 == 23 ? p_name = "Adam Cichocki (heaving.)" :
+  slider14 == 24 ? p_name = "Manuel Renner (SENNA - Out Of The Blue)" :
+  slider14 == 25 ? p_name = "Matt Thomas (Ashtone - Live Room Authority)" :
+                  p_name = "Mark Williamson (Sugarhouse - Live Cohesion)";
+  gfx_x = 220; gfx_y = foot_y + 8; gfx_drawstr(p_name);
+
+  draw_btn(gfx_w - 90, foot_y + 3, 32, 26, "<", 0) ? (slider14 = max(0, slider14 - 1); sliderchange(slider14););
+  draw_btn(gfx_w - 50, foot_y + 3, 32, 26, ">", 0) ? (slider14 = min(26, slider14 + 1); sliderchange(slider14););
+
+  last_mouse_down = mouse_down;

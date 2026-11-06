@@ -1,0 +1,683 @@
+// =============================================================================
+// DAMEI SUITE -- ATUMPAN CYMBALKILLER (v2.5 SPLIT-BAND CYMBAL BLEED ELIMINATOR)
+// Dual-Band Crossover Envelope Gate, Ultrasonic Bleed Filter & Shell Decay Preserver
+//
+// Modelled 1:1 after Low Wave Studios Cymbal Killer (Manuel Renner) & Boz Tominator
+// Built with Afro-Cybernetic Luxury Aesthetics by Damei Audio & Antigravity IDE
+// Flagship Standard: Interlocked with Atumpan Drum Sentry via gmem=DameiMixMetering
+// =============================================================================
+
+desc:Damei Atumpan CymbalKiller (Split-Band Cymbal Bleed Eliminator & Shell Decay Preserver)
+author: Damei Suite / Google DeepMind Pair Programming
+version: 2.5
+
+options:gmem=DameiMixMetering
+options:maxmem=2097152
+options:gfx_hz=60
+options:no_meter
+
+// --- 22 HOST-COMPLIANT PARAMETERS (MIRRORING LOW WAVE STUDIOS CYMBAL KILLER) ---
+slider1:650<150,4000,10>-Split Crossover Frequency (Hz)
+slider2:80<20,1000,5>-Sidechain Detector HPF (Hz)
+slider3:6500<1000,20000,50>-Sidechain Detector LPF (Hz)
+slider4:-24.0<-60.0,0.0,0.5>-High-Band Cymbal Threshold (dBFS)
+slider5:0.2<0.01,25.0,0.1>-High-Band Attack (ms)
+slider6:32<5,250,1>-High-Band Hold (ms)
+slider7:95<10,800,5>-High-Band Release (ms)
+slider8:-38.0<-60.0,0.0,0.5>-Low-Band Shell Threshold (dBFS)
+slider9:0.5<0.01,25.0,0.1>-Low-Band Attack (ms)
+slider10:85<10,400,1>-Low-Band Hold (ms)
+slider11:260<20,1200,5>-Low-Band Release (ms)
+slider12:0.0<-18.0,18.0,0.1>-Input Gain (dB)
+slider13:0.0<-18.0,18.0,0.1>-Output Gain (dB)
+slider14:100<0,100,1>-Dry / Wet Mix (%)
+slider15:1<0,1,1{Off (Zero Latency),Active (1.5ms Transient Catch)}>-Lookahead Circuit
+slider16:0<0,1,1{Internal Shell Key (Ch 1/2),External Key / Spill (Ch 3/4)}>-Sidechain Source
+slider17:0<0,3,1{Normal Full-Range Output,Solo Low-Freq Shell Body,Solo High-Freq Cymbal/Crack,Delta Listen (Removed Cymbal Bleed)}>-Band Audition & Solo Mode
+slider18:195<60,2500,5>-Sidechain Resonant Peak Freq (Hz)
+slider19:6.0<-12.0,18.0,0.5>-Sidechain Resonant Peak Gain (dB)
+slider20:-36.0<-60.0,0.0,0.5>-High-Band Cymbal Floor Range (dB)
+slider21:45<0,100,1>-Dynamic Velvet Low-Pass Follow (%)
+slider22:24<0,26,1{0: Default Neutral Wire,1: Lance Prenc (Alpha Wolf / Polaris),2: Scott Seigel (DIESECT),3: Jonathan Dolese (Mirrorcell),4: Buster Odeholm (thrown / Northlane),5: Lewis Johns & Grant Berry (Love Is Noise),6: Kel Pinchin (Split Chain),7: Dan Lancaster (Don Broco),8: Erik Bickerstaffe (Static Dress),9: Sam Guaiana (Shyeye),10: Zach Tuch (Heavenward),11: Forrester Savell (City Of Souls),12: Leon Schmidt (SUNBORN),13: Ermin Hamidovic (Benchmark),14: Will Putney (Fit For An Autopsy),15: George Lever (Loathe / Sleep Token),16: Sam Bassal (Thornhill),17: Henrik Udd (Architects),18: Dan Braunstein (Spiritbox),19: Zakk Cervini (Bad Omens),20: Jens Bogren (Fascination Street),21: Adam Nolly Getgood (Periphery / GGD),22: Acle Kahney (TesseracT),23: Adam Cichocki (heaving.),24: Manuel Renner (SENNA - Out Of The Blue),25: Matt Thomas (Ashtone - Live Room Authority),26: Mark Williamson (Sugarhouse - Live Cohesion)}>-Producer Signature Preset
+slider23:0<0,3,1{Snare Top (195Hz Key / 650Hz X-Over),Kick In (62Hz Key / 420Hz X-Over),Tom / Floor Tom (115Hz Key / 520Hz X-Over),Spot Cymbal / Hi-Hat De-Shell}>-Target Drum Mode
+
+in_pin:Main Input L (Ch 1)
+in_pin:Main Input R (Ch 2)
+in_pin:External Key / Spill L (Ch 3)
+in_pin:External Key / Spill R (Ch 4)
+out_pin:Main Output L
+out_pin:Main Output R
+
+// =============================================================================
+// @init
+// =============================================================================
+@init
+  ext_noinit = 1;
+
+  // Memory layout for Dual Envelope Scope & Lookahead Delay
+  SCOPE_SIZE = 256;
+  SCOPE_WAVE = 1000;
+  SCOPE_ENV_HI = 1500;
+  SCOPE_ENV_LO = 2000;
+  LA_BUF_L = 3000;
+  LA_BUF_R = 4000;
+  LA_MAX = 256;
+
+  scope_ptr = 0;
+  scope_sub = 0;
+  la_idx = 0;
+
+  env_det = 0.0;
+  gate_hi = 1.0;
+  gate_lo = 1.0;
+  hold_cnt_hi = 0;
+  hold_cnt_lo = 0;
+  sifam_gr_hi = 0.0;
+  sifam_gr_lo = 0.0;
+  sifam_out_db = -18.0;
+  out_rms_acc = 0.0;
+  out_rms_cnt = 0;
+
+  last_preset = -1;
+  last_gmem_p = -1;
+  last_mode = -1;
+  last_mouse_down = 0;
+  drag_knob = 0;
+
+  function clamp(x, lo, hi) (
+    x < lo ? lo : (x > hi ? hi : x);
+  );
+
+  function lin2db(lin) (
+    lin > 0.000001 ? 20.0 * log10(lin) : -120.0;
+  );
+
+  function db2lin(dbv) (
+    10.0^(dbv / 20.0);
+  );
+
+  function set_c(hex) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = 1.0;
+  );
+
+  function set_ca(hex, a) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = a;
+  );
+
+  function get_producer_name(p, out_s) (
+    p == 0  ? strcpy(out_s, "0: Default Neutral Wire (Transparent)") :
+    p == 1  ? strcpy(out_s, "1: Lance Prenc (Alpha Wolf / Polaris)") :
+    p == 2  ? strcpy(out_s, "2: Scott Seigel (DIESECT)") :
+    p == 3  ? strcpy(out_s, "3: Jonathan Dolese (Mirrorcell)") :
+    p == 4  ? strcpy(out_s, "4: Buster Odeholm (thrown / Northlane)") :
+    p == 5  ? strcpy(out_s, "5: Lewis Johns & Grant Berry (Love Is Noise)") :
+    p == 6  ? strcpy(out_s, "6: Kel Pinchin (Split Chain)") :
+    p == 7  ? strcpy(out_s, "7: Dan Lancaster (Don Broco)") :
+    p == 8  ? strcpy(out_s, "8: Erik Bickerstaffe (Static Dress)") :
+    p == 9  ? strcpy(out_s, "9: Sam Guaiana (Shyeye)") :
+    p == 10 ? strcpy(out_s, "10: Zach Tuch (Heavenward)") :
+    p == 11 ? strcpy(out_s, "11: Forrester Savell (City Of Souls)") :
+    p == 12 ? strcpy(out_s, "12: Leon Schmidt (SUNBORN)") :
+    p == 13 ? strcpy(out_s, "13: Ermin Hamidovic (Systematic Benchmark)") :
+    p == 14 ? strcpy(out_s, "14: Will Putney (Fit For An Autopsy)") :
+    p == 15 ? strcpy(out_s, "15: George Lever (Loathe / Sleep Token)") :
+    p == 16 ? strcpy(out_s, "16: Sam Bassal (Thornhill)") :
+    p == 17 ? strcpy(out_s, "17: Henrik Udd (Architects)") :
+    p == 18 ? strcpy(out_s, "18: Dan Braunstein (Spiritbox)") :
+    p == 19 ? strcpy(out_s, "19: Zakk Cervini (Bad Omens)") :
+    p == 20 ? strcpy(out_s, "20: Jens Bogren (Fascination Street)") :
+    p == 21 ? strcpy(out_s, "21: Adam Nolly Getgood (Periphery / GGD)") :
+    p == 22 ? strcpy(out_s, "22: Acle Kahney (TesseracT)") :
+    p == 23 ? strcpy(out_s, "23: Adam Cichocki (heaving.)") :
+    p == 24 ? strcpy(out_s, "24: Manuel Renner (SENNA - Out Of The Blue)") :
+    p == 25 ? strcpy(out_s, "25: Matt Thomas (Ashtone - Live Room Authority)") :
+              strcpy(out_s, "26: Mark Williamson (Sugarhouse - Live Cohesion)");
+  );
+
+  function update_coeffs() local(w0, cosw, sinw, alpha, A, a0) (
+    // 1. Linkwitz-Riley 2nd-Order Crossover Pair (Phase-Coherent LP + HP at slider1)
+    fc_xo = clamp(slider1, 150.0, 4000.0);
+    w0 = 2.0 * $pi * fc_xo / srate;
+    cosw = cos(w0); sinw = sin(w0);
+    alpha = sinw / (2.0 * 0.70710678);
+    a0 = 1.0 + alpha;
+    xo_lp_b0 = ((1.0 - cosw) * 0.5) / a0;
+    xo_lp_b1 = (1.0 - cosw) / a0;
+    xo_lp_b2 = xo_lp_b0;
+    xo_a1 = (-2.0 * cosw) / a0;
+    xo_a2 = (1.0 - alpha) / a0;
+
+    xo_hp_b0 = ((1.0 + cosw) * 0.5) / a0;
+    xo_hp_b1 = -(1.0 + cosw) / a0;
+    xo_hp_b2 = xo_hp_b0;
+
+    // 2. Sidechain Detector High-Pass (slider2) & Low-Pass (slider3)
+    w0 = 2.0 * $pi * clamp(slider2, 20.0, 2000.0) / srate;
+    cosw = cos(w0); sinw = sin(w0); alpha = sinw / (2.0 * 0.7071);
+    a0 = 1.0 + alpha;
+    sc_hp_b0 = ((1.0 + cosw) * 0.5) / a0;
+    sc_hp_b1 = -(1.0 + cosw) / a0;
+    sc_hp_b2 = sc_hp_b0;
+    sc_hp_a1 = (-2.0 * cosw) / a0;
+    sc_hp_a2 = (1.0 - alpha) / a0;
+
+    w0 = 2.0 * $pi * clamp(slider3, 800.0, 20000.0) / srate;
+    cosw = cos(w0); sinw = sin(w0); alpha = sinw / (2.0 * 0.7071);
+    a0 = 1.0 + alpha;
+    sc_lp_b0 = ((1.0 - cosw) * 0.5) / a0;
+    sc_lp_b1 = (1.0 - cosw) / a0;
+    sc_lp_b2 = sc_lp_b0;
+    sc_lp_a1 = (-2.0 * cosw) / a0;
+    sc_lp_a2 = (1.0 - alpha) / a0;
+
+    // 3. Sidechain Resonant Peak Key Filter (slider18, slider19)
+    A = 10.0^(slider19 / 40.0);
+    w0 = 2.0 * $pi * clamp(slider18, 50.0, 3000.0) / srate;
+    cosw = cos(w0); sinw = sin(w0); alpha = sinw / (2.0 * 2.2);
+    a0 = 1.0 + alpha / A;
+    sc_pk_b0 = (1.0 + alpha * A) / a0;
+    sc_pk_b1 = (-2.0 * cosw) / a0;
+    sc_pk_b2 = (1.0 - alpha * A) / a0;
+    sc_pk_a1 = sc_pk_b1;
+    sc_pk_a2 = (1.0 - alpha / A) / a0;
+
+    // 4. Envelope Ballistics
+    in_gain = db2lin(slider12);
+    out_gain = db2lin(slider13);
+    wet_mix = slider14 / 100.0;
+    la_samples = slider15 ? floor(0.0015 * srate) : 0;
+
+    thresh_hi_lin = db2lin(slider4);
+    thresh_lo_lin = db2lin(slider8);
+    floor_hi_lin  = db2lin(slider20);
+    floor_lo_lin  = slider23 == 3 ? db2lin(-36.0) : (slider23 == 2 ? db2lin(-18.0) : db2lin(-6.0));
+
+    att_hi_c = exp(-1.0 / max(1.0, (slider5 * 0.001) * srate));
+    rel_hi_c = exp(-1.0 / max(1.0, (slider7 * 0.001) * srate));
+    hold_hi_spl = floor((slider6 * 0.001) * srate);
+
+    att_lo_c = exp(-1.0 / max(1.0, (slider9 * 0.001) * srate));
+    rel_lo_c = exp(-1.0 / max(1.0, (slider11 * 0.001) * srate));
+    hold_lo_spl = floor((slider10 * 0.001) * srate);
+  );
+
+  function apply_target_mode(m) (
+    m == 0 ? ( // Snare Top (195Hz Key / 650Hz X-Over)
+      slider1 = 650; slider2 = 120; slider3 = 5500;
+      slider4 = -24.0; slider5 = 0.2; slider6 = 34; slider7 = 95;
+      slider8 = -38.0; slider9 = 0.4; slider10 = 90; slider11 = 280;
+      slider18 = 195; slider19 = 6.5; slider20 = -34.0; slider21 = 45;
+    ) : m == 1 ? ( // Kick In (62Hz Key / 420Hz X-Over)
+      slider1 = 420; slider2 = 40; slider3 = 4500;
+      slider4 = -22.0; slider5 = 0.2; slider6 = 28; slider7 = 75;
+      slider8 = -34.0; slider9 = 0.4; slider10 = 70; slider11 = 210;
+      slider18 = 62; slider19 = 8.0; slider20 = -40.0; slider21 = 55;
+    ) : m == 2 ? ( // Tom / Floor Tom (115Hz Key / 520Hz X-Over)
+      slider1 = 520; slider2 = 65; slider3 = 4200;
+      slider4 = -25.0; slider5 = 0.3; slider6 = 38; slider7 = 110;
+      slider8 = -38.0; slider9 = 0.5; slider10 = 115; slider11 = 340;
+      slider18 = 115; slider19 = 7.5; slider20 = -38.0; slider21 = 60;
+    ) : ( // Spot Cymbal / Hi-Hat De-Shell
+      slider1 = 550; slider2 = 500; slider3 = 18000;
+      slider4 = -48.0; slider5 = 0.2; slider6 = 60; slider7 = 220;
+      slider8 = -12.0; slider9 = 2.0; slider10 = 20; slider11 = 60;
+      slider18 = 8000; slider19 = 3.0; slider20 = -12.0; slider21 = 15;
+    );
+    update_coeffs();
+  );
+
+  function apply_producer_preset(p) (
+    // Tailor High-Band Cymbal Clamp & Velvet LPF per Producer DNA while respecting target mode
+    p == 24 ? ( // Manuel Renner (SENNA - Low Wave Studios Cymbal Killer Creator)
+      slider6 = 32; slider7 = 90; slider10 = 90; slider11 = 275; slider20 = -36.0; slider21 = 48;
+    ) : p == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider6 = 30; slider7 = 85; slider10 = 85; slider11 = 250; slider20 = -34.0; slider21 = 44;
+    ) : p == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider6 = 35; slider7 = 95; slider10 = 95; slider11 = 280; slider20 = -32.0; slider21 = 55;
+    ) : p == 4 ? ( // Buster Odeholm (Surgical tight clamp)
+      slider6 = 25; slider7 = 70; slider10 = 75; slider11 = 220; slider20 = -42.0; slider21 = 60;
+    ) : p == 15 ? ( // George Lever (Natural room & shell sustain, smooth high taper)
+      slider6 = 38; slider7 = 115; slider10 = 105; slider11 = 310; slider20 = -30.0; slider21 = 42;
+    ) : p == 18 || p == 19 ? ( // Dan Braunstein / Zakk Cervini (Crisp crack, zero hat wash)
+      slider6 = 30; slider7 = 85; slider10 = 85; slider11 = 250; slider20 = -38.0; slider21 = 50;
+    ) : p == 1 ? ( // Lance Prenc
+      slider6 = 28; slider7 = 80; slider10 = 80; slider11 = 240; slider20 = -40.0; slider21 = 52;
+    );
+    update_coeffs();
+  );
+
+  function draw_panel(px, py, pw, ph, title_s, tag_s) local(tw, th) (
+    set_ca(0x11151f, 0.96); gfx_rect(px, py, pw, ph);
+    set_c(0x222a3a); gfx_rect(px, py, pw, ph, 0);
+    set_c(0x0c0f17); gfx_rect(px + 1, py + 1, pw - 2, 26);
+    set_c(0x263044); gfx_line(px, py + 27, px + pw, py + 27);
+    set_c(0xdfab35);
+    gfx_line(px, py, px + 7, py); gfx_line(px, py, px, py + 7);
+    gfx_line(px + pw - 1, py, px + pw - 8, py); gfx_line(px + pw - 1, py, px + pw - 1, py + 7);
+    gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0xdfab35);
+    gfx_x = px + 12; gfx_y = py + 7; gfx_drawstr(title_s);
+    strlen(tag_s) > 0 ? (
+      gfx_setfont(2, "Consolas", 10, 'b'); set_c(0x2899ff);
+      gfx_measurestr(tag_s, tw, th);
+      gfx_x = px + pw - tw - 10; gfx_y = py + 8; gfx_drawstr(tag_s);
+    );
+  );
+
+  function draw_sifam(mx, my, mw, mh, title_s, val_db_str, val_col, norm_pos) local(cx, cy, r, ang0, ang1, ang, i, a, x1, y1, x2, y2, tw, th) (
+    set_ca(0x11151f, 0.96); gfx_rect(mx, my, mw, mh);
+    set_c(0x222a3a); gfx_rect(mx, my, mw, mh, 0);
+    gfx_setfont(1, "Orbitron", 10, 'b'); set_c(0xedf1f7);
+    gfx_x = mx + 10; gfx_y = my + 8; gfx_drawstr(title_s);
+    gfx_setfont(2, "Consolas", 11, 'b'); set_c(val_col);
+    gfx_measurestr(val_db_str, tw, th);
+    gfx_x = mx + mw - tw - 10; gfx_y = my + 8; gfx_drawstr(val_db_str);
+
+    cx = mx + mw * 0.5; cy = my + mh - 18; r = min(mw * 0.42, mh - 46);
+    ang0 = -52.0 * $pi / 180.0; ang1 = 52.0 * $pi / 180.0;
+    set_c(0x2b364b);
+    i = 0;
+    loop(24,
+      a = ang0 + (i / 24.0) * (ang1 - ang0);
+      x1 = cx + sin(a) * r; y1 = cy - cos(a) * r;
+      x2 = cx + sin(a + (ang1 - ang0)/24.0) * r; y2 = cy - cos(a + (ang1 - ang0)/24.0) * r;
+      gfx_line(x1, y1, x2, y2);
+      (i % 6 == 0) ? (
+        set_c(0xdfab35);
+        gfx_line(x1, y1, cx + sin(a)*(r - 6), cy - cos(a)*(r - 6));
+        set_c(0x2b364b);
+      );
+      i += 1;
+    );
+    ang = ang0 + clamp(norm_pos, 0.0, 1.0) * (ang1 - ang0);
+    set_c(val_col);
+    gfx_line(cx, cy, cx + sin(ang)*(r - 2), cy - cos(ang)*(r - 2));
+    set_c(0xdfab35); gfx_circle(cx, cy, 4, 0);
+  );
+
+  function draw_knob(id, kx, ky, kr, val, vmin, vmax, step_v, lbl_s, fmt_s, col_arc) local(norm, a0, a1, ang, i, st, r1, r2, tw, th, hov) (
+    norm = clamp((val - vmin) / max(0.00001, vmax - vmin), 0.0, 1.0);
+    hov = (mouse_x >= kx - kr - 4 && mouse_x <= kx + kr + 4 && mouse_y >= ky - kr - 4 && mouse_y <= ky + kr + 18);
+    (mouse_clicked && hov && drag_knob == 0) ? (
+      drag_knob = id; drag_start_y = mouse_y; drag_start_val = val;
+    );
+    (drag_knob == id && mouse_down) ? (
+      val = clamp(drag_start_val + ((drag_start_y - mouse_y) / 130.0) * (vmax - vmin), vmin, vmax);
+      step_v > 0 ? (val = floor(val / step_v + 0.5) * step_v;);
+      slider(id) = val;
+      sliderchange(slider(id));
+      update_coeffs();
+    );
+    set_c(0x0c0f17); gfx_circle(kx, ky, kr, 1);
+    set_c(0x252f42); gfx_circle(kx, ky, kr, 0);
+    a0 = -135.0 * $pi / 180.0; a1 = 135.0 * $pi / 180.0;
+    ang = a0 + norm * (a1 - a0);
+    set_c(col_arc);
+    st = 18; i = 0;
+    loop(st,
+      r1 = a0 + (i / st) * (ang - a0);
+      r2 = a0 + ((i + 1) / st) * (ang - a0);
+      gfx_line(kx + sin(r1)*(kr-2), ky - cos(r1)*(kr-2), kx + sin(r2)*(kr-2), ky - cos(r2)*(kr-2));
+      i += 1;
+    );
+    gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(0xedf1f7);
+    gfx_measurestr(fmt_s, tw, th);
+    gfx_x = kx - tw * 0.5; gfx_y = ky - th * 0.5; gfx_drawstr(fmt_s);
+    gfx_setfont(2, "Segoe UI", 9.5, 'b'); set_c(0x9aa6bc);
+    gfx_measurestr(lbl_s, tw, th);
+    gfx_x = kx - tw * 0.5; gfx_y = ky + kr + 5; gfx_drawstr(lbl_s);
+    val;
+  );
+
+  update_coeffs();
+
+// =============================================================================
+// @slider
+// =============================================================================
+@slider
+  slider23 != last_mode ? (
+    last_mode = slider23;
+    apply_target_mode(slider23);
+  );
+  slider22 != last_preset ? (
+    last_preset = slider22;
+    apply_producer_preset(slider22);
+  );
+  update_coeffs();
+
+// =============================================================================
+// @block
+// =============================================================================
+@block
+  // Sync with Atumpan Drum Sentry (gmem[200] == 'DRUM') on change only
+  (gmem[200] == 0x4452554D && gmem[203] == 1) ? (
+    sp = floor(gmem[201] + 0.5);
+    (sp >= 0 && sp <= 26 && sp != last_gmem_p) ? (
+      last_gmem_p = sp;
+      slider22 != sp ? (
+        slider22 = sp;
+        last_preset = sp;
+        apply_producer_preset(sp);
+        sliderchange(slider22);
+      );
+    );
+  );
+
+// =============================================================================
+// @sample
+// =============================================================================
+@sample
+  in_l = spl0 * in_gain;
+  in_r = spl1 * in_gain;
+
+  // 1. Sidechain Detector Signal (Ch 1/2 Internal Shell or Ch 3/4 External Key)
+  sc_raw = slider16 ? ((spl2 + spl3) * 0.5 * in_gain) : ((in_l + in_r) * 0.5);
+
+  // Sidechain HPF -> LPF -> Resonant Shell Peak Filter
+  sc_h = sc_hp_b0 * sc_raw + sc_hp_b1 * sc_hp_x1 + sc_hp_b2 * sc_hp_x2 - sc_hp_a1 * sc_hp_y1 - sc_hp_a2 * sc_hp_y2;
+  sc_hp_x2 = sc_hp_x1; sc_hp_x1 = sc_raw; sc_hp_y2 = sc_hp_y1; sc_hp_y1 = sc_h;
+
+  sc_l = sc_lp_b0 * sc_h + sc_lp_b1 * sc_lp_x1 + sc_lp_b2 * sc_lp_x2 - sc_lp_a1 * sc_lp_y1 - sc_lp_a2 * sc_lp_y2;
+  sc_lp_x2 = sc_lp_x1; sc_lp_x1 = sc_h; sc_lp_y2 = sc_lp_y1; sc_lp_y1 = sc_l;
+
+  sc_p = sc_pk_b0 * sc_l + sc_pk_b1 * sc_pk_x1 + sc_pk_b2 * sc_pk_x2 - sc_pk_a1 * sc_pk_y1 - sc_pk_a2 * sc_pk_y2;
+  sc_pk_x2 = sc_pk_x1; sc_pk_x1 = sc_l; sc_pk_y2 = sc_pk_y1; sc_pk_y1 = sc_p;
+
+  det_abs = abs(sc_p);
+  env_det = det_abs > env_det ? (env_det * 0.60 + det_abs * 0.40) : (env_det * 0.9975 + det_abs * 0.0025);
+
+  // 2. Dual Split-Band Envelope Computers (High-Band Cymbal Clamp vs Low-Band Shell Sustain)
+  env_det >= thresh_hi_lin ? (
+    hold_cnt_hi = hold_hi_spl;
+    tgt_hi = 1.0;
+    gate_hi = gate_hi * att_hi_c + tgt_hi * (1.0 - att_hi_c);
+  ) : hold_cnt_hi > 0 ? (
+    hold_cnt_hi -= 1;
+    gate_hi = gate_hi * att_hi_c + 1.0 * (1.0 - att_hi_c);
+  ) : (
+    gate_hi = gate_hi * rel_hi_c + floor_hi_lin * (1.0 - rel_hi_c);
+  );
+
+  env_det >= thresh_lo_lin ? (
+    hold_cnt_lo = hold_lo_spl;
+    gate_lo = gate_lo * att_lo_c + 1.0 * (1.0 - att_lo_c);
+  ) : hold_cnt_lo > 0 ? (
+    hold_cnt_lo -= 1;
+    gate_lo = gate_lo * att_lo_c + 1.0 * (1.0 - att_lo_c);
+  ) : (
+    gate_lo = gate_lo * rel_lo_c + floor_lo_lin * (1.0 - rel_lo_c);
+  );
+
+  // 3. Lookahead Delay Buffer for Zero-Clipped Transient Catch
+  la_idx = (la_idx + 1) % LA_MAX;
+  LA_BUF_L[la_idx] = in_l;
+  LA_BUF_R[la_idx] = in_r;
+  rd_idx = (la_idx - la_samples + LA_MAX) % LA_MAX;
+  sig_l = LA_BUF_L[rd_idx];
+  sig_r = LA_BUF_R[rd_idx];
+
+  // 4. Phase-Coherent Crossover Split (Low Shell Band vs High Cymbal Band)
+  lo_l = xo_lp_b0 * sig_l + xo_lp_b1 * xo_lp_x1_l + xo_lp_b2 * xo_lp_x2_l - xo_a1 * xo_lp_y1_l - xo_a2 * xo_lp_y2_l;
+  xo_lp_x2_l = xo_lp_x1_l; xo_lp_x1_l = sig_l; xo_lp_y2_l = xo_lp_y1_l; xo_lp_y1_l = lo_l;
+
+  lo_r = xo_lp_b0 * sig_r + xo_lp_b1 * xo_lp_x1_r + xo_lp_b2 * xo_lp_x2_r - xo_a1 * xo_lp_y1_r - xo_a2 * xo_lp_y2_r;
+  xo_lp_x2_r = xo_lp_x1_r; xo_lp_x1_r = sig_r; xo_lp_y2_r = xo_lp_y1_r; xo_lp_y1_r = lo_r;
+
+  // Complementary High-Freq Band (Guarantees 100% flat phase-accurate reconstruction when gate_lo == gate_hi == 1.0!)
+  hi_l = sig_l - lo_l;
+  hi_r = sig_r - lo_r;
+
+  // Dynamic Velvet Low-Pass Follow (Tominator-style smoothing of High-Band tail as gate_hi closes)
+  velvet_amt = (slider21 / 100.0) * (1.0 - gate_hi);
+  velvet_c = clamp(0.15 + 0.78 * velvet_amt, 0.0, 0.92);
+  vel_l = vel_l * velvet_c + hi_l * (1.0 - velvet_c);
+  vel_r = vel_r * velvet_c + hi_r * (1.0 - velvet_c);
+  hi_shaped_l = hi_l * (1.0 - velvet_amt * 0.65) + vel_l * (velvet_amt * 0.65);
+  hi_shaped_r = hi_r * (1.0 - velvet_amt * 0.65) + vel_r * (velvet_amt * 0.65);
+
+  proc_lo_l = lo_l * gate_lo;
+  proc_lo_r = lo_r * gate_lo;
+  proc_hi_l = hi_shaped_l * gate_hi;
+  proc_hi_r = hi_shaped_r * gate_hi;
+
+  slider17 == 1 ? ( // Solo Low-Freq Shell Body
+    wet_l = proc_lo_l; wet_r = proc_lo_r;
+  ) : slider17 == 2 ? ( // Solo High-Freq Cymbal/Crack
+    wet_l = proc_hi_l; wet_r = proc_hi_r;
+  ) : slider17 == 3 ? ( // Delta Listen (Removed Cymbal Bleed)
+    wet_l = sig_l - (proc_lo_l + proc_hi_l);
+    wet_r = sig_r - (proc_lo_r + proc_hi_r);
+  ) : (
+    wet_l = proc_lo_l + proc_hi_l;
+    wet_r = proc_lo_r + proc_hi_r;
+  );
+
+  spl0 = (sig_l * (1.0 - wet_mix) + wet_l * wet_mix) * out_gain;
+  spl1 = (sig_r * (1.0 - wet_mix) + wet_r * wet_mix) * out_gain;
+
+  // Telemetry & Scope update
+  gr_hi_db = clamp(-lin2db(max(0.015, gate_hi)), 0.0, 48.0);
+  gr_lo_db = clamp(-lin2db(max(0.015, gate_lo)), 0.0, 48.0);
+  sifam_gr_hi += (gr_hi_db - sifam_gr_hi) * 0.005;
+  sifam_gr_lo += (gr_lo_db - sifam_gr_lo) * 0.005;
+
+  out_rms_acc += (spl0 * spl0 + spl1 * spl1) * 0.5;
+  out_rms_cnt += 1;
+  out_rms_cnt >= 1024 ? (
+    sifam_out_db = lin2db(sqrt(out_rms_acc / out_rms_cnt));
+    out_rms_acc = 0.0; out_rms_cnt = 0;
+  );
+
+  scope_sub += 1;
+  scope_sub >= 128 ? (
+    scope_sub = 0;
+    SCOPE_WAVE[scope_ptr] = clamp(det_abs * 2.2, 0.0, 1.0);
+    SCOPE_ENV_HI[scope_ptr] = gate_hi;
+    SCOPE_ENV_LO[scope_ptr] = gate_lo;
+    scope_ptr = (scope_ptr + 1) % SCOPE_SIZE;
+  );
+
+// =============================================================================
+// @gfx 980 670
+// =============================================================================
+@gfx 980 670
+  mouse_down = mouse_cap & 1;
+  mouse_clicked = mouse_down && !last_mouse_down;
+  !mouse_down ? (drag_knob = 0;);
+
+  set_c(0x0a0c12); gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // 1. TOP COMMAND BAR
+  set_c(0x0e121b); gfx_rect(0, 0, gfx_w, 48);
+  set_c(0x222a3a); gfx_line(0, 48, gfx_w, 48);
+  set_c(0xdfab35); gfx_rect(0, 47, gfx_w, 1);
+
+  gfx_setfont(1, "Orbitron", 15, 'b'); set_c(0xdfab35);
+  gfx_x = 16; gfx_y = 14; gfx_drawstr("ATUMPAN CYMBALKILLER");
+
+  gfx_setfont(2, "Segoe UI", 10.5, 'b'); set_c(0x2899ff);
+  gfx_x = 258; gfx_y = 16; gfx_drawstr("LOW WAVE SPLIT-BAND CYMBAL BLEED ELIMINATOR // SHELL PRESERVER");
+
+  // Top-Right Status Pills
+  sentry_on = (gmem[200] == 0x4452554D);
+  set_c(sentry_on ? 0x0b291e : 0x151b26); gfx_rect(648, 10, 146, 28);
+  set_c(sentry_on ? 0x0fe49e : 0x2e3d55); gfx_rect(648, 10, 146, 28, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(sentry_on ? 0x0fe49e : 0x9aa6bc);
+  gfx_x = 664; gfx_y = 18; gfx_drawstr(sentry_on ? "SENTRY: SYNCED" : "STANDALONE");
+
+  // Solo / Delta Button in Header
+  aud_x = 804; aud_w = 162;
+  aud_hov = (mouse_x >= aud_x && mouse_x <= aud_x + aud_w && mouse_y >= 10 && mouse_y <= 38);
+  set_c(slider17 > 0 ? 0xdfab35 : (aud_hov ? 0x1e2838 : 0x131824)); gfx_rect(aud_x, 10, aud_w, 28);
+  set_c(0xdfab35); gfx_rect(aud_x, 10, aud_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(slider17 > 0 ? 0x0a0c12 : 0xedf1f7);
+  aud_lbl = slider17 == 0 ? "LISTEN: FULL BAND" : slider17 == 1 ? "SOLO: LOW SHELL" : slider17 == 2 ? "SOLO: HIGH CYMBAL" : "DELTA: BLEED ONLY";
+  gfx_measurestr(aud_lbl, tw, th);
+  gfx_x = aud_x + (aud_w - tw)*0.5; gfx_y = 18; gfx_drawstr(aud_lbl);
+  (mouse_clicked && aud_hov) ? (slider17 = (slider17 + 1) % 4; sliderchange(slider17););
+
+  // 2. UPPER METERING & SPLIT-BAND DUAL ENVELOPE RADAR (Y = 60, H = 195)
+  draw_sifam(14, 60, 215, 195, "HIGH-BAND CYMBAL CUT", sprintf(#, "-%2.1f dB", sifam_gr_hi), 0xf03344, 1.0 - (sifam_gr_hi / 36.0));
+  draw_sifam(751, 60, 215, 195, "LOW-BAND SUSTAIN", sprintf(#, "%s", sifam_gr_lo < 6.0 ? "100% OPEN" : sprintf(#, "-%2.1f dB", sifam_gr_lo)), 0x0fe49e, 1.0 - (sifam_gr_lo / 36.0));
+
+  // Center Split-Band Scope
+  sc_x = 238; sc_y = 60; sc_w = 504; sc_h = 195;
+  draw_panel(sc_x, sc_y, sc_w, sc_h, "SPLIT-BAND SCOPE // SHELL (MINT) vs CYMBAL CLAMP", sprintf(#, "X-OVER: %d Hz", slider1));
+
+  plot_x = sc_x + 10; plot_y = sc_y + 34; plot_w = sc_w - 20; plot_h = sc_h - 44;
+  set_c(0x090c12); gfx_rect(plot_x, plot_y, plot_w, plot_h);
+  set_c(0x1b2333); gfx_rect(plot_x, plot_y, plot_w, plot_h, 0);
+
+  // Draw High-Band & Low-Band Threshold Lines
+  y_th_hi = plot_y + clamp((-slider4 / 60.0), 0.05, 0.95) * plot_h;
+  set_ca(0xdfab35, 0.75); gfx_line(plot_x, y_th_hi, plot_x + plot_w, y_th_hi);
+  gfx_setfont(2, "Consolas", 9.5, 'b'); set_c(0xdfab35);
+  gfx_x = plot_x + 8; gfx_y = y_th_hi - 13; gfx_printf("HI CYMBAL THRESH: %2.1f dBFS", slider4);
+
+  y_th_lo = plot_y + clamp((-slider8 / 60.0), 0.05, 0.95) * plot_h;
+  set_ca(0x0fe49e, 0.65); gfx_line(plot_x, y_th_lo, plot_x + plot_w, y_th_lo);
+  set_c(0x0fe49e); gfx_x = plot_x + 260; gfx_y = y_th_lo - 13; gfx_printf("LO SHELL THRESH: %2.1f dBFS", slider8);
+
+  // Render Waveform + Dual Gate Traces (Low Shell = Mint Green stays open long; High Cymbal = Gold clamps fast)
+  i = 0;
+  loop(SCOPE_SIZE - 1,
+    idx0 = (scope_ptr + i) % SCOPE_SIZE;
+    idx1 = (scope_ptr + i + 1) % SCOPE_SIZE;
+    px0 = plot_x + (i / (SCOPE_SIZE - 1)) * plot_w;
+    px1 = plot_x + ((i + 1) / (SCOPE_SIZE - 1)) * plot_w;
+
+    wv0 = SCOPE_WAVE[idx0];
+    set_ca(0x2899ff, 0.28);
+    gfx_line(px0, plot_y + plot_h, px0, plot_y + plot_h - wv0 * (plot_h - 10));
+
+    // Low-Band Shell Envelope (Mint Green)
+    ey_lo0 = plot_y + plot_h - 6 - SCOPE_ENV_LO[idx0] * (plot_h - 18);
+    ey_lo1 = plot_y + plot_h - 6 - SCOPE_ENV_LO[idx1] * (plot_h - 18);
+    set_ca(0x0fe49e, 0.90);
+    gfx_line(px0, ey_lo0, px1, ey_lo1);
+
+    // High-Band Cymbal Envelope (Gold/Amber)
+    ey_hi0 = plot_y + plot_h - 6 - SCOPE_ENV_HI[idx0] * (plot_h - 18);
+    ey_hi1 = plot_y + plot_h - 6 - SCOPE_ENV_HI[idx1] * (plot_h - 18);
+    set_ca(0xdfab35, 0.95);
+    gfx_line(px0, ey_hi0, px1, ey_hi1);
+
+    i += 1;
+  );
+
+  // 3. TARGET DRUM PROFILE SELECTOR BAR (Y = 264, H = 34)
+  m_names_0 = "SNARE TOP (195Hz KEY / 650Hz X-OVER)";
+  m_names_1 = "KICK IN (62Hz KEY / 420Hz X-OVER)";
+  m_names_2 = "TOMS (115Hz KEY / 520Hz X-OVER)";
+  m_names_3 = "CYMBAL / HI-HAT DE-SHELL (550Hz HP)";
+  bw = (gfx_w - 28 - 18) / 4;
+  mi = 0;
+  loop(4,
+    bx = 14 + mi * (bw + 6); by = 264; bh = 32;
+    bhov = (mouse_x >= bx && mouse_x <= bx + bw && mouse_y >= by && mouse_y <= by + bh);
+    bsel = (slider23 == mi);
+    set_c(bsel ? 0xdfab35 : (bhov ? 0x1d2636 : 0x121722)); gfx_rect(bx, by, bw, bh);
+    set_c(bsel ? 0xdfab35 : 0x263147); gfx_rect(bx, by, bw, bh, 0);
+    gfx_setfont(1, "Orbitron", 9.0, 'b'); set_c(bsel ? 0x0a0c12 : 0xedf1f7);
+    mlbl = mi == 0 ? m_names_0 : mi == 1 ? m_names_1 : mi == 2 ? m_names_2 : m_names_3;
+    gfx_measurestr(mlbl, tw, th);
+    gfx_x = bx + (bw - tw)*0.5; gfx_y = by + (bh - th)*0.5; gfx_drawstr(mlbl);
+    (mouse_clicked && bhov) ? (slider23 = mi; last_mode = mi; apply_target_mode(mi); sliderchange(slider23););
+    mi += 1;
+  );
+
+  // 4. THREE MAIN DSP CONTROL DECKS (Y = 306, H = 316)
+  // Deck 1: Crossover & Sidechain Key Detector
+  d1_x = 14; d1_w = 310; d_y = 306; d_h = 316;
+  draw_panel(d1_x, d_y, d1_w, d_h, "1. SPLIT X-OVER & KEY FILTER", "LINKWITZ-RILEY");
+  draw_knob(1,  d1_x + 58,  d_y + 78,  26, slider1,  150, 4000, 10,  "X-OVER FREQ", sprintf(#, "%dHz", slider1), 0xdfab35);
+  draw_knob(18, d1_x + 155, d_y + 78,  26, slider18, 60,  2500, 5,   "KEY PEAK HZ", sprintf(#, "%dHz", slider18), 0x2899ff);
+  draw_knob(19, d1_x + 252, d_y + 78,  26, slider19, -12, 18,   0.5, "KEY BOOST",   sprintf(#, "%+.1fdB", slider19), 0x2899ff);
+
+  draw_knob(2,  d1_x + 58,  d_y + 185, 26, slider2,  20,  1000, 5,   "SC LOW CUT",  sprintf(#, "%dHz", slider2), 0x0fe49e);
+  draw_knob(3,  d1_x + 155, d_y + 185, 26, slider3,  1000,20000,100, "SC HIGH CUT", sprintf(#, "%.1fk", slider3/1000.0), 0x0fe49e);
+  draw_knob(21, d1_x + 252, d_y + 185, 26, slider21, 0,   100,  1,   "VELVET LPF",  sprintf(#, "%d%%", slider21), 0xdfab35);
+
+  // Lookahead & Ext SC Toggle Buttons in Deck 1
+  la_bx = d1_x + 16; la_by = d_y + 258; la_bw = 134; la_bh = 36;
+  la_hov = (mouse_x >= la_bx && mouse_x <= la_bx + la_bw && mouse_y >= la_by && mouse_y <= la_by + la_bh);
+  set_c(slider15 ? 0xdfab35 : 0x151b26); gfx_rect(la_bx, la_by, la_bw, la_bh);
+  set_c(0x2a364d); gfx_rect(la_bx, la_by, la_bw, la_bh, 0);
+  gfx_setfont(1, "Orbitron", 9.0, 'b'); set_c(slider15 ? 0x0a0c12 : 0xedf1f7);
+  gfx_x = la_bx + 14; gfx_y = la_by + 12; gfx_drawstr(slider15 ? "LOOKAHEAD: 1.5ms" : "LOOKAHEAD: OFF");
+  (mouse_clicked && la_hov) ? (slider15 = 1 - slider15; update_coeffs(); sliderchange(slider15););
+
+  sc_bx = d1_x + 160; sc_by = d_y + 258; sc_bw = 134; sc_bh = 36;
+  sc_hov = (mouse_x >= sc_bx && mouse_x <= sc_bx + sc_bw && mouse_y >= sc_by && mouse_y <= sc_by + sc_bh);
+  set_c(slider16 ? 0x2899ff : 0x151b26); gfx_rect(sc_bx, sc_by, sc_bw, sc_bh);
+  set_c(0x2a364d); gfx_rect(sc_bx, sc_by, sc_bw, sc_bh, 0);
+  gfx_setfont(1, "Orbitron", 9.0, 'b'); set_c(slider16 ? 0x0a0c12 : 0xedf1f7);
+  gfx_x = sc_bx + 16; gfx_y = sc_by + 12; gfx_drawstr(slider16 ? "KEY: EXT CH 3/4" : "KEY: INT CH 1/2");
+  (mouse_clicked && sc_hov) ? (slider16 = 1 - slider16; update_coeffs(); sliderchange(slider16););
+
+  // Deck 2: High-Frequency Cymbal Killer Gate (> X-Over)
+  d2_x = 335; d2_w = 310;
+  draw_panel(d2_x, d_y, d2_w, d_h, "2. HIGH-FREQ CYMBAL CLAMP", "BLEED KILLER");
+  draw_knob(4,  d2_x + 58,  d_y + 78,  26, slider4,  -60, 0,   0.5, "HI THRESH",   sprintf(#, "%.1fdB", slider4), 0xf03344);
+  draw_knob(5,  d2_x + 155, d_y + 78,  26, slider5,  0.01,25,  0.1, "HI ATTACK",   sprintf(#, "%.1fms", slider5), 0xdfab35);
+  draw_knob(6,  d2_x + 252, d_y + 78,  26, slider6,  5,   250, 1,   "HI HOLD",     sprintf(#, "%dms", slider6), 0xdfab35);
+
+  draw_knob(7,  d2_x + 58,  d_y + 185, 26, slider7,  10,  800, 5,   "HI RELEASE",  sprintf(#, "%dms", slider7), 0xdfab35);
+  draw_knob(20, d2_x + 155, d_y + 185, 26, slider20, -60, 0,   0.5, "BLEED FLOOR", sprintf(#, "%.1fdB", slider20), 0xf03344);
+  draw_knob(14, d2_x + 252, d_y + 185, 26, slider14, 0,   100, 1,   "DRY / WET",   sprintf(#, "%d%%", slider14), 0x0fe49e);
+
+  set_c(0x0d121c); gfx_rect(d2_x + 16, d_y + 254, d2_w - 32, 44);
+  set_c(0x232d42); gfx_rect(d2_x + 16, d_y + 254, d2_w - 32, 44, 0);
+  gfx_setfont(2, "Consolas", 10, 'b'); set_c(0xdfab35);
+  gfx_x = d2_x + 26; gfx_y = d_y + 262; gfx_drawstr("HIGH-BAND: FAST CLAMP AFTER STICK TRANSIENT");
+  set_c(0x9aa6bc);
+  gfx_x = d2_x + 26; gfx_y = d_y + 280; gfx_drawstr("Eliminates cymbal wash while keeping attack snap.");
+
+  // Deck 3: Low-Frequency Shell Body Preserver (< X-Over)
+  d3_x = 656; d3_w = 310;
+  draw_panel(d3_x, d_y, d3_w, d_h, "3. LOW-FREQ SHELL BODY", "UNCHOKED RING");
+  draw_knob(8,  d3_x + 58,  d_y + 78,  26, slider8,  -60, 0,    0.5, "LO THRESH",  sprintf(#, "%.1fdB", slider8), 0x0fe49e);
+  draw_knob(9,  d3_x + 155, d_y + 78,  26, slider9,  0.01,25,   0.1, "LO ATTACK",  sprintf(#, "%.1fms", slider9), 0x0fe49e);
+  draw_knob(10, d3_x + 252, d_y + 78,  26, slider10, 10,  400,  1,   "LO HOLD",    sprintf(#, "%dms", slider10), 0x0fe49e);
+
+  draw_knob(11, d3_x + 58,  d_y + 185, 26, slider11, 20,  1200, 5,   "LO RELEASE", sprintf(#, "%dms", slider11), 0x0fe49e);
+  draw_knob(12, d3_x + 155, d_y + 185, 26, slider12, -18, 18,   0.1, "INPUT GAIN", sprintf(#, "%+.1fdB", slider12), 0x2899ff);
+  draw_knob(13, d3_x + 252, d_y + 185, 26, slider13, -18, 18,   0.1, "OUTPUT TRIM",sprintf(#, "%+.1fdB", slider13), 0x2899ff);
+
+  set_c(0x0d121c); gfx_rect(d3_x + 16, d_y + 254, d3_w - 32, 44);
+  set_c(0x232d42); gfx_rect(d3_x + 16, d_y + 254, d3_w - 32, 44, 0);
+  gfx_setfont(2, "Consolas", 10, 'b'); set_c(0x0fe49e);
+  gfx_x = d3_x + 26; gfx_y = d_y + 262; gfx_drawstr("LOW-BAND: UNCHOKED 100-300Hz SHELL SUSTAIN");
+  set_c(0x9aa6bc);
+  gfx_x = d3_x + 26; gfx_y = d_y + 280; gfx_drawstr("Dan Weller Standard: Preserves natural shell decay.");
+
+  // 5. FOOTER BAR (PRODUCER DNA PRESET & NAVIGATION)
+  set_c(0x0e121b); gfx_rect(0, gfx_h - 36, gfx_w, 36);
+  set_c(0x222a3a); gfx_line(0, gfx_h - 36, gfx_w, gfx_h - 36);
+
+  gfx_setfont(1, "Orbitron", 10, 'b'); set_c(0xdfab35);
+  gfx_x = 16; gfx_y = gfx_h - 24; gfx_drawstr("PRODUCER DNA PRESET:");
+
+  get_producer_name(slider22, #ck_pname);
+  gfx_setfont(2, "Segoe UI", 11, 'b'); set_c(0xedf1f7);
+  gfx_x = 210; gfx_y = gfx_h - 25; gfx_drawstr(#ck_pname);
+
+  // Preset < > Buttons
+  pl_x = gfx_w - 86; pr_x = gfx_w - 46; py_b = gfx_h - 31;
+  pl_hov = (mouse_x >= pl_x && mouse_x <= pl_x + 34 && mouse_y >= py_b && mouse_y <= py_b + 26);
+  pr_hov = (mouse_x >= pr_x && mouse_x <= pr_x + 34 && mouse_y >= py_b && mouse_y <= py_b + 26);
+  set_c(pl_hov ? 0x223046 : 0x141b28); gfx_rect(pl_x, py_b, 34, 26); set_c(0x2c3b55); gfx_rect(pl_x, py_b, 34, 26, 0);
+  set_c(pr_hov ? 0x223046 : 0x141b28); gfx_rect(pr_x, py_b, 34, 26); set_c(0x2c3b55); gfx_rect(pr_x, py_b, 34, 26, 0);
+  gfx_setfont(2, "Segoe UI", 13, 'b'); set_c(0xedf1f7);
+  gfx_x = pl_x + 12; gfx_y = py_b + 3; gfx_drawstr("<");
+  gfx_x = pr_x + 12; gfx_y = py_b + 3; gfx_drawstr(">");
+
+  (mouse_clicked && pl_hov) ? (slider22 = (slider22 - 1 + 27) % 27; last_preset = slider22; apply_producer_preset(slider22); sliderchange(slider22););
+  (mouse_clicked && pr_hov) ? (slider22 = (slider22 + 1) % 27; last_preset = slider22; apply_producer_preset(slider22); sliderchange(slider22););
+
+  last_mouse_down = mouse_down;

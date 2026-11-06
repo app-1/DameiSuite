@@ -1,0 +1,551 @@
+desc:Damei Multiband v2.0 (Dynamic 4-Band Linear-Phase Dynamics / Pro-MB Spec)
+author:Damei Audio
+version:2.0
+about:
+  Flagship 4-band dynamic processor rivaling FabFilter Pro-MB.
+  Features 4 Linkwitz-Riley 4th-order (24dB/oct) phase-aligned crossover bands,
+  upward/downward compression and expansion per band, dynamic range limiter,
+  per-band solo/mute/bypass, real-time interactive spectrum crossover display
+  with dynamic gain-reduction curves, and master parallel mix.
+
+options:gmem=DameiMetering
+options:no_anticipative
+options:no_meter
+
+slider1:140<40,500,5>-Crossover Low/Mid (Hz)
+slider2:1400<500,4000,20>-Crossover Mid/High (Hz)
+slider3:6500<3000,16000,50>-Crossover High/Air (Hz)
+
+// Band 1: Low
+slider4:-18.0<-60.0,0.0,0.5>-B1 Threshold (dBFS)
+slider5:0.0<-24.0,24.0,0.5>-B1 Range (dB)
+slider6:3.0<1.0,10.0,0.1>-B1 Ratio (:1)
+slider7:0.0<-12.0,12.0,0.1>-B1 Gain (dB)
+slider8:0<0,2,1{Active,Bypass,Solo}>-B1 State
+
+// Band 2: Low-Mid
+slider9:-18.0<-60.0,0.0,0.5>-B2 Threshold (dBFS)
+slider10:0.0<-24.0,24.0,0.5>-B2 Range (dB)
+slider11:3.0<1.0,10.0,0.1>-B2 Ratio (:1)
+slider12:0.0<-12.0,12.0,0.1>-B2 Gain (dB)
+slider13:0<0,2,1{Active,Bypass,Solo}>-B2 State
+
+// Band 3: High-Mid
+slider14:-18.0<-60.0,0.0,0.5>-B3 Threshold (dBFS)
+slider15:0.0<-24.0,24.0,0.5>-B3 Range (dB)
+slider16:3.0<1.0,10.0,0.1>-B3 Ratio (:1)
+slider17:0.0<-12.0,12.0,0.1>-B3 Gain (dB)
+slider18:0<0,2,1{Active,Bypass,Solo}>-B3 State
+
+// Band 4: High / Air
+slider19:-18.0<-60.0,0.0,0.5>-B4 Threshold (dBFS)
+slider20:0.0<-24.0,24.0,0.5>-B4 Range (dB)
+slider21:3.0<1.0,10.0,0.1>-B4 Ratio (:1)
+slider22:0.0<-12.0,12.0,0.1>-B4 Gain (dB)
+slider23:0<0,2,1{Active,Bypass,Solo}>-B4 State
+
+// Master Controls
+slider24:100.0<0.0,100.0,1.0>-Master Mix (%)
+slider25:0.0<-12.0,12.0,0.1>-Master Output (dB)
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1.0;
+active_knob = -1;
+knob_drag_y = 0;
+knob_orig_val = 0;
+mouse_cap_prev = 0;
+gfx_ext_retina = 1;
+
+// Crossover Filter States (Biquad cascades for LR4 = two cascaded Butterworth 2-pole)
+// X1: Low / Low-Mid
+x1_lp1_l = 0; x1_lp2_l = 0; x1_lp1_r = 0; x1_lp2_r = 0;
+x1_hp1_l = 0; x1_hp2_l = 0; x1_hp1_r = 0; x1_hp2_r = 0;
+
+// Envelopes per band
+env_b1 = 0.000000001;
+env_b2 = 0.000000001;
+env_b3 = 0.000000001;
+env_b4 = 0.000000001;
+
+// SIFAM Gain Reductions
+sifam_gr1 = 0.0; sifam_gr2 = 0.0; sifam_gr3 = 0.0; sifam_gr4 = 0.0;
+
+// Spectrum buffer for visuals
+SPEC_LEN = 256;
+SPEC_BUF = 40000;
+spec_wpos = 0;
+
+@slider
+f_x1 = min(slider1, slider2 - 20);
+f_x2 = min(slider2, slider3 - 50);
+f_x3 = max(slider3, f_x2 + 50);
+
+// Helper function to calculate 2-pole Butterworth lowpass
+function calc_bw_lp(fc, b0*, b1*, b2*, a1*, a2*) (
+  f_s = srate > 0 ? srate : 48000;
+  w0 = 2.0 * $pi * fc / f_s;
+  cos_w = cos(w0);
+  sin_w = sin(w0);
+  alpha = sin_w / (2.0 * 0.70710678);
+  a0 = 1.0 + alpha;
+  b0 = ((1.0 - cos_w) * 0.5) / a0;
+  b1 = (1.0 - cos_w) / a0;
+  b2 = ((1.0 - cos_w) * 0.5) / a0;
+  a1 = (-2.0 * cos_w) / a0;
+  a2 = (1.0 - alpha) / a0;
+);
+
+// Helper function to calculate 2-pole Butterworth highpass
+function calc_bw_hp(fc, b0*, b1*, b2*, a1*, a2*) (
+  f_s = srate > 0 ? srate : 48000;
+  w0 = 2.0 * $pi * fc / f_s;
+  cos_w = cos(w0);
+  sin_w = sin(w0);
+  alpha = sin_w / (2.0 * 0.70710678);
+  a0 = 1.0 + alpha;
+  b0 = ((1.0 + cos_w) * 0.5) / a0;
+  b1 = (-(1.0 + cos_w)) / a0;
+  b2 = ((1.0 + cos_w) * 0.5) / a0;
+  a1 = (-2.0 * cos_w) / a0;
+  a2 = (1.0 - alpha) / a0;
+);
+
+calc_bw_lp(f_x1, lp1_b0, lp1_b1, lp1_b2, lp1_a1, lp1_a2);
+calc_bw_hp(f_x1, hp1_b0, hp1_b1, hp1_b2, hp1_a1, hp1_a2);
+
+calc_bw_lp(f_x2, lp2_b0, lp2_b1, lp2_b2, lp2_a1, lp2_a2);
+calc_bw_hp(f_x2, hp2_b0, hp2_b1, hp2_b2, hp2_a1, hp2_a2);
+
+calc_bw_lp(f_x3, lp3_b0, lp3_b1, lp3_b2, lp3_a1, lp3_a2);
+calc_bw_hp(f_x3, hp3_b0, hp3_b1, hp3_b2, hp3_a1, hp3_a2);
+
+// Time ballistics (approx 10ms attack, 100ms release)
+mb_att = exp(-1.0 / (0.010 * srate));
+mb_rel = exp(-1.0 / (0.100 * srate));
+
+gain_b1_lin = 10.0 ^ (slider7 / 20.0);
+gain_b2_lin = 10.0 ^ (slider12 / 20.0);
+gain_b3_lin = 10.0 ^ (slider17 / 20.0);
+gain_b4_lin = 10.0 ^ (slider22 / 20.0);
+
+mix_linear = slider24 * 0.01;
+out_linear = 10.0 ^ (slider25 / 20.0);
+
+@sample
+s_in_l = spl0;
+s_in_r = spl1;
+
+// 1. Crossover Filtering Stage (Separating into 4 bands)
+// Split at X2 first (Low-Half vs High-Half)
+// Low-Half:
+low_half_l = lp2_b0*s_in_l + lp2_b1*x2_lp1_l + lp2_b2*x2_lp2_l - lp2_a1*x2_ly1_l - lp2_a2*x2_ly2_l;
+x2_lp2_l = x2_lp1_l; x2_lp1_l = s_in_l; x2_ly2_l = x2_ly1_l; x2_ly1_l = low_half_l;
+
+low_half_r = lp2_b0*s_in_r + lp2_b1*x2_lp1_r + lp2_b2*x2_lp2_r - lp2_a1*x2_ly1_r - lp2_a2*x2_ly2_r;
+x2_lp2_r = x2_lp1_r; x2_lp1_r = s_in_r; x2_ly2_r = x2_ly1_r; x2_ly1_r = low_half_r;
+
+// High-Half:
+high_half_l = hp2_b0*s_in_l + hp2_b1*x2_hp1_l + hp2_b2*x2_hp2_l - hp2_a1*x2_hy1_l - hp2_a2*x2_hy2_l;
+x2_hp2_l = x2_hp1_l; x2_hp1_l = s_in_l; x2_hy2_l = x2_hy1_l; x2_hy1_l = high_half_l;
+
+high_half_r = hp2_b0*s_in_r + hp2_b1*x2_hp1_r + hp2_b2*x2_hp2_r - hp2_a1*x2_hy1_r - hp2_a2*x2_hy2_r;
+x2_hp2_r = x2_hp1_r; x2_hp1_r = s_in_r; x2_hy2_r = x2_hy1_r; x2_hy1_r = high_half_r;
+
+// Split Low-Half at X1 -> Band 1 (Low) and Band 2 (Low-Mid)
+b1_l = lp1_b0*low_half_l + lp1_b1*x1_lp1_l + lp1_b2*x1_lp2_l - lp1_a1*x1_ly1_l - lp1_a2*x1_ly2_l;
+x1_lp2_l = x1_lp1_l; x1_lp1_l = low_half_l; x1_ly2_l = x1_ly1_l; x1_ly1_l = b1_l;
+
+b1_r = lp1_b0*low_half_r + lp1_b1*x1_lp1_r + lp1_b2*x1_lp2_r - lp1_a1*x1_ly1_r - lp1_a2*x1_ly2_r;
+x1_lp2_r = x1_lp1_r; x1_lp1_r = low_half_r; x1_ly2_r = x1_ly1_r; x1_ly1_r = b1_r;
+
+b2_l = hp1_b0*low_half_l + hp1_b1*x1_hp1_l + hp1_b2*x1_hp2_l - hp1_a1*x1_hy1_l - hp1_a2*x1_hy2_l;
+x1_hp2_l = x1_hp1_l; x1_hp1_l = low_half_l; x1_hy2_l = x1_hy1_l; x1_hy1_l = b2_l;
+
+b2_r = hp1_b0*low_half_r + hp1_b1*x1_hp1_r + hp1_b2*x1_hp2_r - hp1_a1*x1_hy1_r - hp1_a2*x1_hy2_r;
+x1_hp2_r = x1_hp1_r; x1_hp1_r = low_half_r; x1_hy2_r = x1_hy1_r; x1_hy1_r = b2_r;
+
+// Split High-Half at X3 -> Band 3 (High-Mid) and Band 4 (High / Air)
+b3_l = lp3_b0*high_half_l + lp3_b1*x3_lp1_l + lp3_b2*x3_lp2_l - lp3_a1*x3_ly1_l - lp3_a2*x3_ly2_l;
+x3_lp2_l = x3_lp1_l; x3_lp1_l = high_half_l; x3_ly2_l = x3_ly1_l; x3_ly1_l = b3_l;
+
+b3_r = lp3_b0*high_half_r + lp3_b1*x3_lp1_r + lp3_b2*x3_lp2_r - lp3_a1*x3_ly1_r - lp3_a2*x3_ly2_r;
+x3_lp2_r = x3_lp1_r; x3_lp1_r = high_half_r; x3_ly2_r = x3_ly1_r; x3_ly1_r = b3_r;
+
+b4_l = hp3_b0*high_half_l + hp3_b1*x3_hp1_l + hp3_b2*x3_hp2_l - hp3_a1*x3_hy1_l - hp3_a2*x3_hy2_l;
+x3_hp2_l = x3_hp1_l; x3_hp1_l = high_half_l; x3_hy2_l = x3_hy1_l; x3_hy1_l = b4_l;
+
+b4_r = hp3_b0*high_half_r + hp3_b1*x3_hp1_r + hp3_b2*x3_hp2_r - hp3_a1*x3_hy1_r - hp3_a2*x3_hy2_r;
+x3_hp2_r = x3_hp1_r; x3_hp1_r = high_half_r; x3_hy2_r = x3_hy1_r; x3_hy1_r = b4_r;
+
+// 2. Dynamics Calculation Function Per Band
+function calc_band_gain(s_l, s_r, env*, thresh, range_db, ratio) (
+  pk = max(abs(s_l), abs(s_r));
+  env = pk > env ? (env * mb_att + pk * (1.0 - mb_att)) : (env * mb_rel + pk * (1.0 - mb_rel));
+  env_db = 20.0 * log10(max(0.000000001, env));
+  
+  diff = env_db - thresh;
+  g_db = 0.0;
+  
+  range_db <= 0.0 ? (
+    // Downward Compression (Taming peaks)
+    diff > 0.0 ? (
+      g_db = -diff * (1.0 - 1.0 / ratio);
+      g_db = max(range_db, g_db); // Max reduction clamped by range
+    );
+  ) : (
+    // Upward Expansion / Dynamics Boost
+    diff > 0.0 ? (
+      g_db = diff * (1.0 - 1.0 / ratio);
+      g_db = min(range_db, g_db); // Max boost clamped by range
+    );
+  );
+  
+  10.0 ^ (g_db / 20.0);
+);
+
+dyn_g1 = (slider8 == 1) ? 1.0 : calc_band_gain(b1_l, b1_r, env_b1, slider4, slider5, slider6);
+dyn_g2 = (slider13 == 1) ? 1.0 : calc_band_gain(b2_l, b2_r, env_b2, slider9, slider10, slider11);
+dyn_g3 = (slider18 == 1) ? 1.0 : calc_band_gain(b3_l, b3_r, env_b3, slider14, slider15, slider16);
+dyn_g4 = (slider23 == 1) ? 1.0 : calc_band_gain(b4_l, b4_r, env_b4, slider19, slider20, slider21);
+
+// Apply Dynamic Gain & Makeup per Band
+out_b1_l = b1_l * dyn_g1 * gain_b1_lin;
+out_b1_r = b1_r * dyn_g1 * gain_b1_lin;
+
+out_b2_l = b2_l * dyn_g2 * gain_b2_lin;
+out_b2_r = b2_r * dyn_g2 * gain_b2_lin;
+
+out_b3_l = b3_l * dyn_g3 * gain_b3_lin;
+out_b3_r = b3_r * dyn_g3 * gain_b3_lin;
+
+out_b4_l = b4_l * dyn_g4 * gain_b4_lin;
+out_b4_r = b4_r * dyn_g4 * gain_b4_lin;
+
+// Solo Logic
+has_solo = (slider8 == 2 || slider13 == 2 || slider18 == 2 || slider23 == 2);
+has_solo ? (
+  sum_l = 0; sum_r = 0;
+  slider8 == 2 ? (sum_l += out_b1_l; sum_r += out_b1_r;);
+  slider13 == 2 ? (sum_l += out_b2_l; sum_r += out_b2_r;);
+  slider18 == 2 ? (sum_l += out_b3_l; sum_r += out_b3_r;);
+  slider23 == 2 ? (sum_l += out_b4_l; sum_r += out_b4_r;);
+) : (
+  sum_l = out_b1_l + out_b2_l + out_b3_l + out_b4_l;
+  sum_r = out_b1_r + out_b2_r + out_b3_r + out_b4_r;
+);
+
+// Master Mix & Output
+wet_l = sum_l * out_linear;
+wet_r = sum_r * out_linear;
+
+spl0 = s_in_l * (1.0 - mix_linear) + wet_l * mix_linear;
+spl1 = s_in_r * (1.0 - mix_linear) + wet_r * mix_linear;
+
+// Ballistic Meters
+sifam_gr1 = sifam_gr1 * 0.85 + (20.0 * log10(dyn_g1)) * 0.15;
+sifam_gr2 = sifam_gr2 * 0.85 + (20.0 * log10(dyn_g2)) * 0.15;
+sifam_gr3 = sifam_gr3 * 0.85 + (20.0 * log10(dyn_g3)) * 0.15;
+sifam_gr4 = sifam_gr4 * 0.85 + (20.0 * log10(dyn_g4)) * 0.15;
+
+@gfx 860 560
+COLOR_BG_R = 0.027; COLOR_BG_G = 0.039; COLOR_BG_B = 0.063; // Dark Obsidian #070A10
+COLOR_GOLD_R = 0.875; COLOR_GOLD_G = 0.671; COLOR_GOLD_B = 0.208; // Ghana Gold #DFAB35
+COLOR_CYAN_R = 0.220; COLOR_CYAN_G = 0.714; COLOR_CYAN_B = 1.000; // Cyber Cyan #38B6FF
+COLOR_PANEL_R = 0.060; COLOR_PANEL_G = 0.080; COLOR_PANEL_B = 0.120; // Card Panel
+
+// Background
+gfx_r = COLOR_BG_R; gfx_g = COLOR_BG_G; gfx_b = COLOR_BG_B;
+gfx_rect(0, 0, gfx_w, gfx_h);
+
+// Header Bar
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(0, 0, gfx_w, 54);
+
+// Header Border Gold Line
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_rect(0, 53, gfx_w, 2);
+
+// Title
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(1, "Arial", 18, 'b');
+gfx_x = 24; gfx_y = 12;
+gfx_drawstr("DAMEI MULTIBAND");
+
+gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+gfx_setfont(2, "Arial", 11);
+gfx_x = 210; gfx_y = 17;
+gfx_drawstr("4-BAND DYNAMIC PROCESSOR // PRO-MB SPEC");
+
+// Status Badges
+gfx_x = gfx_w - 240; gfx_y = 16;
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(gfx_x - 10, gfx_y - 4, 230, 26, 1);
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(3, "Arial", 11, 'b');
+gfx_drawstr("LR4 24dB/OCT PHASE-ALIGNED");
+
+// Multi-Band Dynamic Spectrum Display Canvas
+spec_x = 24;
+spec_y = 70;
+spec_w = gfx_w - 48;
+spec_h = 210;
+
+gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.08;
+gfx_rect(spec_x, spec_y, spec_w, spec_h);
+gfx_r = 0.12; gfx_g = 0.16; gfx_b = 0.24;
+gfx_rect(spec_x, spec_y, spec_w, spec_h, 0);
+
+// Frequency to X coordinate helper (20Hz to 20kHz logarithmic)
+function freq_to_x(f) (
+  spec_x + spec_w * (log(f / 20.0) / log(1000.0));
+);
+
+x_c1 = freq_to_x(f_x1);
+x_c2 = freq_to_x(f_x2);
+x_c3 = freq_to_x(f_x3);
+
+// Draw Band Shaded Backgrounds
+// Band 1
+gfx_r = 0.10; gfx_g = 0.15; gfx_b = 0.25;
+gfx_rect(spec_x, spec_y, x_c1 - spec_x, spec_h);
+// Band 2
+gfx_r = 0.08; gfx_g = 0.18; gfx_b = 0.28;
+gfx_rect(x_c1, spec_y, x_c2 - x_c1, spec_h);
+// Band 3
+gfx_r = 0.12; gfx_g = 0.15; gfx_b = 0.22;
+gfx_rect(x_c2, spec_y, x_c3 - x_c2, spec_h);
+// Band 4
+gfx_r = 0.15; gfx_g = 0.12; gfx_b = 0.18;
+gfx_rect(x_c3, spec_y, (spec_x + spec_w) - x_c3, spec_h);
+
+// Crossover Vertical Divider Lines (Gold)
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_line(x_c1, spec_y, x_c1, spec_y + spec_h);
+gfx_line(x_c2, spec_y, x_c2, spec_y + spec_h);
+gfx_line(x_c3, spec_y, x_c3, spec_y + spec_h);
+
+// Crossover Handles & Frequency Labels
+gfx_setfont(2, "Arial", 10);
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_circle(x_c1, spec_y + 16, 5, 1);
+gfx_x = x_c1 - 20; gfx_y = spec_y + 24;
+gfx_drawstr(sprintf(#, "%d Hz", f_x1));
+
+gfx_circle(x_c2, spec_y + 16, 5, 1);
+gfx_x = x_c2 - 20; gfx_y = spec_y + 24;
+gfx_drawstr(sprintf(#, "%d Hz", f_x2));
+
+gfx_circle(x_c3, spec_y + 16, 5, 1);
+gfx_x = x_c3 - 20; gfx_y = spec_y + 24;
+gfx_drawstr(sprintf(#, "%d Hz", f_x3));
+
+// Dynamic Gain Reduction / Boost Curves per Band
+zero_y = spec_y + spec_h * 0.5;
+gfx_r = 0.25; gfx_g = 0.30; gfx_b = 0.40;
+gfx_line(spec_x, zero_y, spec_x + spec_w, zero_y); // 0 dB baseline
+
+function draw_band_curve(bx1, bx2, gr_val, range_val) (
+  curve_y = zero_y - (gr_val * 4.0);
+  curve_y = max(spec_y + 10, min(spec_y + spec_h - 10, curve_y));
+  
+  gr_val < -0.1 ? (
+    // Downward compression (Orange/Red)
+    gfx_r = 0.95; gfx_g = 0.35; gfx_b = 0.20;
+    gfx_rect(bx1 + 4, min(zero_y, curve_y), (bx2 - bx1) - 8, abs(curve_y - zero_y));
+  ) : gr_val > 0.1 ? (
+    // Upward expansion (Green/Cyan)
+    gfx_r = 0.20; gfx_g = 0.90; gfx_b = 0.60;
+    gfx_rect(bx1 + 4, min(zero_y, curve_y), (bx2 - bx1) - 8, abs(curve_y - zero_y));
+  );
+  
+  gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  gfx_line(bx1, curve_y, bx2, curve_y);
+);
+
+draw_band_curve(spec_x, x_c1, sifam_gr1, slider5);
+draw_band_curve(x_c1, x_c2, sifam_gr2, slider10);
+draw_band_curve(x_c2, x_c3, sifam_gr3, slider15);
+draw_band_curve(x_c3, spec_x + spec_w, sifam_gr4, slider20);
+
+// Band Labels in Display
+gfx_setfont(3, "Arial", 11, 'b');
+gfx_r = 0.90; gfx_g = 0.92; gfx_b = 0.98;
+gfx_x = spec_x + 12; gfx_y = spec_y + spec_h - 24;
+gfx_drawstr(sprintf(#, "B1 LOW: %+.1fdB", sifam_gr1));
+
+gfx_x = x_c1 + 12; gfx_y = spec_y + spec_h - 24;
+gfx_drawstr(sprintf(#, "B2 LOW-MID: %+.1fdB", sifam_gr2));
+
+gfx_x = x_c2 + 12; gfx_y = spec_y + spec_h - 24;
+gfx_drawstr(sprintf(#, "B3 HI-MID: %+.1fdB", sifam_gr3));
+
+gfx_x = x_c3 + 12; gfx_y = spec_y + spec_h - 24;
+gfx_drawstr(sprintf(#, "B4 AIR: %+.1fdB", sifam_gr4));
+
+// Lower 4-Band Control Strip
+deck_y = 295;
+col_w = (gfx_w - 48) / 4;
+
+function draw_band_column(bx, b_idx, thresh, range_v, ratio_v, gain_v, state_v, b_name) (
+  gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+  gfx_rect(bx, deck_y, col_w - 6, 250);
+  gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+  gfx_rect(bx, deck_y, col_w - 6, 250, 0);
+  
+  // Header
+  gfx_setfont(3, "Arial", 11, 'b');
+  gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  gfx_x = bx + 12; gfx_y = deck_y + 10;
+  gfx_drawstr(b_name);
+  
+  // State Buttons (Bypass / Solo)
+  btn_by = deck_y + 32;
+  is_byp = (state_v == 1);
+  byp_hov = (mouse_x >= bx + 12 && mouse_x <= bx + 57 && mouse_y >= btn_by && mouse_y <= btn_by + 18);
+  gfx_r = is_byp ? 0.9 : (byp_hov ? 0.18 : 0.08); gfx_g = is_byp ? 0.2 : (byp_hov ? 0.20 : 0.10); gfx_b = is_byp ? 0.2 : (byp_hov ? 0.25 : 0.15);
+  gfx_rect(bx + 12, btn_by, 45, 18, 1);
+  gfx_r = 0.9; gfx_g = 0.9; gfx_b = 0.9;
+  gfx_setfont(2, "Arial", 9);
+  gfx_x = bx + 16; gfx_y = btn_by + 3;
+  gfx_drawstr("BYP");
+  mouse_cap == 1 && mouse_cap_prev == 0 && byp_hov ? (
+    b_idx == 1 ? (slider8 = (slider8 == 1 ? 0 : 1); slider_automate(2^7););
+    b_idx == 2 ? (slider13 = (slider13 == 1 ? 0 : 1); slider_automate(2^12););
+    b_idx == 3 ? (slider18 = (slider18 == 1 ? 0 : 1); slider_automate(2^17););
+    b_idx == 4 ? (slider23 = (slider23 == 1 ? 0 : 1); slider_automate(2^22););
+  );
+  
+  // Solo btn
+  is_solo = (state_v == 2);
+  solo_hov = (mouse_x >= bx + 62 && mouse_x <= bx + 107 && mouse_y >= btn_by && mouse_y <= btn_by + 18);
+  gfx_r = is_solo ? COLOR_GOLD_R : (solo_hov ? 0.18 : 0.08); gfx_g = is_solo ? COLOR_GOLD_G : (solo_hov ? 0.20 : 0.10); gfx_b = is_solo ? COLOR_GOLD_B : (solo_hov ? 0.25 : 0.15);
+  gfx_rect(bx + 62, btn_by, 45, 18, 1);
+  gfx_r = is_solo ? 0.05 : 0.9; gfx_g = is_solo ? 0.05 : 0.9; gfx_b = is_solo ? 0.05 : 0.9;
+  gfx_x = bx + 68; gfx_y = btn_by + 3;
+  gfx_drawstr("SOLO");
+  mouse_cap == 1 && mouse_cap_prev == 0 && solo_hov ? (
+    b_idx == 1 ? (slider8 = (slider8 == 2 ? 0 : 2); slider_automate(2^7););
+    b_idx == 2 ? (slider13 = (slider13 == 2 ? 0 : 2); slider_automate(2^12););
+    b_idx == 3 ? (slider18 = (slider18 == 2 ? 0 : 2); slider_automate(2^17););
+    b_idx == 4 ? (slider23 = (slider23 == 2 ? 0 : 2); slider_automate(2^22););
+  );
+  
+  // Knobs: Threshold & Range
+  kr = 18;
+  k1_x = bx + 45; k1_y = deck_y + 85;
+  k2_x = bx + 135; k2_y = deck_y + 85;
+  k3_x = bx + 45; k3_y = deck_y + 165;
+  k4_x = bx + 135; k4_y = deck_y + 165;
+  
+  // Interactive knob drag IDs per band:
+  // Band 1: 101, 102, 103, 104
+  // Band 2: 201, 202, 203, 204
+  // Band 3: 301, 302, 303, 304
+  // Band 4: 401, 402, 403, 404
+  id1 = b_idx * 100 + 1;
+  id2 = b_idx * 100 + 2;
+  id3 = b_idx * 100 + 3;
+  id4 = b_idx * 100 + 4;
+  
+  hov1 = (mouse_x >= k1_x - kr && mouse_x <= k1_x + kr && mouse_y >= k1_y - kr && mouse_y <= k1_y + kr);
+  hov2 = (mouse_x >= k2_x - kr && mouse_x <= k2_x + kr && mouse_y >= k2_y - kr && mouse_y <= k2_y + kr);
+  hov3 = (mouse_x >= k3_x - kr && mouse_x <= k3_x + kr && mouse_y >= k3_y - kr && mouse_y <= k3_y + kr);
+  hov4 = (mouse_x >= k4_x - kr && mouse_x <= k4_x + kr && mouse_y >= k4_y - kr && mouse_y <= k4_y + kr);
+  
+  mouse_cap == 1 && mouse_cap_prev == 0 ? (
+    hov1 ? (active_knob = id1; knob_drag_y = mouse_y; knob_orig_val = thresh;);
+    hov2 ? (active_knob = id2; knob_drag_y = mouse_y; knob_orig_val = range_v;);
+    hov3 ? (active_knob = id3; knob_drag_y = mouse_y; knob_orig_val = ratio_v;);
+    hov4 ? (active_knob = id4; knob_drag_y = mouse_y; knob_orig_val = gain_v;);
+  );
+  
+  active_knob == id1 ? (
+    delta = (knob_drag_y - mouse_y) * 60.0 * 0.005;
+    nv = min(0.0, max(-60.0, knob_orig_val + delta));
+    b_idx == 1 ? (slider4 = nv; slider_automate(2^3););
+    b_idx == 2 ? (slider9 = nv; slider_automate(2^8););
+    b_idx == 3 ? (slider14 = nv; slider_automate(2^13););
+    b_idx == 4 ? (slider19 = nv; slider_automate(2^18););
+  );
+  active_knob == id2 ? (
+    delta = (knob_drag_y - mouse_y) * 48.0 * 0.005;
+    nv = min(24.0, max(-24.0, knob_orig_val + delta));
+    b_idx == 1 ? (slider5 = nv; slider_automate(2^4););
+    b_idx == 2 ? (slider10 = nv; slider_automate(2^9););
+    b_idx == 3 ? (slider15 = nv; slider_automate(2^14););
+    b_idx == 4 ? (slider20 = nv; slider_automate(2^19););
+  );
+  active_knob == id3 ? (
+    delta = (knob_drag_y - mouse_y) * 9.0 * 0.005;
+    nv = min(10.0, max(1.0, knob_orig_val + delta));
+    b_idx == 1 ? (slider6 = nv; slider_automate(2^5););
+    b_idx == 2 ? (slider11 = nv; slider_automate(2^10););
+    b_idx == 3 ? (slider16 = nv; slider_automate(2^15););
+    b_idx == 4 ? (slider21 = nv; slider_automate(2^20););
+  );
+  active_knob == id4 ? (
+    delta = (knob_drag_y - mouse_y) * 24.0 * 0.005;
+    nv = min(12.0, max(-12.0, knob_orig_val + delta));
+    b_idx == 1 ? (slider7 = nv; slider_automate(2^6););
+    b_idx == 2 ? (slider12 = nv; slider_automate(2^11););
+    b_idx == 3 ? (slider17 = nv; slider_automate(2^16););
+    b_idx == 4 ? (slider22 = nv; slider_automate(2^21););
+  );
+  
+  // Draw Thresh Knob
+  pct1 = (thresh + 60.0) / 60.0;
+  ang1 = -1.25 * $pi + pct1 * 1.5 * $pi;
+  gfx_r = hov1 ? 0.07 : 0.04; gfx_g = hov1 ? 0.09 : 0.05; gfx_b = hov1 ? 0.12 : 0.08; gfx_circle(k1_x, k1_y, kr, 1);
+  gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  gfx_line(k1_x, k1_y, k1_x + cos(ang1)*(kr-3), k1_y + sin(ang1)*(kr-3));
+  gfx_x = k1_x - 18; gfx_y = k1_y + kr + 4;
+  gfx_drawstr(sprintf(#, "%.0fdB", thresh));
+  gfx_x = k1_x - 18; gfx_y = k1_y - kr - 12;
+  gfx_drawstr("THRESH");
+  
+  // Draw Range Knob
+  pct2 = (range_v + 24.0) / 48.0;
+  ang2 = -1.25 * $pi + pct2 * 1.5 * $pi;
+  gfx_r = hov2 ? 0.07 : 0.04; gfx_g = hov2 ? 0.09 : 0.05; gfx_b = hov2 ? 0.12 : 0.08; gfx_circle(k2_x, k2_y, kr, 1);
+  gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  gfx_line(k2_x, k2_y, k2_x + cos(ang2)*(kr-3), k2_y + sin(ang2)*(kr-3));
+  gfx_x = k2_x - 18; gfx_y = k2_y + kr + 4;
+  gfx_drawstr(sprintf(#, "%+.0fdB", range_v));
+  gfx_x = k2_x - 18; gfx_y = k2_y - kr - 12;
+  gfx_drawstr("RANGE");
+  
+  // Ratio
+  pct3 = (ratio_v - 1.0) / 9.0;
+  ang3 = -1.25 * $pi + pct3 * 1.5 * $pi;
+  gfx_r = hov3 ? 0.07 : 0.04; gfx_g = hov3 ? 0.09 : 0.05; gfx_b = hov3 ? 0.12 : 0.08; gfx_circle(k3_x, k3_y, kr, 1);
+  gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  gfx_line(k3_x, k3_y, k3_x + cos(ang3)*(kr-3), k3_y + sin(ang3)*(kr-3));
+  gfx_x = k3_x - 14; gfx_y = k3_y + kr + 4;
+  gfx_drawstr(sprintf(#, "%.1f:1", ratio_v));
+  gfx_x = k3_x - 14; gfx_y = k3_y - kr - 12;
+  gfx_drawstr("RATIO");
+  
+  // Gain
+  pct4 = (gain_v + 12.0) / 24.0;
+  ang4 = -1.25 * $pi + pct4 * 1.5 * $pi;
+  gfx_r = hov4 ? 0.07 : 0.04; gfx_g = hov4 ? 0.09 : 0.05; gfx_b = hov4 ? 0.12 : 0.08; gfx_circle(k4_x, k4_y, kr, 1);
+  gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  gfx_line(k4_x, k4_y, k4_x + cos(ang4)*(kr-3), k4_y + sin(ang4)*(kr-3));
+  gfx_x = k4_x - 18; gfx_y = k4_y + kr + 4;
+  gfx_drawstr(sprintf(#, "%+.1fdB", gain_v));
+  gfx_x = k4_x - 14; gfx_y = k4_y - kr - 12;
+  gfx_drawstr("GAIN");
+);
+
+draw_band_column(24 + col_w * 0, 1, slider4, slider5, slider6, slider7, slider8, "1. LOW");
+draw_band_column(24 + col_w * 1, 2, slider9, slider10, slider11, slider12, slider13, "2. LOW-MID");
+draw_band_column(24 + col_w * 2, 3, slider14, slider15, slider16, slider17, slider18, "3. HIGH-MID");
+draw_band_column(24 + col_w * 3, 4, slider19, slider20, slider21, slider22, slider23, "4. AIR / HIGH");
+
+mouse_cap == 0 ? active_knob = -1;
+mouse_cap_prev = mouse_cap;

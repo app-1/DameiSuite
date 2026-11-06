@@ -1,0 +1,893 @@
+// =============================================================================
+// DAMEI SUITE -- ATUMPAN DRUMGATE (v2.5 FLAGSHIP MATCHED FILTER & SILENCER)
+// Intelligent Acoustic Drum De-Bleed Gate & Resonant Sustain Leveller
+//
+// Modelled after Sonnox Oxford Drum Gate 2 & Black Salt Audio Silencer
+// Built with Afro-Cybernetic Luxury Aesthetics by Damei Audio & Antigravity IDE
+// Zero-Latency Lookahead & Pin 3/4 Sidechain Spill Subtraction Circuit
+// =============================================================================
+
+desc:Damei Atumpan DrumGate (Adaptive Matched Filter & De-Bleed Silencer)
+author: Damei Suite / Google DeepMind Pair Programming
+version: 2.5
+
+options:gmem=DameiMixMetering
+options:maxmemz=4194304
+options:gfx_hz=60
+options:want_all_kb
+options:no_meter
+
+// --- HIDDEN SLIDERS (HOST COMPLIANT) ---
+slider1:0<0,5,1{Snare Drum 190Hz and 3.5kHz,Kick Drum 60Hz Sub,High Tom 145Hz Modal,Mid Tom 115Hz Modal,Floor Tom 78Hz Modal,Custom Key Bandpass}>-Target Drum Profile
+slider2:-28.0<-60.0,0.0,0.5>-Gate Threshold (dBFS)
+slider3:75<0,100,1>-Silencer De-Bleed Suppression (%)
+slider4:25<0,100,1>-Resonant Sustain Leveller (%)
+slider5:0.5<0.0,20.0,0.1>-Attack Time (ms)
+slider6:40<5,300,1>-Hold Time (ms)
+slider7:130<10,1000,5>-Release Time (ms)
+slider8:2.0<0.0,10.0,0.1>-Click-Free Lookahead (ms)
+slider9:0<0,1,1{Off Internal Key Only,Active Pins 3/4 Spill}>-External Sidechain De-Bleed
+slider10:135<10,300,5>-Sidechain Spill Ratio (%)
+slider11:150<20,2000,5>-Key Detector Low Cut (Hz)
+slider12:4800<500,20000,50>-Key Detector High Cut (Hz)
+slider13:0<0,1,1{Normal Audio,Audition Key Filter}>-Listen Mode
+slider14:-42.0<-60.0,0.0,0.5>-Bleed Floor Reduction (dB)
+slider15:0<0,1,1{Normal Passthrough,Delta Listen Gate Bleed Floor}>-Delta Solo Listen
+slider16:0.0<-18.0,18.0,0.1>-Output Makeup Trim (dB)
+slider17:24<0,26,1{0: Default Neutral Wire,1: Lance Prenc (Alpha Wolf / Polaris),2: Scott Seigel (DIESECT),3: Jonathan Dolese (Mirrorcell),4: Buster Odeholm (thrown / Northlane),5: Lewis Johns & Grant Berry (Love Is Noise),6: Kel Pinchin (Split Chain),7: Dan Lancaster (Don Broco),8: Erik Bickerstaffe (Static Dress),9: Sam Guaiana (Shyeye),10: Zach Tuch (Heavenward),11: Forrester Savell (City Of Souls),12: Leon Schmidt (SUNBORN),13: Ermin Hamidovic (Benchmark),14: Will Putney (Fit For An Autopsy / Knocked Loose),15: George Lever (Loathe / Sleep Token),16: Sam Bassal (Thornhill),17: Henrik Udd (Architects / BMTH),18: Dan Braunstein (Spiritbox / Dayseeker),19: Zakk Cervini (Bad Omens / Blink-182),20: Jens Bogren (Fascination Street),21: Adam Nolly Getgood (Periphery / GGD),22: Acle Kahney (TesseracT),23: Adam Cichocki (heaving.),24: Manuel Renner (SENNA - Out Of The Blue),25: Matt Thomas (Ashtone - Live Room Authority),26: Mark Williamson (Sugarhouse - Live Cohesion)}>-Producer Signature Preset
+slider18:1<0,1,1{Off,Active}>-Ghost Note Retention Engine
+slider19:-42.0<-60.0,-20.0,0.5>-Ghost Sensitivity (dBFS)
+slider20:6.0<0.0,24.0,0.5>-Dynamic Ring Killer / Resonance Tamer (dB)
+slider21:650<80,8000,10>-Ring Focus Frequency (Hz)
+
+in_pin:Main Input L (Ch 1)
+in_pin:Main Input R (Ch 2)
+in_pin:Sidechain Spill L (Ch 3)
+in_pin:Sidechain Spill R (Ch 4)
+out_pin:Main Output L
+out_pin:Main Output R
+
+// =============================================================================
+// @init
+// =============================================================================
+@init
+  ext_noinit = 1;
+
+  // Memory Partitions
+  DLY_BUF_L = 0;        // Lookahead Buffer L (65536 floats)
+  DLY_BUF_R = 65536;    // Lookahead Buffer R (65536 floats)
+  DLY_BUF_SZ = 65536;
+  WAVE_BUF  = 131072;   // Scope buffer (2048 floats)
+  WAVE_SZ   = 2048;
+
+  dly_write = 0;
+  wave_ptr  = 0;
+
+  // Gate States
+  gate_gain = 1.0;
+  gate_state = 0; // 0=Closed, 1=Attack, 2=Hold, 3=Release
+  hold_timer = 0;
+  env_det = 0;
+  env_slow = 0;
+  bleed_env = 0;
+  is_gated = 1;
+  debleed_active = 0;
+
+  // Ballistics & Meters
+  in_peak = 0;
+  out_peak = 0;
+  gr_meter = 0;
+  sifam_in = 0;
+  sifam_out = 0;
+  sifam_gr = 0;
+
+  // Key Filter States
+  hpf_x1 = 0; hpf_x2 = 0; hpf_y1 = 0; hpf_y2 = 0;
+  lpf_x1 = 0; lpf_x2 = 0; lpf_y1 = 0; lpf_y2 = 0;
+
+  // De-Bleed Shelf Filter States
+  dbs_x1_l = 0; dbs_x2_l = 0; dbs_y1_l = 0; dbs_y2_l = 0;
+  dbs_x1_r = 0; dbs_x2_r = 0; dbs_y1_r = 0; dbs_y2_r = 0;
+
+  // Mouse & UI States
+  last_mouse_down = 0;
+  knob_drag = -1;
+  knob_drag_start_y = 0;
+  knob_drag_start_val = 0;
+  thresh_dragging = 0;
+  last_profile_sel = -1;
+  last_gmem_preset = -1;
+  last_gmem_seq = -1;
+
+  function clamp(x, lo, hi) (
+    x < lo ? lo : (x > hi ? hi : x);
+  );
+
+  function db(lin) (
+    lin > 0.000001 ? 20.0 * log(lin) / log(10.0) : -120.0;
+  );
+
+  function db_to_gain(x_db) (
+    exp(x_db * (log(10.0) / 20.0));
+  );
+
+  function set_c(hex) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = 1.0;
+  );
+
+  function set_ca(hex, a) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = a;
+  );
+
+  function setup_biquad_hpf(f0, Q) local(omega, sn, cs, alpha, a0) (
+    omega = 2.0 * $pi * clamp(f0, 20.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn / (2.0 * Q);
+    a0 = 1.0 + alpha;
+    b0_hpf = ((1.0 + cs) * 0.5) / a0;
+    b1_hpf = (-(1.0 + cs)) / a0;
+    b2_hpf = ((1.0 + cs) * 0.5) / a0;
+    a1_hpf = (-2.0 * cs) / a0;
+    a2_hpf = (1.0 - alpha) / a0;
+  );
+
+  function setup_biquad_lpf(f0, Q) local(omega, sn, cs, alpha, a0) (
+    omega = 2.0 * $pi * clamp(f0, 20.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn / (2.0 * Q);
+    a0 = 1.0 + alpha;
+    b0_lpf = ((1.0 - cs) * 0.5) / a0;
+    b1_lpf = (1.0 - cs) / a0;
+    b2_lpf = ((1.0 - cs) * 0.5) / a0;
+    a1_lpf = (-2.0 * cs) / a0;
+    a2_lpf = (1.0 - alpha) / a0;
+  );
+
+  function setup_notch(f0, Q, gain_db) local(omega, sn, cs, alpha, A, a0) (
+    A = exp(-gain_db * 0.0575646273); // 10^(-dB/40) for attenuation
+    omega = 2.0 * $pi * clamp(f0, 40.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    alpha = sn / (2.0 * Q);
+    a0 = 1.0 + alpha / A;
+    b0_notch = (1.0 + alpha * A) / a0;
+    b1_notch = (-2.0 * cs) / a0;
+    b2_notch = (1.0 - alpha * A) / a0;
+    a1_notch = (-2.0 * cs) / a0;
+    a2_notch = (1.0 - alpha / A) / a0;
+  );
+
+  function setup_debleed_shelf(fc, gain_db) local(A, omega, sn, cs, beta, a0) (
+    A = exp(gain_db * 0.0575646273); // 10^(dB/40)
+    omega = 2.0 * $pi * clamp(fc, 100.0, srate * 0.45) / srate;
+    sn = sin(omega); cs = cos(omega);
+    beta = sqrt(A + A);
+    a0 = (A + 1.0) - (A - 1.0) * cs + beta * sn;
+    b0_dbs = (A * ((A + 1.0) + (A - 1.0) * cs + beta * sn)) / a0;
+    b1_dbs = (-2.0 * A * ((A - 1.0) + (A + 1.0) * cs)) / a0;
+    b2_dbs = (A * ((A + 1.0) + (A - 1.0) * cs - beta * sn)) / a0;
+    a1_dbs = (2.0 * ((A - 1.0) - (A + 1.0) * cs)) / a0;
+    a2_dbs = ((A + 1.0) - (A - 1.0) * cs - beta * sn) / a0;
+  );
+
+  function draw_panel(px, py, pw, ph, title_str, tag_str) local(tw, th) (
+    set_ca(0x111620, 0.98); gfx_rect(px, py, pw, ph);
+    set_c(0x222c3d); gfx_rect(px, py, pw, ph, 0);
+    set_c(0x0c0f16); gfx_rect(px + 1, py + 1, pw - 2, 28);
+    set_c(0x1b2331); gfx_line(px, py + 29, px + pw, py + 29);
+    set_c(0xdfb15b);
+    gfx_line(px, py, px + 10, py); gfx_line(px, py, px, py + 10);
+    gfx_line(px + pw - 1, py, px + pw - 11, py); gfx_line(px + pw - 1, py, px + pw - 1, py + 10);
+    gfx_line(px, py + ph - 1, px + 10, py + ph - 1); gfx_line(px, py + ph - 1, px, py + ph - 11);
+    gfx_line(px + pw - 1, py + ph - 1, px + pw - 11, py + ph - 1); gfx_line(px + pw - 1, py + ph - 1, px + pw - 1, py + ph - 11);
+    
+    gfx_setfont(1, "Orbitron", 12, 'b');
+    set_c(0xdfb15b); gfx_x = px + 12; gfx_y = py + 7; gfx_drawstr(title_str);
+    strlen(tag_str) > 0 ? (
+      gfx_setfont(2, "Consolas", 11, 'b');
+      set_c(0x2899ff);
+      gfx_measurestr(tag_str, tw, th);
+      gfx_x = px + pw - tw - 12; gfx_y = py + 8;
+      gfx_drawstr(tag_str);
+    );
+  );
+
+  function draw_knob(cx, cy, radius, val_norm, label_str, val_str, idx)
+  local(hov, val_new, a_start, a_end, tw, th) (
+    hov = sqrt((mouse_x - cx)^2 + (cy - mouse_y)^2) < radius + 8;
+    mouse_cap & 1 ? (
+      knob_drag == idx ? (
+        val_new = knob_drag_start_val + (knob_drag_start_y - mouse_y) / 130.0;
+        val_norm = clamp(val_new, 0.0, 1.0);
+      ) : (
+        knob_drag == -1 && hov ? (
+          knob_drag = idx;
+          knob_drag_start_y = mouse_y;
+          knob_drag_start_val = val_norm;
+        );
+      );
+    ) : (
+      knob_drag == idx ? knob_drag = -1;
+    );
+
+    set_c(0x131822); gfx_circle(cx, cy, radius, 1, 1);
+    set_c(0x222c3d); gfx_circle(cx, cy, radius, 0, 1);
+
+    a_start = -4.71;
+    a_end = a_start + (val_norm * 4.71);
+    set_ca(hov ? 0x2899ff : 0xdfb15b, 0.95);
+    gfx_arc(cx, cy, radius - 3, a_start, a_end, 1);
+
+    set_c(0x1c2433); gfx_circle(cx, cy, radius * 0.44, 1, 1);
+    set_c(0x1b2331); gfx_circle(cx, cy, radius * 0.44, 0, 1);
+
+    // BOLD, HIGH-CONTRAST VALUE TEXT INSIDE KNOB
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    set_c(0xffffff);
+    gfx_measurestr(val_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy - th * 0.5;
+    gfx_drawstr(val_str);
+
+    // BOLD, CLEAR LABEL BELOW KNOB
+    gfx_setfont(2, "Segoe UI", 11.5, 'b');
+    set_c(hov ? 0x2899ff : 0xd6dde8);
+    gfx_measurestr(label_str, tw, th);
+    gfx_x = cx - tw * 0.5; gfx_y = cy + radius + 8;
+    gfx_drawstr(label_str);
+
+    val_norm;
+  );
+
+  function draw_btn(bx, by, bw, bh, lbl, is_active) local(hov, clk, tw, th) (
+    hov = (mouse_x >= bx && mouse_x < bx + bw && mouse_y >= by && mouse_y < by + bh);
+    clk = hov && mouse_clicked;
+    set_ca(is_active ? 0xdfab35 : (hov ? 0x222c3d : 0x151b26), is_active ? 1.0 : 0.92);
+    gfx_rect(bx, by, bw, bh);
+    set_c(is_active ? 0xdfab35 : (hov ? 0x2899ff : 0x2e364c));
+    gfx_rect(bx, by, bw, bh, 0);
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    set_c(is_active ? 0x0a0c10 : 0xffffff);
+    gfx_measurestr(lbl, tw, th);
+    gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+    gfx_drawstr(lbl);
+    clk;
+  );
+
+  function draw_sifam(mx, my, mw, mh, title_str, norm_val, is_gr)
+  local(piv_x, piv_y, r_arc, r_needle, ang_start, ang_end, cur_ang, needle_val, ai, a_step, rad, x1, y1, x2, y2, tw, th, s_val) (
+    set_c(0x181c26); gfx_rect(mx, my, mw, mh);
+    set_c(0x222c3d); gfx_rect(mx, my, mw, mh, 0);
+
+    set_c(0x0e131d); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8);
+    set_c(0x1a2436); gfx_rect(mx + 4, my + 4, mw - 8, mh - 8, 0);
+
+    piv_x = mx + mw * 0.5; piv_y = my + mh - 8;
+    r_arc = min(mh - 24, mw * 0.44); r_needle = r_arc - 2;
+
+    ang_start = -48.0 * $pi / 180.0; ang_end = 48.0 * $pi / 180.0;
+
+    set_c(0x2d3a50);
+    ai = 0; a_step = (ang_end - ang_start) / 20.0;
+    loop(20,
+      rad = ang_start + ai * a_step;
+      x1 = piv_x + sin(rad) * (r_arc - 2);
+      y1 = piv_y - cos(rad) * (r_arc - 2);
+      x2 = piv_x + sin(rad + a_step) * (r_arc - 2);
+      y2 = piv_y - cos(rad + a_step) * (r_arc - 2);
+      gfx_line(x1, y1, x2, y2);
+      (ai % 4 == 0) ? (
+        set_c(0xdfb15b);
+        gfx_line(x1, y1, piv_x + sin(rad) * (r_arc - 6), piv_y - cos(rad) * (r_arc - 6));
+        set_c(0x2d3a50);
+      );
+      ai += 1;
+    );
+
+    needle_val = clamp(norm_val, 0.0, 1.0);
+    cur_ang = ang_start + needle_val * (ang_end - ang_start);
+    set_ca(0x000000, 0.4);
+    gfx_line(piv_x + 2, piv_y + 2, piv_x + sin(cur_ang) * r_needle + 2, piv_y - cos(cur_ang) * r_needle + 2);
+    set_c(is_gr ? 0xf03344 : 0xdfb15b);
+    gfx_line(piv_x, piv_y, piv_x + sin(cur_ang) * r_needle, piv_y - cos(cur_ang) * r_needle);
+
+    set_c(0x283344); gfx_circle(piv_x, piv_y, 5, 1, 1);
+    set_c(0xdfb15b); gfx_circle(piv_x, piv_y, 5, 0, 1);
+
+    gfx_setfont(1, "Orbitron", 10.5, 'b'); set_c(0xedf1f7);
+    gfx_measurestr(title_str, tw, th); gfx_x = mx + 8; gfx_y = my + 6;
+    gfx_drawstr(title_str);
+
+    s_val = is_gr ? sprintf(#, "-%.1f dB", (1.0 - norm_val) * 45.0) : sprintf(#, "%.1f dB", db(norm_val));
+    gfx_setfont(1, "Orbitron", 11, 'b');
+    gfx_measurestr(s_val, tw, th);
+    set_c(is_gr ? 0xf03344 : 0x0fe49e);
+    gfx_x = mx + mw - tw - 8; gfx_y = my + 6;
+    gfx_drawstr(s_val);
+  );
+
+// =============================================================================
+// 
+  function calibrate_drumgate_preset(p) (
+    p == 1 ? ( // Lance Prenc (Alpha Wolf / Polaris)
+      slider2 = -32.0; slider3 = 85; slider4 = 20; slider5 = 0.3; slider6 = 30; slider7 = 80; slider14 = -48.0; slider20 = 8.0;
+    );
+    p == 2 ? ( // Scott Seigel (DIESECT)
+      slider2 = -31.0; slider3 = 82; slider4 = 22; slider5 = 0.3; slider6 = 35; slider7 = 90; slider14 = -45.0; slider20 = 6.0;
+    );
+    p == 3 ? ( // Jonathan Dolese (Mirrorcell)
+      slider2 = -32.0; slider3 = 75; slider4 = 25; slider5 = 0.4; slider6 = 38; slider7 = 110; slider14 = -40.0; slider20 = 5.0;
+    );
+    p == 4 ? ( // Buster Odeholm (thrown / Northlane)
+      slider2 = -28.0; slider3 = 92; slider4 = 15; slider5 = 0.2; slider6 = 22; slider7 = 65; slider14 = -55.0; slider20 = 9.0;
+    );
+    p == 5 ? ( // Lewis Johns & Grant Berry (Love Is Noise)
+      slider2 = -34.0; slider3 = 70; slider4 = 28; slider5 = 0.5; slider6 = 45; slider7 = 140; slider14 = -36.0; slider20 = 5.0;
+    );
+    p == 6 ? ( // Kel Pinchin (Split Chain)
+      slider2 = -33.0; slider3 = 75; slider4 = 25; slider5 = 0.4; slider6 = 40; slider7 = 125; slider14 = -38.0; slider20 = 6.0;
+    );
+    p == 7 ? ( // Dan Lancaster (Don Broco)
+      slider2 = -33.0; slider3 = 75; slider4 = 26; slider5 = 0.4; slider6 = 42; slider7 = 120; slider14 = -40.0; slider20 = 6.0;
+    );
+    p == 14 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose)
+      slider2 = -31.0; slider3 = 85; slider4 = 22; slider5 = 0.3; slider6 = 35; slider7 = 95; slider14 = -45.0; slider20 = 7.0;
+    );
+    p == 15 ? ( // George Lever (Loathe / Sleep Token)
+      slider2 = -34.0; slider3 = 68; slider4 = 30; slider5 = 0.5; slider6 = 48; slider7 = 160; slider14 = -34.0; slider20 = 4.5;
+    );
+    p == 17 ? ( // Henrik Udd (Architects / BMTH)
+      slider2 = -31.0; slider3 = 82; slider4 = 22; slider5 = 0.3; slider6 = 32; slider7 = 85; slider14 = -48.0; slider20 = 7.5;
+    );
+    p == 18 ? ( // Dan Braunstein (Spiritbox / Dayseeker)
+      slider2 = -32.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 38; slider7 = 105; slider14 = -42.0; slider20 = 6.0;
+    );
+    p == 19 ? ( // Zakk Cervini (Bad Omens / Blink-182)
+      slider2 = -31.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 35; slider7 = 100; slider14 = -44.0; slider20 = 6.5;
+    );
+    p == 20 ? ( // Jens Bogren (Fascination Street)
+      slider2 = -33.0; slider3 = 76; slider4 = 28; slider5 = 0.5; slider6 = 42; slider7 = 130; slider14 = -38.0; slider20 = 5.5;
+    );
+    p == 21 ? ( // Adam Nolly Getgood (Periphery / GGD)
+      slider2 = -32.0; slider3 = 82; slider4 = 24; slider5 = 0.3; slider6 = 34; slider7 = 92; slider14 = -45.0; slider20 = 7.0;
+    );
+    p == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue)
+      slider2 = -33.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 40; slider7 = 115; slider14 = -42.0; slider20 = 6.0;
+    );
+    p == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider2 = -32.0; slider3 = 85; slider4 = 20; slider5 = 0.2; slider6 = 25; slider7 = 85; slider14 = -46.0; slider20 = 9.0; slider21 = 145;
+    );
+    p == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider2 = -30.0; slider3 = 78; slider4 = 22; slider5 = 0.3; slider6 = 30; slider7 = 100; slider14 = -38.0; slider20 = 5.5; slider21 = 180;
+    );
+  );
+
+@slider
+// =============================================================================
+@slider
+  // Producer Signature Presets (Calibrated from Reference Stems)
+  cur_preset = slider17;
+  cur_preset != last_preset ? (
+    last_preset = cur_preset;
+    cur_preset == 1 ? ( // Lance Prenc (Alpha Wolf / Polaris)
+      slider2 = -32.0; slider3 = 85; slider4 = 20; slider5 = 0.3; slider6 = 30; slider7 = 80; slider14 = -48.0; slider20 = 8.0;
+    );
+    cur_preset == 2 ? ( // Scott Seigel (DIESECT)
+      slider2 = -31.0; slider3 = 82; slider4 = 22; slider5 = 0.3; slider6 = 35; slider7 = 90; slider14 = -45.0; slider20 = 6.0;
+    );
+    cur_preset == 3 ? ( // Jonathan Dolese (Mirrorcell)
+      slider2 = -32.0; slider3 = 75; slider4 = 25; slider5 = 0.4; slider6 = 38; slider7 = 110; slider14 = -40.0; slider20 = 5.0;
+    );
+    cur_preset == 4 ? ( // Buster Odeholm (thrown / Northlane)
+      slider2 = -28.0; slider3 = 92; slider4 = 15; slider5 = 0.2; slider6 = 22; slider7 = 65; slider14 = -55.0; slider20 = 9.0;
+    );
+    cur_preset == 5 ? ( // Lewis Johns & Grant Berry (Love Is Noise)
+      slider2 = -34.0; slider3 = 70; slider4 = 28; slider5 = 0.5; slider6 = 45; slider7 = 140; slider14 = -36.0; slider20 = 5.0;
+    );
+    cur_preset == 6 ? ( // Kel Pinchin (Split Chain)
+      slider2 = -33.0; slider3 = 75; slider4 = 25; slider5 = 0.4; slider6 = 40; slider7 = 125; slider14 = -38.0; slider20 = 6.0;
+    );
+    cur_preset == 7 ? ( // Dan Lancaster (Don Broco)
+      slider2 = -33.0; slider3 = 75; slider4 = 26; slider5 = 0.4; slider6 = 42; slider7 = 120; slider14 = -40.0; slider20 = 6.0;
+    );
+    cur_preset == 14 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose)
+      slider2 = -31.0; slider3 = 85; slider4 = 22; slider5 = 0.3; slider6 = 35; slider7 = 95; slider14 = -45.0; slider20 = 7.0;
+    );
+    cur_preset == 15 ? ( // George Lever (Loathe / Sleep Token)
+      slider2 = -34.0; slider3 = 68; slider4 = 30; slider5 = 0.5; slider6 = 48; slider7 = 160; slider14 = -34.0; slider20 = 4.5;
+    );
+    cur_preset == 17 ? ( // Henrik Udd (Architects / BMTH)
+      slider2 = -31.0; slider3 = 82; slider4 = 22; slider5 = 0.3; slider6 = 32; slider7 = 85; slider14 = -48.0; slider20 = 7.5;
+    );
+    cur_preset == 18 ? ( // Dan Braunstein (Spiritbox / Dayseeker)
+      slider2 = -32.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 38; slider7 = 105; slider14 = -42.0; slider20 = 6.0;
+    );
+    cur_preset == 19 ? ( // Zakk Cervini (Bad Omens / Blink-182)
+      slider2 = -31.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 35; slider7 = 100; slider14 = -44.0; slider20 = 6.5;
+    );
+    cur_preset == 20 ? ( // Jens Bogren (Fascination Street)
+      slider2 = -33.0; slider3 = 76; slider4 = 28; slider5 = 0.5; slider6 = 42; slider7 = 130; slider14 = -38.0; slider20 = 5.5;
+    );
+    cur_preset == 21 ? ( // Adam Nolly Getgood (Periphery / GGD)
+      slider2 = -32.0; slider3 = 82; slider4 = 24; slider5 = 0.3; slider6 = 34; slider7 = 92; slider14 = -45.0; slider20 = 7.0;
+    );
+    cur_preset == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue)
+      slider2 = -33.0; slider3 = 80; slider4 = 25; slider5 = 0.4; slider6 = 40; slider7 = 115; slider14 = -42.0; slider20 = 6.0;
+    );
+    cur_preset == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider2 = -32.0; slider3 = 85; slider4 = 20; slider5 = 0.2; slider6 = 25; slider7 = 85; slider14 = -46.0; slider20 = 9.0; slider21 = 145;
+    );
+    cur_preset == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider2 = -30.0; slider3 = 78; slider4 = 22; slider5 = 0.3; slider6 = 30; slider7 = 100; slider14 = -38.0; slider20 = 5.5; slider21 = 180;
+    );
+  );
+
+  // Drum Profile Presets (Matched Filter Frequencies)
+  slider1 != last_profile_sel ? (
+    last_profile_sel = slider1;
+    slider1 == 0 ? ( // Snare: 180Hz Fundamental + 3.8kHz Snap
+      slider11 = 155; slider12 = 4200; slider21 = 650;
+    ) : slider1 == 1 ? ( // Kick: 55Hz Chest Sub
+      slider11 = 45; slider12 = 140; slider21 = 280;
+    ) : slider1 == 2 ? ( // High Tom: 145Hz Modal
+      slider11 = 125; slider12 = 320; slider21 = 520;
+    ) : slider1 == 3 ? ( // Mid Tom: 115Hz Modal
+      slider11 = 95; slider12 = 240; slider21 = 420;
+    ) : slider1 == 4 ? ( // Floor Tom: 78Hz Modal
+      slider11 = 60; slider12 = 175; slider21 = 320;
+    ) : ( // Custom Key
+      slider21 = 650;
+    );
+    sliderchange(slider11);
+    sliderchange(slider12);
+    sliderchange(slider21);
+  );
+
+  slider1 == 0 ? (
+    key_q = 1.4; debleed_fc = 1200;
+  ) : slider1 == 1 ? (
+    key_q = 1.8; debleed_fc = 450;
+  ) : slider1 == 2 ? (
+    key_q = 2.2; debleed_fc = 650;
+  ) : slider1 == 3 ? (
+    key_q = 2.2; debleed_fc = 550;
+  ) : slider1 == 4 ? (
+    key_q = 2.4; debleed_fc = 400;
+  ) : (
+    key_q = 1.0; debleed_fc = 900;
+  );
+
+  setup_biquad_hpf(slider11, key_q);
+  setup_biquad_lpf(slider12, key_q);
+  setup_debleed_shelf(debleed_fc, slider14);
+  setup_notch(slider21, 3.5, slider20);
+  ghost_thresh = db_to_gain(slider19);
+
+  gate_thresh = db_to_gain(slider2);
+  bleed_floor_gain = db_to_gain(slider14);
+  debleed_mix = slider3 / 100.0;
+  sustain_lev = slider4 / 100.0;
+  lookahead_samples = floor((slider8 / 1000.0) * srate);
+  lookahead_samples = clamp(lookahead_samples, 0, DLY_BUF_SZ - 1);
+
+  att_coeff = exp(-1.0 / (srate * max(0.0001, slider5 / 1000.0)));
+  rel_coeff = exp(-1.0 / (srate * max(0.001, slider7 / 1000.0)));
+  hold_samples = floor((slider6 / 1000.0) * srate);
+
+  sidechain_spill_ratio = slider10 / 100.0;
+  out_trim = db_to_gain(slider16);
+
+// =============================================================================
+// @block
+// =============================================================================
+// =============================================================================
+// @block
+// =============================================================================
+@block
+  pdc_delay = lookahead_samples;
+  pdc_bot_ch = 0; pdc_top_ch = 2;
+
+  // ECOSYSTEM PRODUCER PRESET COMMS (gmem[200..206])
+  gmem[200] == 0x4452554D && gmem[201] != last_gmem_preset ? (
+    last_gmem_preset = gmem[201];
+    last_gmem_seq = gmem[202];
+    sentry_preset = gmem[201];
+    
+    slider17 != sentry_preset ? (
+      slider17 = sentry_preset;
+      sliderchange(slider17);
+      calibrate_drumgate_preset(slider17);
+    );
+    ecosystem_linked = 1;
+  );
+
+@sample
+// =============================================================================
+@sample
+  raw_l = spl0; raw_r = spl1;
+  spill_l = spl2; spill_r = spl3;
+
+  // 1. Lookahead Ring Buffer
+  DLY_BUF_L[dly_write] = raw_l;
+  DLY_BUF_R[dly_write] = raw_r;
+  dly_read = dly_write - lookahead_samples;
+  dly_read < 0 ? dly_read += DLY_BUF_SZ;
+  in_dly_l = DLY_BUF_L[dly_read];
+  in_dly_r = DLY_BUF_R[dly_read];
+  dly_write = (dly_write + 1) % DLY_BUF_SZ;
+
+  // 2. Steep Matched Filter Key Bandpass Detection
+  raw_mono = (raw_l + raw_r) * 0.5;
+  hpf_out = b0_hpf * raw_mono + b1_hpf * hpf_x1 + b2_hpf * hpf_x2 - a1_hpf * hpf_y1 - a2_hpf * hpf_y2;
+  hpf_x2 = hpf_x1; hpf_x1 = raw_mono; hpf_y2 = hpf_y1; hpf_y1 = hpf_out;
+
+  lpf_out = b0_lpf * hpf_out + b1_lpf * lpf_x1 + b2_lpf * lpf_x2 - a1_lpf * lpf_y1 - a2_lpf * lpf_y2;
+  lpf_x2 = lpf_x1; lpf_x1 = hpf_out; lpf_y2 = lpf_y1; lpf_y1 = lpf_out;
+
+  det_sig = abs(lpf_out);
+
+  // 3. Sidechain Spill Cancellation (Pins 3/4 Overhead/Cymbal Leakage)
+  (slider9 == 1 && (abs(spill_l) > 0.0001 || abs(spill_r) > 0.0001)) ? (
+    spill_mono = (spill_l + spill_r) * 0.5;
+    spill_sig = abs(spill_mono) * sidechain_spill_ratio;
+    bleed_env += (spill_sig - bleed_env) * 0.15;
+    is_spill_dominant = (bleed_env > det_sig * 1.05);
+    debleed_active = is_spill_dominant;
+  ) : (
+    is_spill_dominant = 0;
+    debleed_active = 0;
+  );
+
+  // 4. Dual Envelope Follower & Gate State Machine
+  env_det < det_sig ? (
+    env_det = det_sig;
+  ) : (
+    env_det = det_sig + att_coeff * (env_det - det_sig);
+  );
+
+  env_slow += (det_sig - env_slow) * 0.005;
+
+  is_ghost = slider18 && (env_det > ghost_thresh) && (env_det <= gate_thresh) && (!is_spill_dominant);
+  gate_open = (env_det > gate_thresh) && (!is_spill_dominant);
+
+  gate_open ? (
+    gate_state = 1;
+    hold_timer = hold_samples;
+    target_gain = 1.0;
+    hit_timer = 0;
+  ) : is_ghost ? (
+    gate_state = 2; // Ghost note pass
+    hold_timer = floor(srate * 0.045); // 45ms ghost window
+    target_gain = 0.55; // Natural ghost dynamic level
+    hit_timer = 0;
+  ) : (
+    hold_timer > 0 ? (
+      hold_timer -= 1;
+    ) : (
+      target_gain = bleed_floor_gain;
+      gate_state = 0;
+    );
+  );
+
+  hit_timer += 1;
+
+  // Smooth Gain Trajectory with Resonant Sustain Leveller
+  gate_gain < target_gain ? (
+    gate_gain = target_gain + att_coeff * (gate_gain - target_gain);
+  ) : (
+    eff_rel = pow(rel_coeff, 1.0 + sustain_lev * 2.2);
+    gate_gain = target_gain + eff_rel * (gate_gain - target_gain);
+  );
+
+  // 5. Spectral De-Bleed Silencer Circuit (Ultra-Steep High-Frequency Spill Suppression)
+  dbs_l = b0_dbs * in_dly_l + b1_dbs * dbs_x1_l + b2_dbs * dbs_x2_l - a1_dbs * dbs_y1_l - a2_dbs * dbs_y2_l;
+  dbs_x2_l = dbs_x1_l; dbs_x1_l = in_dly_l; dbs_y2_l = dbs_y1_l; dbs_y1_l = dbs_l;
+
+  dbs_r = b0_dbs * in_dly_r + b1_dbs * dbs_x1_r + b2_dbs * dbs_x2_r - a1_dbs * dbs_y1_r - a2_dbs * dbs_y2_r;
+  dbs_x2_r = dbs_x1_r; dbs_x1_r = in_dly_r; dbs_y2_r = dbs_y1_r; dbs_y1_r = dbs_r;
+
+  // Crossfade between clean drum audio (gate open) and filtered de-bleed (gate closed)
+  proc_l = in_dly_l * gate_gain + dbs_l * (1.0 - gate_gain) * (1.0 - debleed_mix);
+  proc_r = in_dly_r * gate_gain + dbs_r * (1.0 - gate_gain) * (1.0 - debleed_mix);
+
+  // 5b. Dynamic Ring Killer Notch (Engages during drum decay to suppress ringing while preserving initial attack)
+  slider20 > 0.0 && hit_timer > floor(srate * 0.015) ? (
+    notch_l = b0_notch * proc_l + b1_notch * nt_x1_l + b2_notch * nt_x2_l - a1_notch * nt_y1_l - a2_notch * nt_y2_l;
+    nt_x2_l = nt_x1_l; nt_x1_l = proc_l; nt_y2_l = nt_y1_l; nt_y1_l = notch_l;
+    proc_l = notch_l;
+
+    notch_r = b0_notch * proc_r + b1_notch * nt_x1_r + b2_notch * nt_x2_r - a1_notch * nt_y1_r - a2_notch * nt_y2_r;
+    nt_x2_r = nt_x1_r; nt_x1_r = proc_r; nt_y2_r = nt_y1_r; nt_y1_r = notch_r;
+    proc_r = notch_r;
+  ) : (
+    nt_x2_l = proc_l; nt_x1_l = proc_l; nt_y2_l = proc_l; nt_y1_l = proc_l;
+    nt_x2_r = proc_r; nt_x1_r = proc_r; nt_y2_r = proc_r; nt_y1_r = proc_r;
+  );
+
+  // 6. Audio Output & Audition Modes
+  slider13 == 1 ? ( // Audition Key Filter
+    spl0 = lpf_out; spl1 = lpf_out;
+  ) : slider15 == 1 ? ( // Delta Solo: Audition Gated Out Bleed
+    spl0 = (in_dly_l - proc_l);
+    spl1 = (in_dly_r - proc_r);
+  ) : (
+    spl0 = proc_l * out_trim;
+    spl1 = proc_r * out_trim;
+  );
+
+  // Meters
+  in_peak = max(in_peak * 0.9998, abs(raw_mono));
+  out_peak = max(out_peak * 0.9998, max(abs(spl0), abs(spl1)));
+  gr_meter = min(gr_meter * 1.0002, gate_gain);
+  sifam_in += (in_peak - sifam_in) * 0.15;
+  sifam_out += (out_peak - sifam_out) * 0.15;
+  sifam_gr += (gate_gain - sifam_gr) * 0.2;
+
+  // Waveform Scope
+  WAVE_BUF[wave_ptr] = raw_mono;
+  WAVE_BUF[wave_ptr + 1] = gate_gain;
+  wave_ptr = (wave_ptr + 2) % WAVE_SZ;
+
+// =============================================================================
+@gfx 980 670
+  mouse_down = mouse_cap & 1;
+  mouse_clicked = mouse_down && !last_mouse_down;
+
+  // Background Obsidian
+  set_c(0x0a0c10); gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // 1. TOP COMMAND BAR (FLAGSHIP STANDARD)
+  set_c(0x0d121c); gfx_rect(0, 0, gfx_w, 54);
+  set_c(0x222e42); gfx_line(0, 54, gfx_w, 54);
+
+  // Title & Subtitle (Large, high-contrast)
+  set_c(0xdfab35); gfx_setfont(1, "Orbitron", 17, 'b');
+  gfx_x = 20; gfx_y = 12; gfx_drawstr("ATUMPAN DRUMGATE");
+
+  gfx_setfont(2, "Segoe UI", 12.5, 'b'); set_c(0x38b6ff);
+  gfx_x = 245; gfx_y = 15; gfx_drawstr("OXFORD DRUM GATE 2 & BSA SILENCER // TRANSIENT DE-BLEED");
+
+  // Ecosystem Comms Sync Pill
+  set_c(ecosystem_linked ? 0x0fe49e : 0xdfab35);
+  set_ca(ecosystem_linked ? 0x0fe49e : 0xdfab35, 0.15);
+  gfx_rect(580, 11, 150, 32);
+  set_c(ecosystem_linked ? 0x0fe49e : 0xdfab35); gfx_rect(580, 11, 150, 32, 0);
+  gfx_setfont(1, "Orbitron", 11.5, 'b');
+  s_sync = ecosystem_linked ? "SENTRY: SYNCED" : "STANDALONE";
+  gfx_measurestr(s_sync, tw, th);
+  gfx_x = 580 + (150 - tw) * 0.5; gfx_y = 11 + (32 - th) * 0.5; gfx_drawstr(s_sync);
+
+  // DELTA Solo Pill (High contrast)
+  delta_x = 740;
+  btn_delta = mouse_x >= delta_x && mouse_x < delta_x + 90 && mouse_y >= 11 && mouse_y < 43;
+  set_c(slider15 ? 0xff3b30 : (btn_delta ? 0x222e42 : 0x151c28)); gfx_rect(delta_x, 11, 90, 32);
+  set_c(slider15 ? 0xff3b30 : 0x2e3d55); gfx_rect(delta_x, 11, 90, 32, 0);
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(slider15 ? 0x0a0c10 : 0xffffff);
+  gfx_measurestr("DELTA", tw, th); gfx_x = delta_x + (90 - tw) * 0.5; gfx_y = 11 + (32 - th) * 0.5; gfx_drawstr("DELTA");
+  mouse_clicked && btn_delta ? (slider15 = !slider15; sliderchange(slider15););
+
+  // Gate Open / Closed Indicator (Bold, vibrant)
+  gate_open = (gate_state > 0);
+  go_x = 840;
+  set_ca(gate_open ? 0x0fe49e : 0x181e28, gate_open ? 0.95 : 0.6); gfx_rect(go_x, 11, 120, 32);
+  set_c(gate_open ? 0x0fe49e : 0x28354a); gfx_rect(go_x, 11, 120, 32, 0);
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(gate_open ? 0x0a0c10 : 0x90a2be);
+  s_gate = gate_open ? "GATE: OPEN" : "GATE: SILENT";
+  gfx_measurestr(s_gate, tw, th); gfx_x = go_x + (120 - tw) * 0.5; gfx_y = 11 + (32 - th) * 0.5; gfx_drawstr(s_gate);
+
+  // 2. UPPER SECTION: SIFAM VU METERS & LIVE DE-BLEED REDUCTION SCOPE
+  meter_y = 66; meter_w = 215; meter_h = 175;
+  draw_sifam(20, meter_y, meter_w, meter_h, "KEY DETECTOR INPUT", sifam_in, 0);
+
+  // Center: Live Waveform Scope with Reduction Overlay
+  scope_x = 250; scope_y = 66; scope_w = gfx_w - 250 - 235; scope_h = 175;
+  set_c(0x121722); gfx_rect(scope_x, scope_y, scope_w, scope_h);
+  set_c(0x253348); gfx_rect(scope_x, scope_y, scope_w, scope_h, 0);
+
+  // Scope Header Card
+  set_c(0x0a0e16); gfx_rect(scope_x + 1, scope_y + 1, scope_w - 2, 28);
+  set_c(0x1e283a); gfx_line(scope_x, scope_y + 29, scope_x + scope_w, scope_y + 29);
+  gfx_setfont(1, "Orbitron", 12.5, 'b'); set_c(0xdfab35);
+  gfx_x = scope_x + 14; gfx_y = scope_y + 7; gfx_drawstr("TRANSIENT SILENCER ENVELOPE // WAVEFORM SCOPE");
+
+  // Draggable Threshold line on Scope
+  sc_h = scope_h - 32; sc_y = scope_y + 30;
+  axis_y = sc_y + sc_h * 0.5;
+  thresh_norm = gate_thresh;
+  thresh_pix_y = axis_y - thresh_norm * (sc_h * 0.45);
+  thresh_pix_y = clamp(thresh_pix_y, sc_y + 6, sc_y + sc_h - 6);
+
+  hov_th = mouse_x >= scope_x && mouse_x <= scope_x + scope_w && abs(mouse_y - thresh_pix_y) <= 8;
+  mouse_down ? (
+    thresh_dragging ? (
+      new_t_pix = axis_y - mouse_y;
+      new_t_norm = clamp(new_t_pix / (sc_h * 0.45), 0.001, 1.0);
+      slider2 = floor(20.0 * log10(new_t_norm));
+      slider2 = clamp(slider2, -60, 0);
+      sliderchange(slider2);
+    ) : (
+      hov_th && !thresh_dragging ? thresh_dragging = 1;
+    );
+  ) : (
+    thresh_dragging = 0;
+  );
+
+  set_ca(hov_th || thresh_dragging ? 0x38b6ff : 0xdfab35, 0.9);
+  gfx_line(scope_x, thresh_pix_y, scope_x + scope_w, thresh_pix_y);
+  gfx_line(scope_x, thresh_pix_y + 1, scope_x + scope_w, thresh_pix_y + 1);
+  gfx_setfont(2, "Consolas", 11.5, 'b'); set_c(hov_th || thresh_dragging ? 0x38b6ff : 0xdfab35);
+  gfx_x = scope_x + 10; gfx_y = thresh_pix_y - 14;
+  gfx_drawstr(sprintf(#, "GATE THRESHOLD: %.1f dBFS (DRAG)", slider2));
+
+  // Draw Live Waveform (Mint) and Gain Reduction Curve (Red)
+  wp = 0; sx = scope_x + 4;
+  loop(min(scope_w - 8, WAVE_SZ * 0.5),
+    raw_sig = WAVE_BUF[wp] * (sc_h * 0.42);
+    raw_sig = clamp(raw_sig, -sc_h * 0.45, sc_h * 0.45);
+    gr_sig  = WAVE_BUF[wp + 1]; // 0 to 1
+
+    set_ca(0x0fe49e, 0.85);
+    gfx_line(sx, axis_y - raw_sig, sx, axis_y + raw_sig);
+
+    // Reduction envelope overlay (Orange-Red)
+    set_ca(0xff3850, 0.95);
+    gr_y = sc_y + sc_h - gr_sig * (sc_h - 10);
+    gfx_line(sx, gr_y, sx, gr_y + 2);
+
+    wp += 2; sx += 1;
+  );
+
+  // Right: Master Output SIFAM Meter
+  draw_sifam(gfx_w - meter_w - 20, meter_y, meter_w, meter_h, "MASTER OUTPUT", sifam_out, sifam_out > 0.95);
+
+  // 3. MIDDLE SECTION: DRUM PROFILE SELECTOR & PRODUCER PRESET BAR
+  prof_y = 252; prof_h = 42;
+  set_c(0x121722); gfx_rect(20, prof_y, gfx_w - 40, prof_h);
+  set_c(0x253348); gfx_rect(20, prof_y, gfx_w - 40, prof_h, 0);
+
+  // 5 Drum Profile Buttons (Snare, Kick, High Tom, Mid Tom, Floor Tom, Custom)
+  pb_w = (gfx_w - 60) / 6.0;
+  draw_btn(25 + 0 * pb_w, prof_y + 5, pb_w - 5, 32, "SNARE (190Hz)", slider1 == 0) ? (slider1 = 0; sliderchange(slider1););
+  draw_btn(25 + 1 * pb_w, prof_y + 5, pb_w - 5, 32, "KICK (55Hz)", slider1 == 1) ? (slider1 = 1; sliderchange(slider1););
+  draw_btn(25 + 2 * pb_w, prof_y + 5, pb_w - 5, 32, "HIGH TOM (145Hz)", slider1 == 2) ? (slider1 = 2; sliderchange(slider1););
+  draw_btn(25 + 3 * pb_w, prof_y + 5, pb_w - 5, 32, "MID TOM (115Hz)", slider1 == 3) ? (slider1 = 3; sliderchange(slider1););
+  draw_btn(25 + 4 * pb_w, prof_y + 5, pb_w - 5, 32, "FLOOR TOM (78Hz)", slider1 == 4) ? (slider1 = 4; sliderchange(slider1););
+  draw_btn(25 + 5 * pb_w, prof_y + 5, pb_w - 5, 32, "CUSTOM KEY", slider1 == 5) ? (slider1 = 5; sliderchange(slider1););
+
+  // 4. LOWER SECTION: PARAMETER RACKS (CARD 1: ENVELOPE & KEY // CARD 2: SILENCER & RING TAMER)
+  card_y = 306; card_h = 325; card_w = (gfx_w - 50) * 0.5;
+
+  // CARD 1: ADAPTIVE ENVELOPE & MATCHED FILTER KEY
+  set_c(0x121722); gfx_rect(20, card_y, card_w, card_h);
+  set_c(0x253348); gfx_rect(20, card_y, card_w, card_h, 0);
+  set_c(0x0a0e16); gfx_rect(21, card_y + 1, card_w - 2, 32);
+  set_c(0x1e283a); gfx_line(20, card_y + 33, 20 + card_w, card_y + 33);
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); set_c(0xdfab35);
+  gfx_x = 34; gfx_y = card_y + 8; gfx_drawstr("ADAPTIVE ENVELOPE & KEY DETECTOR");
+
+  // Knobs Row 1: Attack, Hold, Release, Lookahead
+  kr1_y = card_y + 90; kw = card_w / 4.0;
+  v = slider5 / 20.0;
+  v = draw_knob(20 + 0.5 * kw, kr1_y, 24, v, "ATTACK", sprintf(#, "%.1fms", slider5), 5);
+  slider5 = v * 20.0;
+
+  v = (slider6 - 5) / 295.0;
+  v = draw_knob(20 + 1.5 * kw, kr1_y, 24, v, "HOLD", sprintf(#, "%dms", slider6), 6);
+  slider6 = 5 + floor(v * 295.0);
+
+  v = (slider7 - 10) / 990.0;
+  v = draw_knob(20 + 2.5 * kw, kr1_y, 24, v, "RELEASE", sprintf(#, "%dms", slider7), 7);
+  slider7 = 10 + floor(v * 990.0);
+
+  v = slider8 / 10.0;
+  v = draw_knob(20 + 3.5 * kw, kr1_y, 24, v, "LOOKAHEAD", sprintf(#, "%.1fms", slider8), 8);
+  slider8 = v * 10.0;
+
+  // Knobs Row 2: Low Cut, High Cut, Ghost Sens, Makeup
+  kr2_y = card_y + 205;
+  v = (slider11 - 20) / 1980.0;
+  v = draw_knob(20 + 0.5 * kw, kr2_y, 24, v, "KEY HPF", sprintf(#, "%dHz", slider11), 11);
+  slider11 = 20 + floor(v * 1980.0);
+
+  v = (slider12 - 500) / 19500.0;
+  v = draw_knob(20 + 1.5 * kw, kr2_y, 24, v, "KEY LPF", sprintf(#, "%dHz", slider12), 12);
+  slider12 = 500 + floor(v * 19500.0);
+
+  v = (slider19 + 60.0) / 40.0;
+  v = draw_knob(20 + 2.5 * kw, kr2_y, 24, v, "GHOST SENS", sprintf(#, "%.1fdB", slider19), 19);
+  slider19 = -60.0 + v * 40.0;
+
+  v = (slider16 + 18.0) / 36.0;
+  v = draw_knob(20 + 3.5 * kw, kr2_y, 24, v, "OUTPUT", sprintf(#, "%+.1fdB", slider16), 16);
+  slider16 = -18.0 + v * 36.0;
+
+  // CARD 2: BLACK SALT SILENCER & METALLIC RING KILLER
+  c2_x = 30 + card_w;
+  set_c(0x121722); gfx_rect(c2_x, card_y, card_w, card_h);
+  set_c(0x253348); gfx_rect(c2_x, card_y, card_w, card_h, 0);
+  set_c(0x0a0e16); gfx_rect(c2_x + 1, card_y + 1, card_w - 2, 32);
+  set_c(0x1e283a); gfx_line(c2_x, card_y + 33, c2_x + card_w, card_y + 33);
+  gfx_setfont(1, "Orbitron", 13.5, 'b'); set_c(0x38b6ff);
+  gfx_x = c2_x + 14; gfx_y = card_y + 8; gfx_drawstr("DE-BLEED SILENCER & RING KILLER");
+
+  // Knobs Row 1: De-Bleed %, Sustain Leveller %, Bleed Floor dB, Spill Ratio %
+  v = slider3 / 100.0;
+  v = draw_knob(c2_x + 0.5 * kw, kr1_y, 24, v, "DE-BLEED", sprintf(#, "%d%%", slider3), 3);
+  slider3 = floor(v * 100.0);
+
+  v = slider4 / 100.0;
+  v = draw_knob(c2_x + 1.5 * kw, kr1_y, 24, v, "SUSTAIN LEV", sprintf(#, "%d%%", slider4), 4);
+  slider4 = floor(v * 100.0);
+
+  v = (slider14 + 60.0) / 60.0;
+  v = draw_knob(c2_x + 2.5 * kw, kr1_y, 24, v, "BLEED FLOOR", sprintf(#, "%.1fdB", slider14), 14);
+  slider14 = -60.0 + v * 60.0;
+
+  v = (slider10 - 10) / 290.0;
+  v = draw_knob(c2_x + 3.5 * kw, kr1_y, 24, v, "SPILL RATIO", sprintf(#, "%d%%", slider10), 10);
+  slider10 = 10 + floor(v * 290.0);
+
+  // Knobs Row 2: Ring Killer Tame dB, Ring Frequency Hz, Ghost Toggle, Audition Key
+  v = slider20 / 24.0;
+  v = draw_knob(c2_x + 0.5 * kw, kr2_y, 24, v, "RING TAMER", sprintf(#, "%.1fdB", slider20), 20);
+  slider20 = v * 24.0;
+
+  v = (slider21 - 80) / 7920.0;
+  v = draw_knob(c2_x + 1.5 * kw, kr2_y, 24, v, "RING FOCUS", sprintf(#, "%dHz", slider21), 21);
+  slider21 = 80 + floor(v * 7920.0);
+
+  // Ghost Note Engine Button
+  draw_btn(c2_x + 2.1 * kw, kr2_y - 16, kw * 0.85, 34, slider18 ? "GHOST ON" : "GHOST OFF", slider18) ? (slider18 = !slider18; sliderchange(slider18););
+
+  // Audition Key Filter Button
+  draw_btn(c2_x + 3.1 * kw, kr2_y - 16, kw * 0.85, 34, slider13 ? "AUDITION" : "NORMAL", slider13) ? (slider13 = !slider13; sliderchange(slider13););
+
+  // 5. FOOTER COMMAND BAR: ACTIVE PRODUCER PRESET SELECTOR
+  foot_y = gfx_h - 32;
+  set_c(0x0d121c); gfx_rect(0, foot_y, gfx_w, 32);
+  set_c(0x222e42); gfx_line(0, foot_y, gfx_w, foot_y);
+
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(0xdfab35);
+  gfx_x = 20; gfx_y = foot_y + 8;
+  gfx_drawstr("PRODUCER DNA PRESET: ");
+
+  // Preset Name Display & Prev/Next
+  gfx_setfont(1, "Orbitron", 12, 'b'); set_c(0xffffff);
+  slider17 == 0 ? p_name = "Default Neutral Wire" :
+  slider17 == 1 ? p_name = "Lance Prenc (Alpha Wolf / Polaris)" :
+  slider17 == 2 ? p_name = "Scott Seigel (DIESECT)" :
+  slider17 == 3 ? p_name = "Jonathan Dolese (Mirrorcell)" :
+  slider17 == 4 ? p_name = "Buster Odeholm (thrown / Northlane)" :
+  slider17 == 5 ? p_name = "Lewis Johns & Grant Berry (Love Is Noise)" :
+  slider17 == 6 ? p_name = "Kel Pinchin (Split Chain)" :
+  slider17 == 7 ? p_name = "Dan Lancaster (Don Broco)" :
+  slider17 == 8 ? p_name = "Erik Bickerstaffe (Static Dress)" :
+  slider17 == 9 ? p_name = "Sam Guaiana (Shyeye)" :
+  slider17 == 10 ? p_name = "Zach Tuch (Heavenward)" :
+  slider17 == 11 ? p_name = "Forrester Savell (City Of Souls)" :
+  slider17 == 12 ? p_name = "Leon Schmidt (SUNBORN)" :
+  slider17 == 13 ? p_name = "Ermin Hamidovic (Benchmark)" :
+  slider17 == 14 ? p_name = "Will Putney (Fit For An Autopsy / Knocked Loose)" :
+  slider17 == 15 ? p_name = "George Lever (Loathe / Sleep Token)" :
+  slider17 == 16 ? p_name = "Sam Bassal (Thornhill)" :
+  slider17 == 17 ? p_name = "Henrik Udd (Architects / BMTH)" :
+  slider17 == 18 ? p_name = "Dan Braunstein (Spiritbox / Dayseeker)" :
+  slider17 == 19 ? p_name = "Zakk Cervini (Bad Omens / Blink-182)" :
+  slider17 == 20 ? p_name = "Jens Bogren (Fascination Street)" :
+  slider17 == 21 ? p_name = "Adam Nolly Getgood (Periphery / GGD)" :
+  slider17 == 22 ? p_name = "Acle Kahney (TesseracT)" :
+  slider17 == 23 ? p_name = "Adam Cichocki (heaving.)" :
+  slider17 == 24 ? p_name = "Manuel Renner (SENNA - Out Of The Blue)" :
+  slider17 == 25 ? p_name = "Matt Thomas (Ashtone - Live Room Authority)" :
+                  p_name = "Mark Williamson (Sugarhouse - Live Cohesion)";
+  gfx_x = 220; gfx_y = foot_y + 8; gfx_drawstr(p_name);
+
+  // Prev / Next Arrows
+  draw_btn(gfx_w - 90, foot_y + 3, 32, 26, "<", 0) ? (slider17 = max(0, slider17 - 1); sliderchange(slider17););
+  draw_btn(gfx_w - 50, foot_y + 3, 32, 26, ">", 0) ? (slider17 = min(26, slider17 + 1); sliderchange(slider17););
+
+  last_mouse_down = mouse_down;

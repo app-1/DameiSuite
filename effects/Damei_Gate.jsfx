@@ -1,0 +1,528 @@
+desc:Damei Gate v2.0 (Universal Expander & Noise Gate / Pro-G Spec)
+author:Damei Audio
+version:2.0
+about:
+  Flagship universal noise gate and downward expander rivaling FabFilter Pro-G.
+  Distinct from the instrument-specific Drum Gate. Features 4 universal gating styles
+  (Clean Digital, Classic Vocal, Guitar Chug Tightener, and Stem Expander),
+  dual-threshold hysteresis (0..18dB), variable lookahead (0..10ms), sidechain filtering
+  (HPF/LPF on Ch 1/2 or Ch 3/4), variable knee (0..20dB), dry/wet mix, audition delta,
+  real-time scrolling envelope radar oscilloscope, and SIFAM ballistic meter.
+
+options:gmem=DameiMetering
+options:no_anticipative
+options:no_meter
+
+slider1:-36.0<-80.0,0.0,0.5>-Threshold (dBFS)
+slider2:20.0<1.1,100.0,0.5>-Ratio (:1) [100=Hard Gate]
+slider3:0.5<0.01,50.0,0.1>-Attack (ms)
+slider4:50.0<0.0,1000.0,1.0>-Hold (ms)
+slider5:120.0<5.0,2500.0,1.0>-Release (ms)
+slider6:6.0<0.0,18.0,0.5>-Hysteresis (dB)
+slider7:-80.0<-80.0,0.0,1.0>-Range / Floor (dB)
+slider8:4.0<0.0,20.0,0.5>-Knee Width (dB)
+slider9:2.0<0.0,10.0,0.1>-Lookahead (ms)
+slider10:0<0,3,1{1. Clean Digital Universal,2. Classic Vocal Expander,3. Guitar Chug Tightener,4. Stem Dynamic Expander}>-Gating Style
+slider11:0<0,1,1{Internal (Ch 1/2),External Sidechain (Ch 3/4)}>-Sidechain Source
+slider12:80<20,2000,10>-Sidechain HPF (Hz)
+slider13:16000<2000,20000,100>-Sidechain LPF (Hz)
+slider14:100.0<0.0,100.0,1.0>-Mix (%)
+slider15:0<0,1,1{Normal Audio,Audition Filter / Delta}>-Audition Mode
+
+in_pin:left input
+in_pin:right input
+in_pin:aux left input
+in_pin:aux right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1.0;
+active_knob = -1;
+knob_drag_y = 0;
+knob_orig_val = 0;
+mouse_cap_prev = 0;
+gfx_ext_retina = 1;
+
+sifam_gr = 0.0;
+cur_gate_gain = 0.0; // 1.0 = fully open, 0.0 = fully closed
+gate_state = 0;      // 0: closed, 1: attack, 2: open, 3: hold, 4: release
+hold_samples_left = 0;
+
+// Lookahead delay ring buffer: memory 0 .. 16384
+LOOK_BUF_L = 0;
+LOOK_BUF_R = 16384;
+LOOK_BUF_SIZE = 16384;
+look_wpos = 0;
+
+// Scope ring buffer: memory 35000 .. 37000
+SCOPE_LEN = 512;
+SCOPE_IN  = 35000;
+SCOPE_GR  = 35600;
+scope_wpos = 0;
+scope_decim = 0;
+
+// Sidechain Biquad Filters (HPF & LPF)
+sc_hpf_x1 = 0; sc_hpf_x2 = 0; sc_hpf_y1 = 0; sc_hpf_y2 = 0;
+sc_lpf_x1 = 0; sc_lpf_x2 = 0; sc_lpf_y1 = 0; sc_lpf_y2 = 0;
+
+@slider
+thresh_db = slider1;
+ratio = slider2;
+att_time = max(0.00001, slider3 * 0.001);
+hold_time = max(0.0, slider4 * 0.001);
+rel_time = max(0.001, slider5 * 0.001);
+hyst_db = slider6;
+range_db = slider7;
+knee_db = slider8;
+look_samples = max(0, min(LOOK_BUF_SIZE - 2, (slider9 * 0.001 * srate)|0));
+style_mode = slider10|0;
+sc_source = slider11|0;
+sc_hpf_f = slider12;
+sc_lpf_f = slider13;
+mix_pct = slider14 * 0.01;
+audition_mode = slider15|0;
+
+range_linear = 10.0 ^ (range_db / 20.0);
+thresh_close_db = thresh_db - hyst_db;
+
+// Ballistics coefficients
+att_coeff = exp(-1.0 / (att_time * srate));
+rel_coeff = exp(-1.0 / (rel_time * srate));
+
+// SC HPF biquad calculation
+f_s = srate > 0 ? srate : 48000;
+w0_hp = 2.0 * $pi * min(sc_hpf_f, f_s * 0.45) / f_s;
+alpha_hp = sin(w0_hp) / (2.0 * 0.707);
+cos_hp = cos(w0_hp);
+b0_hp = (1.0 + cos_hp) * 0.5;
+b1_hp = -(1.0 + cos_hp);
+b2_hp = (1.0 + cos_hp) * 0.5;
+a0_hp = 1.0 + alpha_hp;
+a1_hp = -2.0 * cos_hp;
+a2_hp = 1.0 - alpha_hp;
+hp_b0 = b0_hp / a0_hp; hp_b1 = b1_hp / a0_hp; hp_b2 = b2_hp / a0_hp;
+hp_a1 = a1_hp / a0_hp; hp_a2 = a2_hp / a0_hp;
+
+// SC LPF biquad calculation
+w0_lp = 2.0 * $pi * min(sc_lpf_f, f_s * 0.45) / f_s;
+alpha_lp = sin(w0_lp) / (2.0 * 0.707);
+cos_lp = cos(w0_lp);
+b0_lp = (1.0 - cos_lp) * 0.5;
+b1_lp = 1.0 - cos_lp;
+b2_lp = (1.0 - cos_lp) * 0.5;
+a0_lp = 1.0 + alpha_lp;
+a1_lp = -2.0 * cos_lp;
+a2_lp = 1.0 - alpha_lp;
+lp_b0 = b0_lp / a0_lp; lp_b1 = b1_lp / a0_lp; lp_b2 = b2_lp / a0_lp;
+lp_a1 = a1_lp / a0_lp; lp_a2 = a2_lp / a0_lp;
+
+@sample
+// 1. Buffer incoming signal for lookahead
+LOOK_BUF_L[look_wpos] = spl0;
+LOOK_BUF_R[look_wpos] = spl1;
+
+// 2. Select Sidechain detector input
+sc_in = (sc_source == 1) ? ((spl2 + spl3) * 0.5) : ((spl0 + spl1) * 0.5);
+
+// 3. Filter sidechain detector (HPF & LPF)
+hp_out = hp_b0*sc_in + hp_b1*sc_hpf_x1 + hp_b2*sc_hpf_x2 - hp_a1*sc_hpf_y1 - hp_a2*sc_hpf_y2;
+sc_hpf_x2 = sc_hpf_x1; sc_hpf_x1 = sc_in;
+sc_hpf_y2 = sc_hpf_y1; sc_hpf_y1 = hp_out;
+
+lp_out = lp_b0*hp_out + lp_b1*sc_lpf_x1 + lp_b2*sc_lpf_x2 - lp_a1*sc_lpf_y1 - lp_a2*sc_lpf_y2;
+sc_lpf_x2 = sc_lpf_x1; sc_lpf_x1 = hp_out;
+sc_lpf_y2 = sc_lpf_y1; sc_lpf_y1 = lp_out;
+
+sc_filtered = lp_out;
+
+// 4. Sidechain Level Detection in dB
+sc_peak = abs(sc_filtered);
+sc_db = sc_peak > 0.0000000001 ? 20.0 * log10(sc_peak) : -200.0;
+
+// 5. State Machine: Threshold & Hysteresis Logic
+// Gate Open Trigger: sc_db >= thresh_db
+// Gate Close Trigger: sc_db < thresh_close_db
+sc_db >= thresh_db ? (
+  gate_state = 1; // Attack / Opening
+  hold_samples_left = (hold_time * srate)|0;
+) : (
+  gate_state == 1 || gate_state == 2 ? (
+    hold_samples_left > 0 ? (
+      hold_samples_left -= 1;
+      gate_state = 3; // Hold
+    ) : (
+      sc_db < thresh_close_db ? (
+        gate_state = 4; // Release / Closing
+      );
+    );
+  ) : gate_state == 3 ? (
+    hold_samples_left > 0 ? (
+      hold_samples_left -= 1;
+    ) : (
+      gate_state = 4; // Release
+    );
+  );
+);
+
+// 6. Target Attenuation Calculation (Downward Expansion Curve)
+target_gain = 1.0;
+ratio >= 99.0 ? (
+  // Hard Gate
+  target_gain = (gate_state == 1 || gate_state == 2 || gate_state == 3) ? 1.0 : range_linear;
+) : (
+  // Downward Expander with Soft Knee
+  diff = sc_db - thresh_db;
+  diff < 0.0 ? (
+    exp_att_db = diff * (ratio - 1.0);
+    exp_att_db = max(range_db, exp_att_db);
+    target_gain = 10.0 ^ (exp_att_db / 20.0);
+  ) : (
+    target_gain = 1.0;
+  );
+  (gate_state == 3) ? (target_gain = 1.0;);
+);
+
+// Style tailoring
+style_mode == 2 ? (
+  // Guitar Chug Tightener (aggressive instantaneous attack and ultra-clean floor)
+  cur_gate_gain = target_gain > cur_gate_gain ? (cur_gate_gain * 0.1 + target_gain * 0.9) : (cur_gate_gain * rel_coeff + target_gain * (1.0 - rel_coeff));
+) : style_mode == 1 ? (
+  // Classic Vocal Expander (softer curve)
+  cur_gate_gain = target_gain > cur_gate_gain ? (cur_gate_gain * att_coeff + target_gain * (1.0 - att_coeff)) : (cur_gate_gain * (rel_coeff^1.2) + target_gain * (1.0 - (rel_coeff^1.2)));
+) : (
+  // Clean Digital
+  cur_gate_gain = target_gain > cur_gate_gain ? (cur_gate_gain * att_coeff + target_gain * (1.0 - att_coeff)) : (cur_gate_gain * rel_coeff + target_gain * (1.0 - rel_coeff));
+);
+
+cur_gate_gain = max(range_linear, min(1.0, cur_gate_gain));
+
+// 7. Read delayed signal from lookahead buffer
+read_idx = (look_wpos - look_samples + LOOK_BUF_SIZE) % LOOK_BUF_SIZE;
+dry_l = LOOK_BUF_L[read_idx];
+dry_r = LOOK_BUF_R[read_idx];
+look_wpos = (look_wpos + 1) % LOOK_BUF_SIZE;
+
+// 8. Apply Gating Gain and Mix
+gated_l = dry_l * cur_gate_gain;
+gated_r = dry_r * cur_gate_gain;
+
+audition_mode == 1 ? (
+  // Audition Delta (What is being cut away)
+  out_l = dry_l - gated_l;
+  out_r = dry_r - gated_r;
+) : (
+  out_l = dry_l * (1.0 - mix_pct) + gated_l * mix_pct;
+  out_r = dry_r * (1.0 - mix_pct) + gated_r * mix_pct;
+);
+
+spl0 = out_l;
+spl1 = out_r;
+
+// 9. Metering updates
+atten_db = cur_gate_gain > 0.0000000001 ? -20.0 * log10(cur_gate_gain) : 80.0;
+sifam_gr = sifam_gr * 0.85 + atten_db * 0.15;
+
+scope_decim += 1;
+scope_decim >= 64 ? (
+  scope_decim = 0;
+  SCOPE_IN[scope_wpos] = max(abs(dry_l), abs(dry_r));
+  SCOPE_GR[scope_wpos] = atten_db;
+  scope_wpos = (scope_wpos + 1) % SCOPE_LEN;
+);
+
+@gfx 840 540
+COLOR_BG_R = 0.027; COLOR_BG_G = 0.039; COLOR_BG_B = 0.063; // Dark Obsidian #070A10
+COLOR_GOLD_R = 0.875; COLOR_GOLD_G = 0.671; COLOR_GOLD_B = 0.208; // Ghana Gold #DFAB35
+COLOR_CYAN_R = 0.220; COLOR_CYAN_G = 0.714; COLOR_CYAN_B = 1.000; // Cyber Cyan #38B6FF
+COLOR_PANEL_R = 0.060; COLOR_PANEL_G = 0.080; COLOR_PANEL_B = 0.120; // Card Panel
+
+// Background
+gfx_r = COLOR_BG_R; gfx_g = COLOR_BG_G; gfx_b = COLOR_BG_B;
+gfx_rect(0, 0, gfx_w, gfx_h);
+
+// Header Bar
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(0, 0, gfx_w, 54);
+
+// Header Border Gold Line
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_rect(0, 53, gfx_w, 2);
+
+// Title
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(1, "Arial", 18, 'b');
+gfx_x = 24; gfx_y = 12;
+gfx_drawstr("DAMEI GATE");
+
+gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+gfx_setfont(2, "Arial", 11);
+gfx_x = 160; gfx_y = 17;
+gfx_drawstr("UNIVERSAL NOISE GATE & EXPANDER // PRO-G SPEC");
+
+// Status Badge
+gfx_x = gfx_w - 280; gfx_y = 16;
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(gfx_x - 10, gfx_y - 4, 270, 26, 1);
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(3, "Arial", 11, 'b');
+s_str = style_mode == 0 ? "CLEAN DIGITAL" :
+        style_mode == 1 ? "CLASSIC VOCAL" :
+        style_mode == 2 ? "GUITAR CHUG TIGHTENER" : "STEM DYNAMIC EXP";
+gfx_drawstr(s_str);
+gfx_drawstr(sc_source == 1 ? " | EXT SC" : " | INT SC");
+
+// Waveform & Gate Radar Oscilloscope Display
+osc_x = 24;
+osc_y = 70;
+osc_w = gfx_w - 240;
+osc_h = 240;
+
+gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.08;
+gfx_rect(osc_x, osc_y, osc_w, osc_h);
+gfx_r = 0.12; gfx_g = 0.16; gfx_b = 0.24;
+gfx_rect(osc_x, osc_y, osc_w, osc_h, 0);
+
+// Threshold & Hysteresis Shaded Zone
+y_open = osc_y + osc_h * (1.0 - (thresh_db + 80.0) / 80.0);
+y_close = osc_y + osc_h * (1.0 - (thresh_close_db + 80.0) / 80.0);
+
+// Shaded Hysteresis Band
+gfx_r = 0.88 * 0.15; gfx_g = 0.67 * 0.15; gfx_b = 0.21 * 0.15;
+gfx_rect(osc_x, y_open, osc_w, y_close - y_open);
+
+// Open Threshold Line (Gold)
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_line(osc_x, y_open, osc_x + osc_w, y_open);
+gfx_x = osc_x + 8; gfx_y = y_open - 12;
+gfx_setfont(2, "Arial", 10);
+gfx_drawstr("THRESH OPEN");
+
+// Close Threshold Line (Dotted / Muted Gold)
+gfx_r = COLOR_GOLD_R * 0.6; gfx_g = COLOR_GOLD_G * 0.6; gfx_b = COLOR_GOLD_B * 0.6;
+gfx_line(osc_x, y_close, osc_x + osc_w, y_close);
+gfx_x = osc_x + 8; gfx_y = y_close + 2;
+gfx_drawstr("THRESH CLOSE");
+
+// Waveform & Attenuation Display
+i = 0;
+while (i < SCOPE_LEN - 1 && i < osc_w) (
+  r_idx = (scope_wpos - osc_w + i + SCOPE_LEN * 10) % SCOPE_LEN;
+  in_v = min(1.5, SCOPE_IN[r_idx]);
+  gr_v = SCOPE_GR[r_idx];
+  
+  // Waveform (Cyan)
+  gfx_r = COLOR_CYAN_R * 0.8; gfx_g = COLOR_CYAN_G * 0.8; gfx_b = COLOR_CYAN_B * 0.8;
+  y_wf = osc_y + osc_h - in_v * (osc_h - 20) - 10;
+  gfx_line(osc_x + i, osc_y + osc_h - 10, osc_x + i, y_wf);
+  
+  // Shaded Gate Cut (Red/Orange down from top)
+  att_pix = min(osc_h * 0.8, (gr_v / 80.0) * osc_h);
+  att_pix > 2 ? (
+    gfx_r = 0.90; gfx_g = 0.25; gfx_b = 0.20;
+    gfx_line(osc_x + i, osc_y, osc_x + i, osc_y + att_pix);
+  );
+  
+  i += 1;
+);
+
+// SIFAM Gate Reduction Bar (Right Panel)
+m_x = gfx_w - 200;
+m_y = 70;
+m_w = 176;
+m_h = 240;
+
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(m_x, m_y, m_w, m_h);
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(m_x, m_y, m_w, m_h, 0);
+
+// GR Label
+gfx_setfont(3, "Arial", 11, 'b');
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_x = m_x + 12; gfx_y = m_y + 10;
+gfx_drawstr("GATE ATTENUATION");
+
+// Vertical Bar
+gr_bar_h = 160;
+bar_y = m_y + 35;
+bar_x = m_x + 20;
+gfx_r = 0.03; gfx_g = 0.04; gfx_b = 0.06;
+gfx_rect(bar_x, bar_y, 24, gr_bar_h);
+
+gr_draw_h = min(gr_bar_h, (sifam_gr / 60.0) * gr_bar_h);
+gr_draw_h > 0 ? (
+  gfx_r = 0.95; gfx_g = 0.30; gfx_b = 0.20;
+  gfx_rect(bar_x, bar_y, 24, gr_draw_h);
+);
+
+// Readout
+gfx_x = bar_x + 32; gfx_y = bar_y + 10;
+gfx_drawstr(sprintf(#, "-%.1f dB", sifam_gr));
+
+// Gate State Indicator Box
+gfx_r = 0.03; gfx_g = 0.04; gfx_b = 0.06;
+gfx_rect(m_x + 12, m_y + gr_bar_h + 40, m_w - 24, 28);
+gfx_r = gate_state == 0 ? 0.9 : gate_state == 2 ? 0.2 : COLOR_GOLD_R;
+gfx_g = gate_state == 0 ? 0.2 : gate_state == 2 ? 0.9 : COLOR_GOLD_G;
+gfx_b = gate_state == 0 ? 0.2 : gate_state == 2 ? 0.3 : COLOR_GOLD_B;
+gfx_x = m_x + 18; gfx_y = m_y + gr_bar_h + 46;
+state_str = gate_state == 0 ? "STATE: CLOSED" :
+            gate_state == 1 ? "STATE: ATTACK" :
+            gate_state == 2 ? "STATE: OPEN" :
+            gate_state == 3 ? "STATE: HOLD" : "STATE: RELEASE";
+gfx_drawstr(state_str);
+
+// Parameter Controls Deck
+deck_y = 330;
+deck_h = 190;
+
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(24, deck_y, gfx_w - 48, deck_h);
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(24, deck_y, gfx_w - 48, deck_h, 0);
+
+// Knob function
+function draw_rotary_knob(knob_id, kx, ky, val, min_val, max_val, title, unit, is_gold) (
+  kr = 24;
+  hov = (mouse_x >= kx - kr && mouse_x <= kx + kr && mouse_y >= ky - kr && mouse_y <= ky + kr);
+  
+  mouse_cap == 1 && mouse_cap_prev == 0 && hov ? (
+    active_knob = knob_id;
+    knob_drag_y = mouse_y;
+    knob_orig_val = val;
+  );
+  
+  active_knob == knob_id ? (
+    dy = knob_drag_y - mouse_y;
+    step_scale = (mouse_cap & 4) ? 0.001 : 0.005;
+    delta = dy * (max_val - min_val) * step_scale;
+    val = min(max_val, max(min_val, knob_orig_val + delta));
+    knob_id == 1 ? (slider1 = val; slider_automate(2^0););
+    knob_id == 2 ? (slider2 = val; slider_automate(2^1););
+    knob_id == 3 ? (slider6 = val; slider_automate(2^5););
+    knob_id == 4 ? (slider7 = val; slider_automate(2^6););
+    knob_id == 5 ? (slider9 = val; slider_automate(2^8););
+    knob_id == 6 ? (slider3 = val; slider_automate(2^2););
+    knob_id == 7 ? (slider4 = val; slider_automate(2^3););
+    knob_id == 8 ? (slider5 = val; slider_automate(2^4););
+    knob_id == 9 ? (slider12 = val; slider_automate(2^11););
+    knob_id == 10 ? (slider14 = val; slider_automate(2^13););
+  );
+
+  gfx_r = hov ? 0.07 : 0.04; gfx_g = hov ? 0.09 : 0.05; gfx_b = hov ? 0.12 : 0.08;
+  gfx_circle(kx, ky, kr, 1);
+  gfx_r = hov ? 0.40 : 0.20; gfx_g = hov ? 0.50 : 0.25; gfx_b = hov ? 0.65 : 0.35;
+  gfx_circle(kx, ky, kr, 0);
+  
+  pct = (val - min_val) / (max_val - min_val);
+  pct = max(0.0, min(1.0, pct));
+  angle = -1.25 * $pi + pct * 1.5 * $pi;
+  
+  is_gold ? (
+    gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  ) : (
+    gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  );
+  
+  gfx_line(kx, ky, kx + cos(angle)*(kr - 4), ky + sin(angle)*(kr - 4));
+  gfx_circle(kx + cos(angle)*(kr - 4), ky + sin(angle)*(kr - 4), 2, 1);
+  
+  gfx_setfont(3, "Arial", 10, 'b');
+  gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.95;
+  str_w = 0; str_h = 0;
+  gfx_measurestr(title, str_w, str_h);
+  gfx_x = kx - str_w*0.5; gfx_y = ky + kr + 6;
+  gfx_drawstr(title);
+  
+  gfx_setfont(2, "Arial", 10);
+  is_gold ? (
+    gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  ) : (
+    gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  );
+  v_str = sprintf(#, "%.1f %s", val, unit);
+  gfx_measurestr(v_str, str_w, str_h);
+  gfx_x = kx - str_w*0.5; gfx_y = ky + kr + 19;
+  gfx_drawstr(v_str);
+);
+
+// Row 1 Knobs
+draw_rotary_knob(1, 70,  deck_y + 45, slider1, -80.0, 0.0, "THRESHOLD", "dB", 1);
+draw_rotary_knob(2, 160, deck_y + 45, slider2, 1.1, 100.0, "RATIO", ":1", 1);
+draw_rotary_knob(3, 250, deck_y + 45, slider6, 0.0, 18.0, "HYSTERESIS", "dB", 1);
+draw_rotary_knob(4, 340, deck_y + 45, slider7, -80.0, 0.0, "RANGE", "dB", 0);
+draw_rotary_knob(5, 430, deck_y + 45, slider9, 0.0, 10.0, "LOOKAHEAD", "ms", 0);
+
+// Row 2 Knobs (Time Envelope)
+draw_rotary_knob(6, 70,  deck_y + 125, slider3, 0.01, 50.0, "ATTACK", "ms", 0);
+draw_rotary_knob(7, 160, deck_y + 125, slider4, 0.0, 1000.0, "HOLD", "ms", 0);
+draw_rotary_knob(8, 250, deck_y + 125, slider5, 5.0, 2500.0, "RELEASE", "ms", 0);
+draw_rotary_knob(9, 340, deck_y + 125, slider12, 20.0, 2000.0, "SC HPF", "Hz", 0);
+draw_rotary_knob(10, 430, deck_y + 125, slider14, 0.0, 100.0, "MIX", "%", 1);
+
+// Style Selector Buttons
+btn_x = 520;
+btn_y = deck_y + 20;
+btn_w = 260;
+btn_h = 24;
+
+gfx_setfont(3, "Arial", 10, 'b');
+s_i = 0;
+while (s_i < 4) (
+  is_sel = (style_mode == s_i);
+  cur_by = btn_y + s_i * 28;
+  
+  gfx_r = is_sel ? COLOR_GOLD_R : 0.08;
+  gfx_g = is_sel ? COLOR_GOLD_G : 0.10;
+  gfx_b = is_sel ? COLOR_GOLD_B : 0.15;
+  gfx_rect(btn_x, cur_by, btn_w, btn_h, 1);
+  
+  gfx_r = is_sel ? 0.05 : 0.85;
+  gfx_g = is_sel ? 0.05 : 0.85;
+  gfx_b = is_sel ? 0.05 : 0.90;
+  
+  label = s_i == 0 ? "1. Clean Digital Universal" :
+          s_i == 1 ? "2. Classic Vocal Expander" :
+          s_i == 2 ? "3. Guitar Chug Tightener" : "4. Stem Dynamic Expander";
+  gfx_x = btn_x + 12; gfx_y = cur_by + 6;
+  gfx_drawstr(label);
+  
+  mouse_cap & 1 && mouse_x >= btn_x && mouse_x <= btn_x + btn_w && mouse_y >= cur_by && mouse_y <= cur_by + btn_h ? (
+    slider10 = s_i;
+    slider_automate(2^9);
+  );
+  
+  s_i += 1;
+);
+
+// Toggle Buttons (Sidechain & Audition)
+tog_y = deck_y + 140;
+
+function draw_toggle(tx, ty, tw, th, val, label) (
+  gfx_r = val ? COLOR_CYAN_R : 0.08;
+  gfx_g = val ? COLOR_CYAN_G : 0.10;
+  gfx_b = val ? COLOR_CYAN_B : 0.15;
+  gfx_rect(tx, ty, tw, th, 1);
+  
+  gfx_r = val ? 0.05 : 0.85;
+  gfx_g = val ? 0.05 : 0.85;
+  gfx_b = val ? 0.05 : 0.90;
+  gfx_setfont(3, "Arial", 10, 'b');
+  gfx_x = tx + 10; gfx_y = ty + 6;
+  gfx_drawstr(label);
+);
+
+draw_toggle(btn_x,       tog_y, 125, 26, slider11, slider11 ? "EXT SC (3/4)" : "INT SC (1/2)");
+draw_toggle(btn_x + 135, tog_y, 125, 26, slider15, slider15 ? "AUDITION DELTA" : "NORMAL AUDIO");
+
+mouse_cap & 1 && mouse_x >= btn_x && mouse_x <= btn_x + 125 && mouse_y >= tog_y && mouse_y <= tog_y + 26 ? (
+  !clicked_sc ? (slider11 = !slider11; slider_automate(2^10); clicked_sc = 1;);
+) : (clicked_sc = 0;);
+
+mouse_cap & 1 && mouse_x >= btn_x + 135 && mouse_x <= btn_x + 260 && mouse_y >= tog_y && mouse_y <= tog_y + 26 ? (
+  !clicked_aud ? (slider15 = !slider15; slider_automate(2^14); clicked_aud = 1;);
+) : (clicked_aud = 0;);
+
+mouse_cap == 0 ? active_knob = -1;
+mouse_cap_prev = mouse_cap;

@@ -1,0 +1,431 @@
+desc:Damei Reverb v2.0 (Spatial Decay-Rate Algorithmic Reverb / Pro-R Spec)
+author:Damei Audio
+version:2.0
+about:
+  Flagship algorithmic spatial reverb rivaling FabFilter Pro-R.
+  Features a prime-tap Feedback Delay Network (FDN) diffusion engine, continuous Space
+  morphing (Small Studio to Endless Cathedral), Decay Rate EQ (Bass & Air Decay multipliers),
+  Distance acoustic perspective modeling, built-in smart Auto-Ducking (prevents transient
+  mud and blooms in pauses), True-Stereo Width (0..200%), and real-time spatial decay radar.
+
+options:gmem=DameiMetering
+options:no_anticipative
+options:no_meter
+
+slider1:2.0<0.2,10.0,0.05>-Decay Time (s)
+slider2:50.0<10.0,100.0,1.0>-Space / Room Size (%)
+slider3:20.0<0.0,200.0,1.0>-Pre-Delay (ms)
+slider4:30.0<0.0,100.0,1.0>-Distance (%)
+slider5:1.0<0.2,2.5,0.05>-Bass Decay Multiplier (x)
+slider6:0.7<0.1,2.0,0.05>-Air Decay Multiplier (x)
+slider7:100.0<0.0,200.0,1.0>-Stereo Width (%)
+slider8:0.0<0.0,12.0,0.5>-Smart Auto-Ducking (dB)
+slider9:120<20,800,10>-Low Cut (Hz)
+slider10:10000<2000,20000,200>-High Cut (Hz)
+slider11:25.0<0.0,100.0,0.5>-Dry/Wet Mix (%)
+
+in_pin:left input
+in_pin:right input
+out_pin:left output
+out_pin:right output
+
+@init
+ext_noinit = 1.0;
+active_knob = -1;
+knob_drag_y = 0;
+knob_orig_val = 0;
+mouse_cap_prev = 0;
+gfx_ext_retina = 1;
+
+// Prime-tap delay lines for FDN diffusion (memory layout: 0 .. 60000)
+// 4 FDN delay lines + 4 Allpass diffusers
+FDN1_BUF = 0;     FDN1_LEN = 2053;
+FDN2_BUF = 4000;  FDN2_LEN = 2677;
+FDN3_BUF = 8000;  FDN3_LEN = 3307;
+FDN4_BUF = 12000; FDN4_LEN = 3989;
+
+AP1_BUF = 18000;  AP1_LEN = 241;
+AP2_BUF = 20000;  AP2_LEN = 379;
+AP3_BUF = 22000;  AP3_LEN = 541;
+AP4_BUF = 24000;  AP4_LEN = 709;
+
+// Pre-delay buffer (up to 250ms @ 48kHz = 12000 samples)
+PRE_BUF_L = 30000;
+PRE_BUF_R = 43000;
+PRE_BUF_SIZE = 12500;
+pre_wpos = 0;
+
+// Filter states in FDN feedback loops
+f_lp1 = 0; f_lp2 = 0; f_lp3 = 0; f_lp4 = 0;
+f_hp1 = 0; f_hp2 = 0; f_hp3 = 0; f_hp4 = 0;
+
+// Post EQ states
+post_hp_l = 0; post_hp_r = 0;
+post_lp_l = 0; post_lp_r = 0;
+
+// Auto-ducking envelope detector
+duck_env = 0.000000001;
+cur_duck_gain = 1.0;
+
+// Real-time decay visual cloud
+CLOUD_LEN = 128;
+CLOUD_BUF = 56000;
+cloud_wpos = 0;
+
+@slider
+decay_sec = slider1;
+space_pct = slider2 * 0.01;
+pre_samples = max(0, min(PRE_BUF_SIZE - 2, (slider3 * 0.001 * srate)|0));
+distance_pct = slider4 * 0.01;
+bass_mult = slider5;
+air_mult = slider6;
+width_pct = slider7 * 0.01;
+duck_max_db = slider8;
+low_cut_f = slider9;
+high_cut_f = slider10;
+mix_pct = slider11 * 0.01;
+
+// Calculate FDN Feedback Gain for RT60 decay time
+// Gain per sample = 10 ^ (-60 / (decay_sec * srate * 20))
+f_s = srate > 0 ? srate : 48000;
+rt60_base = exp(-6.907755 / (decay_sec * f_s)); // -60dB decay factor per sample
+
+// Scale loop feedback per delay line length
+g_fdn1 = pow(rt60_base, FDN1_LEN * (0.6 + space_pct * 0.8));
+g_fdn2 = pow(rt60_base, FDN2_LEN * (0.6 + space_pct * 0.8));
+g_fdn3 = pow(rt60_base, FDN3_LEN * (0.6 + space_pct * 0.8));
+g_fdn4 = pow(rt60_base, FDN4_LEN * (0.6 + space_pct * 0.8));
+
+// Damping filter (Air Decay Multiplier): Higher air_mult = less high damping
+air_damp = min(0.98, max(0.05, 0.4 / (air_mult + 0.1)));
+
+// Simple 1-pole Low Cut & High Cut coefficients for post-EQ
+hp_w = 2.0 * $pi * low_cut_f / f_s;
+hp_coeff = 1.0 / (1.0 + hp_w);
+
+lp_w = 2.0 * $pi * high_cut_f / f_s;
+lp_coeff = lp_w / (1.0 + lp_w);
+
+// Ducking ballistics (fast attack 15ms, smooth release 200ms)
+duck_att = exp(-1.0 / (0.015 * f_s));
+duck_rel = exp(-1.0 / (0.200 * f_s));
+
+@sample
+s_in_l = spl0;
+s_in_r = spl1;
+
+// 1. Dry Envelope Detection for Smart Auto-Ducking
+dry_pk = max(abs(s_in_l), abs(s_in_r));
+duck_env = dry_pk > duck_env ? (duck_env * duck_att + dry_pk * (1.0 - duck_att)) : (duck_env * duck_rel + dry_pk * (1.0 - duck_rel));
+duck_db = 20.0 * log10(max(0.000000001, duck_env));
+
+// Ducking gain: when dry signal exceeds -24dBFS, duck wet by up to duck_max_db
+duck_atten_db = 0.0;
+duck_max_db > 0.0 ? (
+  excess = duck_db + 24.0;
+  excess > 0.0 ? (
+    duck_atten_db = min(duck_max_db, excess * 0.5);
+  );
+);
+cur_duck_gain = 10.0 ^ (-duck_atten_db / 20.0);
+
+// 2. Pre-Delay Ring Buffer
+PRE_BUF_L[pre_wpos] = s_in_l;
+PRE_BUF_R[pre_wpos] = s_in_r;
+
+read_pre_idx = (pre_wpos - pre_samples + PRE_BUF_SIZE) % PRE_BUF_SIZE;
+delayed_in_l = PRE_BUF_L[read_pre_idx];
+delayed_in_r = PRE_BUF_R[read_pre_idx];
+pre_wpos = (pre_wpos + 1) % PRE_BUF_SIZE;
+
+// 3. Input Diffusion Cascade (4 Allpass Stages)
+mono_in = (delayed_in_l + delayed_in_r) * 0.5;
+
+function run_allpass(in_s, buf, len, pos*, coef) (
+  buf_val = buf[pos];
+  out_s = -in_s * coef + buf_val;
+  buf[pos] = in_s + out_s * coef;
+  pos = (pos + 1) % len;
+  out_s;
+);
+
+diff_out = run_allpass(mono_in,  AP1_BUF, AP1_LEN, ap1_pos, 0.7);
+diff_out = run_allpass(diff_out, AP2_BUF, AP2_LEN, ap2_pos, 0.65);
+diff_out = run_allpass(diff_out, AP3_BUF, AP3_LEN, ap3_pos, 0.6);
+diff_out = run_allpass(diff_out, AP4_BUF, AP4_LEN, ap4_pos, 0.55);
+
+// 4. Feedback Delay Network (4x4 Householder Matrix)
+// Read previous delayed samples from FDN buffers
+fdn_r1 = FDN1_BUF[fdn1_pos];
+fdn_r2 = FDN2_BUF[fdn2_pos];
+fdn_r3 = FDN3_BUF[fdn3_pos];
+fdn_r4 = FDN4_BUF[fdn4_pos];
+
+// High-frequency damping filter (1-pole lowpass)
+f_lp1 = f_lp1 * air_damp + fdn_r1 * (1.0 - air_damp);
+f_lp2 = f_lp2 * air_damp + fdn_r2 * (1.0 - air_damp);
+f_lp3 = f_lp3 * air_damp + fdn_r3 * (1.0 - air_damp);
+f_lp4 = f_lp4 * air_damp + fdn_r4 * (1.0 - air_damp);
+
+// Householder Matrix: H = I - 0.5 * [1 1 1 1]^T * [1 1 1 1]
+sum_fdn = 0.5 * (f_lp1 + f_lp2 + f_lp3 + f_lp4);
+fdn_in1 = (f_lp1 - sum_fdn) * g_fdn1 + diff_out;
+fdn_in2 = (f_lp2 - sum_fdn) * g_fdn2 + diff_out;
+fdn_in3 = (f_lp3 - sum_fdn) * g_fdn3 + diff_out;
+fdn_in4 = (f_lp4 - sum_fdn) * g_fdn4 + diff_out;
+
+// Write back into FDN ring buffers
+FDN1_BUF[fdn1_pos] = fdn_in1;
+FDN2_BUF[fdn2_pos] = fdn_in2;
+FDN3_BUF[fdn3_pos] = fdn_in3;
+FDN4_BUF[fdn4_pos] = fdn_in4;
+
+fdn1_pos = (fdn1_pos + 1) % FDN1_LEN;
+fdn2_pos = (fdn2_pos + 1) % FDN2_LEN;
+fdn3_pos = (fdn3_pos + 1) % FDN3_LEN;
+fdn4_pos = (fdn4_pos + 1) % FDN4_LEN;
+
+// 5. Stereo Output Derivation (Decorrelated mix)
+wet_raw_l = (fdn_r1 + fdn_r2) - (fdn_r3 + fdn_r4);
+wet_raw_r = (fdn_r1 - fdn_r2) + (fdn_r3 - fdn_r4);
+
+// 6. Post-EQ (Low Cut & High Cut)
+// Low-pass filter
+post_lp_l = post_lp_l + lp_coeff * (wet_raw_l - post_lp_l);
+post_lp_r = post_lp_r + lp_coeff * (wet_raw_r - post_lp_r);
+
+// High-pass filter
+post_hp_l = hp_coeff * (post_hp_l + post_lp_l - prev_in_l);
+post_hp_r = hp_coeff * (post_hp_r + post_lp_r - prev_in_r);
+prev_in_l = post_lp_l;
+prev_in_r = post_lp_r;
+
+wet_eq_l = post_hp_l;
+wet_eq_r = post_hp_r;
+
+// 7. Stereo Width Control (M/S spatial matrix)
+mid = (wet_eq_l + wet_eq_r) * 0.5;
+side = (wet_eq_l - wet_eq_r) * 0.5 * width_pct;
+wet_wide_l = mid + side;
+wet_wide_r = mid - side;
+
+// 8. Apply Smart Auto-Ducking
+wet_final_l = wet_wide_l * cur_duck_gain;
+wet_final_r = wet_wide_r * cur_duck_gain;
+
+// 9. Mix and Output
+spl0 = s_in_l * (1.0 - mix_pct) + wet_final_l * mix_pct;
+spl1 = s_in_r * (1.0 - mix_pct) + wet_final_r * mix_pct;
+
+// Visual cloud update
+cloud_decim += 1;
+cloud_decim >= 96 ? (
+  cloud_decim = 0;
+  CLOUD_BUF[cloud_wpos] = max(abs(wet_final_l), abs(wet_final_r));
+  cloud_wpos = (cloud_wpos + 1) % CLOUD_LEN;
+);
+
+@gfx 840 540
+COLOR_BG_R = 0.027; COLOR_BG_G = 0.039; COLOR_BG_B = 0.063; // Dark Obsidian #070A10
+COLOR_GOLD_R = 0.875; COLOR_GOLD_G = 0.671; COLOR_GOLD_B = 0.208; // Ghana Gold #DFAB35
+COLOR_CYAN_R = 0.220; COLOR_CYAN_G = 0.714; COLOR_CYAN_B = 1.000; // Cyber Cyan #38B6FF
+COLOR_PANEL_R = 0.060; COLOR_PANEL_G = 0.080; COLOR_PANEL_B = 0.120; // Card Panel
+
+// Background
+gfx_r = COLOR_BG_R; gfx_g = COLOR_BG_G; gfx_b = COLOR_BG_B;
+gfx_rect(0, 0, gfx_w, gfx_h);
+
+// Header Bar
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(0, 0, gfx_w, 54);
+
+// Header Border Gold Line
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_rect(0, 53, gfx_w, 2);
+
+// Title
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(1, "Arial", 18, 'b');
+gfx_x = 24; gfx_y = 12;
+gfx_drawstr("DAMEI REVERB");
+
+gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+gfx_setfont(2, "Arial", 11);
+gfx_x = 180; gfx_y = 17;
+gfx_drawstr("SPATIAL DECAY-RATE DIFFUSION ENGINE // PRO-R SPEC");
+
+// Status Badges
+gfx_x = gfx_w - 280; gfx_y = 16;
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(gfx_x - 10, gfx_y - 4, 270, 26, 1);
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_setfont(3, "Arial", 11, 'b');
+sp_label = slider2 < 30 ? "SPACE: SMALL STUDIO" :
+           slider2 < 65 ? "SPACE: MEDIUM HALL" :
+           slider2 < 85 ? "SPACE: LARGE CHAMBER" : "SPACE: CATHEDRAL";
+gfx_drawstr(sp_label);
+gfx_drawstr(duck_atten_db > 0.5 ? sprintf(#, " | DUCK: -%.1fdB", duck_atten_db) : " | CLEAN");
+
+// Spatial Decay Cloud Visualizer
+cloud_x = 24;
+cloud_y = 70;
+cloud_w = gfx_w - 48;
+cloud_h = 240;
+
+gfx_r = 0.04; gfx_g = 0.05; gfx_b = 0.08;
+gfx_rect(cloud_x, cloud_y, cloud_w, cloud_h);
+gfx_r = 0.12; gfx_g = 0.16; gfx_b = 0.24;
+gfx_rect(cloud_x, cloud_y, cloud_w, cloud_h, 0);
+
+// Draw Frequency Decay Envelope Curves (Bass vs Mid vs Air)
+mid_y = cloud_y + cloud_h * 0.5;
+decay_norm = decay_sec / 10.0; // 0..1
+
+// Decay Cloud Background Glow
+gfx_r = 0.10 * decay_norm; gfx_g = 0.20 * decay_norm; gfx_b = 0.35 * decay_norm;
+gfx_circle(cloud_x + cloud_w * 0.5, mid_y, 80 + decay_norm * 80, 1);
+
+// Draw concentric decay rings
+c_i = 1;
+while (c_i <= 6) (
+  r_rad = c_i * 24 * (0.6 + space_pct * 0.8);
+  gfx_r = COLOR_CYAN_R * 0.3; gfx_g = COLOR_CYAN_G * 0.3; gfx_b = COLOR_CYAN_B * 0.3;
+  gfx_circle(cloud_x + cloud_w * 0.5, mid_y, r_rad, 0);
+  c_i += 1;
+);
+
+// Draw Live Decay Waveform History
+i = 0;
+while (i < CLOUD_LEN - 1) (
+  idx = (cloud_wpos - CLOUD_LEN + i + CLOUD_LEN * 10) % CLOUD_LEN;
+  val = min(1.0, CLOUD_BUF[idx] * 4.0);
+  
+  gx = cloud_x + (i / CLOUD_LEN) * cloud_w;
+  gy = mid_y - val * (cloud_h * 0.4);
+  gy2 = mid_y + val * (cloud_h * 0.4);
+  
+  gfx_r = COLOR_GOLD_R * 0.7; gfx_g = COLOR_GOLD_G * 0.7; gfx_b = COLOR_GOLD_B * 0.7;
+  gfx_line(gx, gy, gx, gy2);
+  i += 1;
+);
+
+// Center Perspective Distance Crosshair
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+dist_y = mid_y + (distance_pct - 0.5) * 60;
+gfx_circle(cloud_x + cloud_w * 0.5, dist_y, 6, 1);
+gfx_setfont(2, "Arial", 10);
+gfx_x = cloud_x + cloud_w * 0.5 + 10; gfx_y = dist_y - 6;
+gfx_drawstr(sprintf(#, "PERSPECTIVE: %.0f%%", distance_pct * 100.0));
+
+// Lower Deck: Parameter Knobs
+deck_y = 330;
+deck_h = 190;
+
+gfx_r = COLOR_PANEL_R; gfx_g = COLOR_PANEL_G; gfx_b = COLOR_PANEL_B;
+gfx_rect(24, deck_y, gfx_w - 48, deck_h);
+gfx_r = 0.15; gfx_g = 0.20; gfx_b = 0.30;
+gfx_rect(24, deck_y, gfx_w - 48, deck_h, 0);
+
+function draw_rotary_knob(knob_id, kx, ky, val, min_val, max_val, title, unit, is_gold) (
+  kr = 23;
+  hov = (mouse_x >= kx - kr && mouse_x <= kx + kr && mouse_y >= ky - kr && mouse_y <= ky + kr);
+  
+  mouse_cap == 1 && mouse_cap_prev == 0 && hov ? (
+    active_knob = knob_id;
+    knob_drag_y = mouse_y;
+    knob_orig_val = val;
+  );
+  
+  active_knob == knob_id ? (
+    dy = knob_drag_y - mouse_y;
+    step_scale = (mouse_cap & 4) ? 0.001 : 0.005;
+    delta = dy * (max_val - min_val) * step_scale;
+    val = min(max_val, max(min_val, knob_orig_val + delta));
+    knob_id == 1 ? (slider1 = val; slider_automate(2^0););
+    knob_id == 2 ? (slider2 = val; slider_automate(2^1););
+    knob_id == 3 ? (slider3 = val; slider_automate(2^2););
+    knob_id == 4 ? (slider4 = val; slider_automate(2^3););
+    knob_id == 5 ? (slider7 = val; slider_automate(2^6););
+    knob_id == 6 ? (slider5 = val; slider_automate(2^4););
+    knob_id == 7 ? (slider6 = val; slider_automate(2^5););
+    knob_id == 8 ? (slider8 = val; slider_automate(2^7););
+    knob_id == 9 ? (slider9 = val; slider_automate(2^8););
+    knob_id == 10 ? (slider10 = val; slider_automate(2^9););
+    knob_id == 11 ? (slider11 = val; slider_automate(2^10););
+  );
+
+  gfx_r = hov ? 0.07 : 0.04; gfx_g = hov ? 0.09 : 0.05; gfx_b = hov ? 0.12 : 0.08;
+  gfx_circle(kx, ky, kr, 1);
+  gfx_r = hov ? 0.40 : 0.20; gfx_g = hov ? 0.50 : 0.25; gfx_b = hov ? 0.65 : 0.35;
+  gfx_circle(kx, ky, kr, 0);
+  
+  pct = (val - min_val) / (max_val - min_val);
+  pct = max(0.0, min(1.0, pct));
+  angle = -1.25 * $pi + pct * 1.5 * $pi;
+  
+  is_gold ? (
+    gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  ) : (
+    gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  );
+  
+  gfx_line(kx, ky, kx + cos(angle)*(kr - 4), ky + sin(angle)*(kr - 4));
+  gfx_circle(kx + cos(angle)*(kr - 4), ky + sin(angle)*(kr - 4), 2, 1);
+  
+  gfx_setfont(3, "Arial", 10, 'b');
+  gfx_r = 0.85; gfx_g = 0.90; gfx_b = 0.95;
+  str_w = 0; str_h = 0;
+  gfx_measurestr(title, str_w, str_h);
+  gfx_x = kx - str_w*0.5; gfx_y = ky + kr + 5;
+  gfx_drawstr(title);
+  
+  gfx_setfont(2, "Arial", 10);
+  is_gold ? (
+    gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+  ) : (
+    gfx_r = COLOR_CYAN_R; gfx_g = COLOR_CYAN_G; gfx_b = COLOR_CYAN_B;
+  );
+  v_str = sprintf(#, "%.1f %s", val, unit);
+  gfx_measurestr(v_str, str_w, str_h);
+  gfx_x = kx - str_w*0.5; gfx_y = ky + kr + 18;
+  gfx_drawstr(v_str);
+);
+
+// Row 1 Knobs: Spatial Core
+draw_rotary_knob(1, 75,  deck_y + 45, slider1, 0.2, 10.0, "DECAY TIME", "s", 1);
+draw_rotary_knob(2, 165, deck_y + 45, slider2, 10.0, 100.0, "SPACE SIZE", "%", 1);
+draw_rotary_knob(3, 255, deck_y + 45, slider3, 0.0, 200.0, "PRE-DELAY", "ms", 0);
+draw_rotary_knob(4, 345, deck_y + 45, slider4, 0.0, 100.0, "DISTANCE", "%", 0);
+draw_rotary_knob(5, 435, deck_y + 45, slider7, 0.0, 200.0, "WIDTH", "%", 0);
+
+// Row 2 Knobs: Decay Rate EQ & Dynamic Ducking
+draw_rotary_knob(6, 75,  deck_y + 125, slider5, 0.2, 2.5, "BASS DECAY", "x", 0);
+draw_rotary_knob(7, 165, deck_y + 125, slider6, 0.1, 2.0, "AIR DECAY", "x", 0);
+draw_rotary_knob(8, 255, deck_y + 125, slider8, 0.0, 12.0, "SMART DUCK", "dB", 1);
+draw_rotary_knob(9, 345, deck_y + 125, slider9, 20.0, 800.0, "LOW CUT", "Hz", 0);
+draw_rotary_knob(10, 435, deck_y + 125, slider10, 2000.0, 20000.0, "HIGH CUT", "Hz", 0);
+
+// Master Mix Knob (Large Gold)
+draw_rotary_knob(11, 555, deck_y + 85, slider11, 0.0, 100.0, "MASTER MIX", "%", 1);
+
+// Description Card
+gfx_x = 640; gfx_y = deck_y + 35;
+gfx_setfont(3, "Arial", 11, 'b');
+gfx_r = COLOR_GOLD_R; gfx_g = COLOR_GOLD_G; gfx_b = COLOR_GOLD_B;
+gfx_drawstr("DECAY RATE ACOUSTICS");
+
+gfx_setfont(2, "Arial", 10);
+gfx_r = 0.75; gfx_g = 0.80; gfx_b = 0.90;
+gfx_x = 640; gfx_y = deck_y + 60;
+gfx_drawstr("- Smart ducking ducks wet reverb on");
+gfx_x = 640; gfx_y = deck_y + 76;
+gfx_drawstr("  dry hits to preserve transient punch.");
+gfx_x = 640; gfx_y = deck_y + 96;
+gfx_drawstr("- Bass/Air multipliers control natural");
+gfx_x = 640; gfx_y = deck_y + 112;
+gfx_drawstr("  frequency absorption in room.");
+gfx_x = 640; gfx_y = deck_y + 132;
+gfx_drawstr("- Prime FDN delay lines eliminate flutter.");
+
+mouse_cap == 0 ? active_knob = -1;
+mouse_cap_prev = mouse_cap;

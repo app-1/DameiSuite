@@ -25,8 +25,8 @@ slider16:0<0,2,1{Linear Transparent Passthrough,Smooth Musical Hermite Soft-Clip
 slider17:-0.1<-12.0,-0.1,0.1>-Target Headroom Ceiling (dBTP)
 slider18:0<0,1,1{Free Output Gain (No Clipping),Strict Pre-Master Headroom Lock}>-Headroom Ceiling Guardian
 slider19:0.0<-12.0,12.0,0.5>-Output Makeup Trim (dB)
-slider20:15<0,19,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Cane Hill),Buster Odeholm (thrown / Vildhjarta),Kel Pinchin (Currents),Sam Guaiana (Silverstein),Forrester Savell (Karnivool / Dead Letter Circus),Jens Bogren (Fascination Street),Adam Nolly Getgood (Periphery / GGD),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Sleep Token / Loathe),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Joey Sturgis (Asking Alexandria / Attack Attack),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Blink-182 / Simple Plan),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)}>-Producer Bass Signature Preset
-slider21:0<0,4,1{Eurobass II MIDI + Parallax X,Real Bass DI + Parallax X,Dingwall Modern Active 5-String,Drop Tuned P-Bass Dirt,Sub Sine Reinforced Clean}>-Bass Rig Source Profile
+slider20:15<0,26,1{Default Neutral Wire,Lance Prenc (Alpha Wolf / Polaris),Scott Seigel (DIESECT),Jonathan Dolese (Mirrorcell / Cane Hill),Buster Odeholm (thrown / Northlane - Evian),Grant Berry & Lewis Johns (blanket / Love Is Noise),Kel Pinchin (Split Chain Target),Dan Lancaster (Don Broco - Endorphins),Erik Bickerstaffe (Static Dress - face..),Sam Guaiana (Shyeye / Silverstein),Zach Tuch (Heavenward - Tangerine),Forrester Savell (City Of Souls / Karnivool),Leon Schmidt (SUNBORN - Nebula),Ermin Hamidovic (The Systematic Benchmark),Will Putney (Fit For An Autopsy / Knocked Loose),George Lever (Loathe / Sleep Token),Sam Bassal (Thornhill / Ocean Grove),Henrik Udd (Architects / Bring Me The Horizon),Dan Braunstein (Spiritbox / Dayseeker),Zakk Cervini (Bad Omens / Blink-182),Jens Bogren (Fascination Street Studios),Adam Nolly Getgood (Periphery / GGD),Acle Kahney (TesseracT - King),Adam Cichocki (heaving. - carsick / Timber Studios),Manuel Renner (SENNA - Out Of The Blue),Matt Thomas (Ashtone - Live Room Authority),Mark Williamson (Sugarhouse - Live Cohesion)}>-Producer Bass Signature Preset
+slider21:0<0,5,1{Eurobass II MIDI + Parallax X,Real Bass DI + Parallax X,Dingwall Modern Active 5-String,Drop Tuned P-Bass Dirt,Sub Sine Reinforced Clean,Baked Amp & Cab Stems (Forensic Pre-Mix Calibration)}>-Bass Rig Source Profile
 slider22:-18.0<-24.0,-12.0,1.0>-Analogue 0 VU Target Reference (dBFS RMS)
 slider23:25<0,100,1>-Britson Neve Console Drive (%)
 slider24:20<0,100,1>-Smash & Grab Opto/VCA Bus Glue (%)
@@ -307,118 +307,167 @@ function apply_bass_preset(p_idx) (
     slider3 = 85; slider4 = 2.4; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.8;
     slider10 = 0.8; slider11 = 1.8; slider12 = -1.8; slider13 = -1.0;
     slider23 = 28; slider24 = 22; slider25 = 18;
-  ) : p_idx == 4 ? ( // Buster Odeholm (thrown / Vildhjarta) - Monolithic Low Sub & Brutal Clank
+  ) : p_idx == 4 ? ( // Buster Odeholm (thrown / Northlane - Evian) - Monolithic Low Sub & Brutal Clank
     slider46 = 40; slider47 = 35; slider48 = 580; slider49 = 10; slider50 = 55;
     slider36 = 2; slider37 = 70; slider38 = 50; slider39 = 80;
     slider40 = 3; slider41 = 55; slider42 = 1; slider43 = 2.5; slider44 = 7000;
     slider3 = 85; slider4 = 3.2; slider5 = 18; slider6 = 50; slider7 = 55; slider8 = 2.2;
     slider10 = 2.2; slider11 = 1.8; slider12 = -3.2; slider13 = -2.0;
     slider23 = 40; slider24 = 35; slider25 = 35;
-  ) : p_idx == 5 ? ( // Kel Pinchin (Split Chain Target) - Monolithic 99% Mono Foundation & 250Hz Scoop
+  ) : p_idx == 5 ? ( // Lewis Johns & Grant Berry (blanket / Love Is Noise) - Warm Lush Diode Body
+    slider46 = 30; slider47 = 38; slider48 = 640; slider49 = 16; slider50 = 70;
+    slider36 = 1; slider37 = 42; slider38 = 45; slider39 = 85;
+    slider40 = 2; slider41 = 32; slider42 = 0; slider43 = 0.5; slider44 = 8600;
+    slider3 = 88; slider4 = 2.2; slider5 = 24; slider6 = 62; slider7 = 62; slider8 = 1.0;
+    slider10 = 1.0; slider11 = 1.6; slider12 = -1.6; slider13 = -1.0;
+    slider23 = 26; slider24 = 22; slider25 = 18;
+  ) : p_idx == 6 ? ( // Kel Pinchin (Split Chain Target) - Monolithic 99% Mono Foundation & 250Hz Scoop
     slider46 = 32; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
     slider36 = 2; slider37 = 48; slider38 = 42; slider39 = 85;
     slider40 = 2; slider41 = 35; slider42 = 0; slider43 = 0.8; slider44 = 8500;
     slider3 = 90; slider4 = 2.4; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
     slider10 = 1.0; slider11 = 2.5; slider12 = -1.5; slider13 = -1.2;
     slider23 = 30; slider24 = 25; slider25 = 20;
-  ) : p_idx == 6 ? ( // Sam Guaiana (Silverstein) - Modern Tight High-Definition Core
+  ) : p_idx == 7 ? ( // Dan Lancaster (Don Broco - Endorphins) - Radio Rock Bounce & Clank
+    slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 14; slider50 = 65;
+    slider36 = 2; slider37 = 45; slider38 = 42; slider39 = 85;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.6; slider44 = 8800;
+    slider3 = 90; slider4 = 2.4; slider5 = 22; slider6 = 60; slider7 = 60; slider8 = 1.0;
+    slider10 = 0.8; slider11 = 2.4; slider12 = -1.8; slider13 = -1.0;
+    slider23 = 28; slider24 = 24; slider25 = 18;
+  ) : p_idx == 8 ? ( // Erik Bickerstaffe (Static Dress - face..) - Gritty Overdriven Post-Hardcore Body
+    slider46 = 35; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
+    slider36 = 0; slider37 = 55; slider38 = 40; slider39 = 85;
+    slider40 = 3; slider41 = 45; slider42 = 1; slider43 = 1.2; slider44 = 7800;
+    slider3 = 90; slider4 = 2.6; slider5 = 20; slider6 = 58; slider7 = 65; slider8 = 1.4;
+    slider10 = 1.4; slider11 = 2.2; slider12 = -2.4; slider13 = -1.4;
+    slider23 = 34; slider24 = 28; slider25 = 24;
+  ) : p_idx == 9 ? ( // Sam Guaiana (Shyeye / Silverstein) - Modern Tight High-Definition Core
     slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 14; slider50 = 65;
     slider36 = 2; slider37 = 45; slider38 = 40; slider39 = 85;
     slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.6; slider44 = 8800;
     slider3 = 90; slider4 = 2.5; slider5 = 24; slider6 = 62; slider7 = 60; slider8 = 1.0;
     slider10 = 0.8; slider11 = 2.4; slider12 = -1.8; slider13 = -1.0;
     slider23 = 28; slider24 = 24; slider25 = 18;
-  ) : p_idx == 7 ? ( // Forrester Savell (Karnivool / Dead Letter Circus) - Deep Dynamic Prog Foundation
+  ) : p_idx == 10 ? ( // Zach Tuch (Heavenward - Tangerine) - 90s Alt-Rock Dynamic Warmth
     slider46 = 28; slider47 = 38; slider48 = 650; slider49 = 18; slider50 = 75;
     slider36 = 1; slider37 = 40; slider38 = 45; slider39 = 85;
     slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.4; slider44 = 9000;
     slider3 = 88; slider4 = 2.2; slider5 = 26; slider6 = 65; slider7 = 62; slider8 = 0.8;
     slider10 = 0.6; slider11 = 2.0; slider12 = -1.6; slider13 = -0.8;
     slider23 = 25; slider24 = 20; slider25 = 16;
-  ) : p_idx == 8 ? ( // Jens Bogren (Fascination Street) - Nordic Saturated Iron Warmth
-    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
-    slider36 = 2; slider37 = 52; slider38 = 42; slider39 = 85;
-    slider40 = 2; slider41 = 40; slider42 = 1; slider43 = 1.0; slider44 = 8200;
-    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.2;
-    slider10 = 1.2; slider11 = 2.2; slider12 = -2.0; slider13 = -1.2;
-    slider23 = 32; slider24 = 28; slider25 = 22;
-  ) : p_idx == 9 ? ( // Adam Nolly Getgood (Periphery / GGD) - Legendary Dingwall Clank & Mono Authority
-    slider46 = 35; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
-    slider36 = 2; slider37 = 42; slider38 = 45; slider39 = 90;
-    slider40 = 0; slider41 = 26; slider42 = 0; slider43 = 0.5; slider44 = 9500;
-    slider3 = 90; slider4 = 2.4; slider5 = 25; slider6 = 60; slider7 = 60; slider8 = 0.8;
-    slider10 = 1.0; slider11 = 3.2; slider12 = -2.0; slider13 = -1.2;
-    slider23 = 25; slider24 = 25; slider25 = 20;
-  ) : p_idx == 10 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose) - Gritty Midgrowl Assault
-    slider46 = 38; slider47 = 35; slider48 = 580; slider49 = 12; slider50 = 60;
-    slider36 = 0; slider37 = 62; slider38 = 38; slider39 = 85;
-    slider40 = 3; slider41 = 48; slider42 = 1; slider43 = 1.0; slider44 = 8000;
-    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 65; slider7 = 60; slider8 = 1.5;
-    slider10 = 2.0; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
-    slider23 = 35; slider24 = 30; slider25 = 25;
-  ) : p_idx == 11 ? ( // George Lever (Sleep Token / Loathe) - Massive Dark Sub Anchor
-    slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 16; slider50 = 70;
-    slider36 = 1; slider37 = 46; slider38 = 45; slider39 = 85;
-    slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.6; slider44 = 8500;
-    slider3 = 85; slider4 = 2.4; slider5 = 24; slider6 = 65; slider7 = 65; slider8 = 1.2;
-    slider10 = 0.8; slider11 = 2.0; slider12 = -2.0; slider13 = -1.2;
-    slider23 = 28; slider24 = 24; slider25 = 20;
-  ) : p_idx == 12 ? ( // Sam Bassal (Thornhill / Ocean Grove) - Modern Snappy Low End
+  ) : p_idx == 11 ? ( // Forrester Savell (City Of Souls / Karnivool) - Deep Dynamic Prog Foundation
+    slider46 = 28; slider47 = 38; slider48 = 650; slider49 = 18; slider50 = 75;
+    slider36 = 1; slider37 = 40; slider38 = 45; slider39 = 85;
+    slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.4; slider44 = 9000;
+    slider3 = 88; slider4 = 2.2; slider5 = 26; slider6 = 65; slider7 = 62; slider8 = 0.8;
+    slider10 = 0.6; slider11 = 2.0; slider12 = -1.6; slider13 = -0.8;
+    slider23 = 25; slider24 = 20; slider25 = 16;
+  ) : p_idx == 12 ? ( // Leon Schmidt (SUNBORN - Nebula) - Progressive Sub Discipline
     slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 14; slider50 = 65;
     slider36 = 2; slider37 = 48; slider38 = 40; slider39 = 85;
     slider40 = 2; slider41 = 36; slider42 = 0; slider43 = 0.8; slider44 = 8600;
     slider3 = 90; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
     slider10 = 1.0; slider11 = 2.6; slider12 = -2.2; slider13 = -1.4;
     slider23 = 30; slider24 = 26; slider25 = 20;
-  ) : p_idx == 13 ? ( // Henrik Udd (Architects / Bring Me The Horizon) - British Metalcore Sub Squeeze
+  ) : p_idx == 13 ? ( // Ermin Hamidovic (The Systematic Benchmark) - Mastering Anchor
+    slider46 = 30; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 2; slider37 = 45; slider38 = 42; slider39 = 85;
+    slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.5; slider44 = 8500;
+    slider3 = 90; slider4 = 2.2; slider5 = 25; slider6 = 65; slider7 = 60; slider8 = 0.5;
+    slider10 = 0.5; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
+    slider23 = 25; slider24 = 20; slider25 = 15;
+  ) : p_idx == 14 ? ( // Will Putney (Fit For An Autopsy / Knocked Loose) - Gritty Midgrowl Assault
+    slider46 = 38; slider47 = 35; slider48 = 580; slider49 = 12; slider50 = 60;
+    slider36 = 0; slider37 = 62; slider38 = 38; slider39 = 85;
+    slider40 = 3; slider41 = 48; slider42 = 1; slider43 = 1.0; slider44 = 8000;
+    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 65; slider7 = 60; slider8 = 1.5;
+    slider10 = 2.0; slider11 = 1.5; slider12 = -1.5; slider13 = -1.0;
+    slider23 = 35; slider24 = 30; slider25 = 25;
+  ) : p_idx == 15 ? ( // George Lever (Loathe / Sleep Token) - Massive Dark Sub Anchor
+    slider46 = 32; slider47 = 35; slider48 = 640; slider49 = 16; slider50 = 70;
+    slider36 = 1; slider37 = 46; slider38 = 45; slider39 = 85;
+    slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.6; slider44 = 8500;
+    slider3 = 85; slider4 = 2.4; slider5 = 24; slider6 = 65; slider7 = 65; slider8 = 1.2;
+    slider10 = 0.8; slider11 = 2.0; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 28; slider24 = 24; slider25 = 20;
+  ) : p_idx == 16 ? ( // Sam Bassal (Thornhill / Ocean Grove) - Modern Snappy Low End
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 14; slider50 = 65;
+    slider36 = 2; slider37 = 48; slider38 = 40; slider39 = 85;
+    slider40 = 2; slider41 = 36; slider42 = 0; slider43 = 0.8; slider44 = 8600;
+    slider3 = 90; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
+    slider10 = 1.0; slider11 = 2.6; slider12 = -2.2; slider13 = -1.4;
+    slider23 = 30; slider24 = 26; slider25 = 20;
+  ) : p_idx == 17 ? ( // Henrik Udd (Architects / Bring Me The Horizon) - British Metalcore Sub Squeeze
     slider46 = 36; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
     slider36 = 2; slider37 = 54; slider38 = 40; slider39 = 85;
     slider40 = 2; slider41 = 42; slider42 = 1; slider43 = 1.2; slider44 = 8200;
     slider3 = 90; slider4 = 2.8; slider5 = 20; slider6 = 58; slider7 = 65; slider8 = 1.4;
     slider10 = 1.2; slider11 = 2.4; slider12 = -2.4; slider13 = -1.4;
     slider23 = 34; slider24 = 30; slider25 = 24;
-  ) : p_idx == 14 ? ( // Joey Sturgis (Asking Alexandria / Attack Attack) - Iconic 2010s Metalcore Clank
-    slider46 = 38; slider47 = 35; slider48 = 550; slider49 = 10; slider50 = 55;
-    slider36 = 0; slider37 = 65; slider38 = 35; slider39 = 85;
-    slider40 = 3; slider41 = 50; slider42 = 1; slider43 = 1.6; slider44 = 7800;
-    slider3 = 95; slider4 = 3.0; slider5 = 18; slider6 = 50; slider7 = 65; slider8 = 1.5;
-    slider10 = 1.8; slider11 = 3.0; slider12 = -2.8; slider13 = -1.6;
-    slider23 = 38; slider24 = 32; slider25 = 28;
-  ) : p_idx == 15 ? ( // Dan Braunstein (Spiritbox / Dayseeker) - Ultra-Clean Signature Pocket
+  ) : p_idx == 18 ? ( // Dan Braunstein (Spiritbox / Dayseeker) - Ultra-Clean Signature Pocket
     slider46 = 35; slider47 = 35; slider48 = 650; slider49 = 15; slider50 = 65;
     slider36 = 2; slider37 = 46; slider38 = 48; slider39 = 85;
     slider40 = 1; slider41 = 32; slider42 = 0; slider43 = 0.5; slider44 = 8500;
     slider3 = 92; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 62; slider8 = 1.0;
     slider10 = 0.8; slider11 = 2.8; slider12 = -2.4; slider13 = -1.5;
     slider23 = 28; slider24 = 22; slider25 = 18;
-  ) : p_idx == 16 ? ( // Zakk Cervini (Blink-182 / Simple Plan) - Radio Gloss & Punchy Mid Anchor
+  ) : p_idx == 19 ? ( // Zakk Cervini & Erik Ron (Bad Omens - PEACE OF MIND) - Radio Polish
     slider46 = 30; slider47 = 38; slider48 = 650; slider49 = 16; slider50 = 70;
     slider36 = 2; slider37 = 44; slider38 = 42; slider39 = 85;
     slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.5; slider44 = 8800;
     slider3 = 88; slider4 = 2.4; slider5 = 24; slider6 = 62; slider7 = 60; slider8 = 0.8;
     slider10 = 0.8; slider11 = 2.2; slider12 = -1.8; slider13 = -1.0;
     slider23 = 26; slider24 = 22; slider25 = 16;
-  ) : p_idx == 17 ? ( // Acle Kahney (TesseracT - King) - Prog Djent Clarity & Low Resonance Control
+  ) : p_idx == 20 ? ( // Jens Bogren (Fascination Street) - Nordic Saturated Iron Warmth
+    slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
+    slider36 = 2; slider37 = 52; slider38 = 42; slider39 = 85;
+    slider40 = 2; slider41 = 40; slider42 = 1; slider43 = 1.0; slider44 = 8200;
+    slider3 = 90; slider4 = 2.6; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.2;
+    slider10 = 1.2; slider11 = 2.2; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 32; slider24 = 28; slider25 = 22;
+  ) : p_idx == 21 ? ( // Adam Nolly Getgood (Periphery / GGD) - Legendary Dingwall Clank & Mono Authority
+    slider46 = 35; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
+    slider36 = 2; slider37 = 42; slider38 = 45; slider39 = 90;
+    slider40 = 0; slider41 = 26; slider42 = 0; slider43 = 0.5; slider44 = 9500;
+    slider3 = 90; slider4 = 2.4; slider5 = 25; slider6 = 60; slider7 = 60; slider8 = 0.8;
+    slider10 = 1.0; slider11 = 3.2; slider12 = -2.0; slider13 = -1.2;
+    slider23 = 25; slider24 = 25; slider25 = 20;
+  ) : p_idx == 22 ? ( // Acle Kahney (TesseracT - King) - Prog Djent Clarity & Low Resonance Control
     slider46 = 34; slider47 = 35; slider48 = 620; slider49 = 14; slider50 = 65;
     slider36 = 1; slider37 = 45; slider38 = 45; slider39 = 85;
     slider40 = 1; slider41 = 30; slider42 = 0; slider43 = 0.6; slider44 = 8800;
     slider3 = 88; slider4 = 2.5; slider5 = 22; slider6 = 60; slider7 = 65; slider8 = 1.0;
     slider10 = 0.8; slider11 = 2.5; slider12 = -2.0; slider13 = -1.2;
     slider23 = 28; slider24 = 24; slider25 = 18;
-  ) : p_idx == 18 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Saturated Tube Drive
+  ) : p_idx == 23 ? ( // Adam Cichocki (heaving. - carsick / Timber Studios) - Thick Saturated Tube Drive
     slider46 = 30; slider47 = 40; slider48 = 550; slider49 = 20; slider50 = 80;
     slider36 = 1; slider37 = 55; slider38 = 45; slider39 = 80;
     slider40 = 2; slider41 = 45; slider42 = 1; slider43 = 0.8; slider44 = 7500;
     slider3 = 85; slider4 = 2.4; slider5 = 20; slider6 = 60; slider7 = 70; slider8 = 1.2;
     slider10 = 1.5; slider11 = 1.8; slider12 = -1.8; slider13 = -1.0;
     slider23 = 38; slider24 = 32; slider25 = 30;
-  ) : p_idx == 19 ? ( // Manuel Renner (SENNA - Out Of The Blue) - Pure Mono Sub Anchor
-    slider46 = 38; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
+  ) : p_idx == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue) - Pure Mono Sub Anchor
+    slider46 = 45; slider47 = 35; slider48 = 600; slider49 = 12; slider50 = 60;
     slider36 = 2; slider37 = 50; slider38 = 40; slider39 = 90;
     slider40 = 3; slider41 = 35; slider42 = 0; slider43 = 0.4; slider44 = 9000;
-    slider3 = 92; slider4 = 2.8; slider5 = 22; slider6 = 55; slider7 = 65; slider8 = 1.0;
-    slider10 = 0.5; slider11 = 3.2; slider12 = -2.6; slider13 = -1.2;
-    slider23 = 26; slider24 = 28; slider25 = 20;
+    slider3 = 105; slider4 = 3.6; slider5 = 15; slider6 = 55; slider7 = 62; slider8 = -1.6;
+    slider10 = 0.0; slider11 = 1.8; slider12 = -4.5; slider13 = -3.0;
+    slider23 = 12; slider24 = 25; slider25 = 10;
+  ) : p_idx == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority) - Punchy 100Hz Kick/Bass Lock
+    slider46 = 32; slider47 = 35; slider48 = 650; slider49 = 15; slider50 = 65;
+    slider36 = 0; slider37 = 40; slider38 = 30; slider39 = 80;
+    slider40 = 1; slider41 = 28; slider42 = 0; slider43 = 0.2; slider44 = 8200;
+    slider3 = 100; slider4 = 3.0; slider5 = 20; slider6 = 60; slider7 = 65; slider8 = 1.0;
+    slider10 = 0.8; slider11 = 2.0; slider12 = -4.2; slider13 = -2.5;
+    slider23 = 24; slider24 = 22; slider25 = 15;
+  ) : p_idx == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion) - Warm Opto Leveling & Mono Sub
+    slider46 = 30; slider47 = 30; slider48 = 600; slider49 = 20; slider50 = 70;
+    slider36 = 1; slider37 = 30; slider38 = 45; slider39 = 75;
+    slider40 = 0; slider41 = 25; slider42 = 0; slider43 = -0.5; slider44 = 7400;
+    slider3 = 95; slider4 = 2.5; slider5 = 25; slider6 = 70; slider7 = 58; slider8 = 0.2;
+    slider10 = 0.5; slider11 = 1.5; slider12 = -3.8; slider13 = -3.5;
+    slider23 = 25; slider24 = 25; slider25 = 12;
   ) : (
     slider46 = 30; slider47 = 35; slider48 = 620; slider49 = 15; slider50 = 65;
     slider36 = 2; slider37 = 45; slider38 = 42; slider39 = 85;
@@ -571,6 +620,39 @@ function load_ab_bass_snapshot(src_buf) local(k) (
 prev_preset != slider20 ? (
   apply_bass_preset(slider20);
   prev_preset = slider20;
+);
+prev_profile != slider21 ? (
+  prev_profile = slider21;
+  slider21 == 0 ? (
+    slider3 = 90; slider7 = 60; slider8 = 0.0; slider10 = 0.0; slider11 = 0.0; slider12 = 0.0;
+  ) : slider21 == 1 ? (
+    slider3 = 85; slider7 = 55; slider8 = 0.5; slider10 = 0.8; slider11 = 1.0; slider12 = -1.2;
+  ) : slider21 == 2 ? (
+    slider3 = 95; slider7 = 50; slider8 = 1.0; slider10 = 1.2; slider11 = 2.0; slider12 = -2.0;
+  ) : slider21 == 3 ? (
+    slider3 = 100; slider7 = 65; slider8 = 0.8; slider10 = 1.8; slider11 = 0.5; slider12 = -1.5;
+  ) : slider21 == 4 ? (
+    slider3 = 110; slider7 = 50; slider8 = 2.0; slider10 = -1.0; slider11 = -1.0; slider12 = -2.5;
+  ) : (
+    // BAKED AMP & CAB STEMS: FORENSIC PRE-MIX STRATEGY & DETAILED BREAKDOWN
+    slider3  = 105;  // Sub-Mono Elliptical Anchor (Mono below 105Hz)
+    slider4  = 3.6;  // Kick Ducking Depth (3.6dB dynamic sub pocket)
+    slider5  = 15;   // Fast Kick Ducking Attack (15ms)
+    slider6  = 55;   // Kick Ducking Recovery Release (55ms)
+    slider7  = 62;   // Sub Low-Shelf Punch Center 62Hz
+    slider8  = -1.6; // Sub Low-Shelf Trim -1.6dB
+    slider10 = 0.0;  // Mid Growl Overdrive Trim 0.0dB [150Hz - 1.2kHz]
+    slider11 = 1.8;  // Pick Attack Clank & Snap Trim +1.8dB [1.8kHz - 3.5kHz bite]
+    slider12 = -4.5; // Mud Box Scoop 250Hz (-4.5dB boxiness removal)
+    slider13 = -3.0; // Ultra-High Clank Whistle Notch 4.5kHz (-3.0dB squeak cut)
+    slider23 = 12;   // Console Drive 12%
+    slider24 = 25;   // Smash & Grab Opto/VCA Bus Glue 25%
+    slider25 = 10;   // Darkglass / Tube Saturation Drive 10%
+    slider34 = 1;    // Active Sub-Mono & Dynamic Sidechain
+    slider45 = 1;    // Active Trackspacer Dynamic Inverse EQ
+    slider46 = 45;   // Trackspacer Ducking Amount 45%
+  );
+  update_bass_filters();
 );
 update_bass_filters();
 
@@ -995,8 +1077,8 @@ gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
 gfx_x = 56; gfx_y = hdr_y + 11;
 gfx_drawstr("DAMEI // BASS BUS ENGINE");
 
-// Preset Navigator Selector Box
-p_box_x = 360; p_box_w = 260; p_box_y = hdr_y + 7; p_box_h = 28;
+// Preset Navigator Selector Box (Expanded for High-Legibility Display)
+p_box_x = 310; p_box_w = 400; p_box_y = hdr_y + 7; p_box_h = 28;
 gfx_r = 0.03; gfx_g = 0.06; gfx_b = 0.08; gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h);
 gfx_r = 0.06; gfx_g = 0.65; gfx_b = 0.45; gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h, 0);
 
@@ -1017,10 +1099,10 @@ mouse_clicked && left_hov ? (
   slider20 = max(0, slider20 - 1); apply_bass_preset(slider20); slider_automate();
 );
 mouse_clicked && right_hov ? (
-  slider20 = min(19, slider20 + 1); apply_bass_preset(slider20); slider_automate();
+  slider20 = min(26, slider20 + 1); apply_bass_preset(slider20); slider_automate();
 );
 mouse_clicked && (mouse_x > p_box_x + p_btn_w && mouse_x < p_box_x + p_box_w - p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h) ? (
-  b_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Cane Hill)|4: Buster Odeholm (thrown / Vildhjarta)|5: Kel Pinchin (Currents)|6: Sam Guaiana (Silverstein)|7: Forrester Savell (Karnivool)|8: Jens Bogren (Fascination Street)|9: Adam Nolly Getgood (Periphery)|10: Will Putney (Fit For An Autopsy)|11: George Lever (Sleep Token)|12: Sam Bassal (Thornhill)|13: Henrik Udd (Architects)|14: Joey Sturgis (Asking Alexandria)|15: Dan Braunstein (Spiritbox)|16: Zakk Cervini (Blink-182)|17: Acle Kahney (TesseracT - King)|18: Adam Cichocki (heaving. - carsick / Timber Studios)|19: Manuel Renner (SENNA - Out Of The Blue / Überlärm Studios)");
+  b_choice = gfx_showmenu("0: Default Neutral Wire|1: Lance Prenc (Alpha Wolf)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell)|4: Buster Odeholm (thrown / Northlane)|5: Lewis Johns & Grant Berry (Love Is Noise)|6: Kel Pinchin (Split Chain)|7: Dan Lancaster (Don Broco)|8: Erik Bickerstaffe (Static Dress)|9: Sam Guaiana (Shyeye)|10: Zach Tuch (Heavenward)|11: Forrester Savell (City Of Souls)|12: Leon Schmidt (SUNBORN)|13: Ermin Hamidovic (Benchmark)|14: Will Putney (Fit For An Autopsy)|15: George Lever (Loathe / Sleep Token)|16: Sam Bassal (Thornhill)|17: Henrik Udd (Architects)|18: Dan Braunstein (Spiritbox)|19: Zakk Cervini (Bad Omens)|20: Jens Bogren (Fascination)|21: Adam Nolly (Periphery)|22: Acle Kahney (TesseracT)|23: Adam Cichocki (heaving.)|24: Manuel Renner (SENNA - Out Of The Blue)|25: Matt Thomas (Ashtone - Live Room Authority)|26: Mark Williamson (Sugarhouse - Live Cohesion)");
   b_choice > 0 ? (slider20 = b_choice - 1; apply_bass_preset(slider20); slider_automate(););
 );
 
@@ -1030,28 +1112,35 @@ p_name = (
   slider20 == 0  ? "0: Default Neutral Wire" :
   slider20 == 1  ? "1: Lance Prenc (Alpha Wolf)" :
   slider20 == 2  ? "2: Scott Seigel (DIESECT)" :
-  slider20 == 3  ? "3: Jonathan Dolese (Cane Hill)" :
-  slider20 == 4  ? "4: Buster Odeholm (thrown)" :
-  slider20 == 5  ? "5: Kel Pinchin (Currents)" :
-  slider20 == 6  ? "6: Sam Guaiana (Silverstein)" :
-  slider20 == 7  ? "7: Forrester Savell (Karnivool)" :
-  slider20 == 8  ? "8: Jens Bogren (Fascination)" :
-  slider20 == 9  ? "9: Adam Nolly (Periphery)" :
-  slider20 == 10 ? "10: Will Putney (FFAA)" :
-  slider20 == 11 ? "11: George Lever (Sleep Token)" :
-  slider20 == 12 ? "12: Sam Bassal (Thornhill)" :
-  slider20 == 13 ? "13: Henrik Udd (Architects)" :
-  slider20 == 14 ? "14: Joey Sturgis (Asking Alex)" :
-  slider20 == 15 ? "15: Dan Braunstein (Spiritbox)" :
-  slider20 == 16 ? "16: Zakk Cervini (Blink-182)" :
-  slider20 == 17 ? "17: Acle Kahney (TesseracT)" :
-  slider20 == 18 ? "18: Adam Cichocki (heaving.)" :
-  "19: Manuel Renner (SENNA)"
+  slider20 == 3  ? "3: Jonathan Dolese (Mirrorcell)" :
+  slider20 == 4  ? "4: Buster Odeholm (thrown / Northlane)" :
+  slider20 == 5  ? "5: Lewis Johns & Grant Berry" :
+  slider20 == 6  ? "6: Kel Pinchin (Split Chain)" :
+  slider20 == 7  ? "7: Dan Lancaster (Don Broco)" :
+  slider20 == 8  ? "8: Erik Bickerstaffe (Static Dress)" :
+  slider20 == 9  ? "9: Sam Guaiana (Shyeye)" :
+  slider20 == 10 ? "10: Zach Tuch (Heavenward)" :
+  slider20 == 11 ? "11: Forrester Savell (City Of Souls)" :
+  slider20 == 12 ? "12: Leon Schmidt (SUNBORN)" :
+  slider20 == 13 ? "13: Ermin Hamidovic (Benchmark)" :
+  slider20 == 14 ? "14: Will Putney (Fit For An Autopsy)" :
+  slider20 == 15 ? "15: George Lever (Loathe / Sleep Token)" :
+  slider20 == 16 ? "16: Sam Bassal (Thornhill)" :
+  slider20 == 17 ? "17: Henrik Udd (Architects)" :
+  slider20 == 18 ? "18: Dan Braunstein (Spiritbox)" :
+  slider20 == 19 ? "19: Zakk Cervini (Bad Omens)" :
+  slider20 == 20 ? "20: Jens Bogren (Fascination)" :
+  slider20 == 21 ? "21: Adam Nolly (Periphery)" :
+  slider20 == 22 ? "22: Acle Kahney (TesseracT)" :
+  slider20 == 23 ? "23: Adam Cichocki (heaving.)" :
+  slider20 == 24 ? "24: Manuel Renner (SENNA - Out Of The Blue)" :
+  slider20 == 25 ? "25: Matt Thomas (Ashtone - Live Room Authority)" :
+  "26: Mark Williamson (Sugarhouse - Live Cohesion)"
 );
 p_font_sz = 11.5;
 gfx_setfont(1, "Consolas", p_font_sz, 'b');
 gfx_measurestr(p_name, pnw, pnh);
-while (pnw > p_box_w - 52 && p_font_sz > 8.0) (
+while (pnw > p_box_w - 52 && p_font_sz > 10.0) (
   p_font_sz -= 0.5;
   gfx_setfont(1, "Consolas", p_font_sz, 'b');
   gfx_measurestr(p_name, pnw, pnh);
@@ -1063,7 +1152,7 @@ g_bridge_active = (gmem[100] == 1);
 g_sec_live = g_bridge_active ? gmem[101] : 0;
 g_cur_rgn_live = g_bridge_active ? gmem[104] : 0;
 
-sync_w = 145; sync_x = p_box_x + p_box_w + 12; sync_y = hdr_y + 7;
+sync_w = 134; sync_x = p_box_x + p_box_w + 8; sync_y = hdr_y + 7;
 (g_sec_live == 4 || g_sec_live == 3) ? (
   gfx_r = 0.04; gfx_g = 0.22; gfx_b = 0.12; gfx_rect(sync_x, sync_y, sync_w, 28);
   gfx_r = 0.06; gfx_g = 0.95; gfx_b = 0.55; gfx_rect(sync_x, sync_y, sync_w, 28, 0);
@@ -1095,17 +1184,38 @@ while (rsw > sync_w - 14 && r_font_sz > 8.0) (
 );
 gfx_x = sync_x + (sync_w - rsw) * 0.5; gfx_y = sync_y + 7; gfx_drawstr(r_str);
 
-chn_w = 120; chn_x = sync_x + sync_w + 10; chn_y = hdr_y + 7;
-gfx_r = 0.03; gfx_g = 0.10; gfx_b = 0.14; gfx_rect(chn_x, chn_y, chn_w, 28);
-gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85; gfx_rect(chn_x, chn_y, chn_w, 28, 0);
-gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.00; gfx_g = 0.92; gfx_b = 0.85;
-gfx_x = chn_x + 10; gfx_y = chn_y + 7; gfx_drawstr("CHAIN: FINISHER");
+// BAKED STEM FORENSIC PRE-MIX TOGGLE BUTTON + CEIL BADGE (Fits cleanly inside 1080px header)
+bf_btn_w = 136; bf_btn_h = 28;
+bf_btn_x = sync_x + sync_w + 6; bf_btn_y = hdr_y + 7;
 
-ceil_w = 95; ceil_x = chn_x + chn_w + 10; ceil_y = hdr_y + 7;
+ceil_w = 78; ceil_x = bf_btn_x + bf_btn_w + 6; ceil_y = hdr_y + 7;
 gfx_r = 0.05; gfx_g = 0.07; gfx_b = 0.09; gfx_rect(ceil_x, ceil_y, ceil_w, 28);
 gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50; gfx_rect(ceil_x, ceil_y, ceil_w, 28, 0);
-gfx_setfont(1, "Orbitron", 11, 'b'); gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
-gfx_x = ceil_x + 12; gfx_y = ceil_y + 7; gfx_drawstr("CEIL: FREE");
+gfx_setfont(1, "Orbitron", 9.5, 'b'); gfx_r = 0.06; gfx_g = 0.88; gfx_b = 0.50;
+gfx_x = ceil_x + 7; gfx_y = ceil_y + 8; gfx_drawstr("CEIL: FREE");
+is_bass_baked = (slider21 == 5);
+bf_hov = (mouse_x >= bf_btn_x && mouse_x <= bf_btn_x + bf_btn_w && mouse_y >= bf_btn_y && mouse_y <= bf_btn_y + bf_btn_h);
+gfx_r = is_bass_baked ? 0.85 : (bf_hov ? 0.15 : 0.04);
+gfx_g = is_bass_baked ? 0.68 : (bf_hov ? 0.20 : 0.08);
+gfx_b = is_bass_baked ? 0.20 : (bf_hov ? 0.30 : 0.12);
+gfx_rect(bf_btn_x, bf_btn_y, bf_btn_w, bf_btn_h);
+gfx_r = is_bass_baked ? 1.00 : 0.35;
+gfx_g = is_bass_baked ? 0.90 : 0.45;
+gfx_b = is_bass_baked ? 0.30 : 0.60;
+gfx_rect(bf_btn_x, bf_btn_y, bf_btn_w, bf_btn_h, 0);
+gfx_setfont(1, "Orbitron", 10, 'b');
+gfx_r = is_bass_baked ? 0.05 : (bf_hov ? 1.00 : 0.85);
+gfx_g = is_bass_baked ? 0.05 : (bf_hov ? 0.95 : 0.85);
+gfx_b = is_bass_baked ? 0.05 : (bf_hov ? 0.95 : 0.90);
+b_btn_lbl = is_bass_baked ? "[ FORENSIC BAKED ]" : "FORENSIC: BAKED BASS";
+gfx_measurestr(b_btn_lbl, bflw, bflh);
+gfx_x = bf_btn_x + (bf_btn_w - bflw) * 0.5; gfx_y = bf_btn_y + (bf_btn_h - bflh) * 0.5;
+gfx_drawstr(b_btn_lbl);
+mouse_clicked && bf_hov ? (
+  slider21 = (slider21 == 5 ? 0 : 5);
+  prev_profile = -1;
+  slider_automate();
+);
 
 // =============================================================================
 // TOP TELEMETRY CARDS (4 CARDS ACROSS SCREEN)
@@ -1340,20 +1450,20 @@ slider1 == 0 ? (
 
     bi == 0 ? (
       acc_r = 0.06; acc_g = 0.88; acc_b = 0.50;
-      ch_title = "1. BASS BUS"; ch_trk = "TRK 66"; ch_role = "Master Sum / Finisher";
+      ch_title = "1. BASS BUS"; ch_trk = "TRK 43 // BASSGTR"; ch_role = "Master Sum & Sub Lock";
       t_val = slider30; b_act = min(1.0, max(0.0, (cur_out_true_peak + 40.0) / 40.0));
     ) : bi == 1 ? (
       acc_r = 0.00; acc_g = 0.92; acc_b = 0.85;
-      ch_title = "2. DI TRACK"; ch_trk = "TRK 67"; ch_role = "Clean Foundation DI";
+      ch_title = "2. MAIN BASS"; ch_trk = "TRK 45 // COLOUR_BASS"; ch_role = "Printed Amp + BassRider";
       t_val = slider31; b_act = min(1.0, max(0.0, (sub_energy_db + 40.0) / 40.0));
     ) : bi == 2 ? (
       acc_r = 0.40; acc_g = 1.00; acc_b = 0.70;
-      ch_title = "3. EUROBASS / MIDI"; ch_trk = "TRK 68"; ch_role = "Kontakt 8 + Parallax X";
+      ch_title = "3. HARMONIC HIT"; ch_trk = "TRK 44 // ACCENT"; ch_role = "Harmonic Swell & Bite";
       t_val = slider32; b_act = min(1.0, max(0.0, (cur_out_true_peak + 42.0) / 40.0));
     ) : (
       acc_r = 0.98; acc_g = 0.35; acc_b = 0.15;
-      ch_title = "4. MIC / AUX"; ch_trk = "TRK 69"; ch_role = "Parallel Dirt / Room";
-      t_val = slider33; b_act = 0.0;
+      ch_title = "4. GRIT / SUB"; ch_trk = "3-WAY INTERNAL"; ch_role = "B7K / Tube Saturation";
+      t_val = slider33; b_act = min(1.0, max(0.0, (cur_out_true_peak + 44.0) / 40.0));
     );
 
     // Accent header ribbon
@@ -2356,16 +2466,16 @@ slider1 == 6 ? (
 
   gfx_setfont(1, "Orbitron", 16, 'b'); gfx_r = 0.15; gfx_g = 0.96; gfx_b = 0.60;
   gfx_x = disp_x + 20; gfx_y = p_y + 14;
-  gfx_drawstr("PRODUCER BASS SIGNATURE MATRIX (19 INDUSTRY REFERENCE PROFILES)");
+  gfx_drawstr("PRODUCER BASS SIGNATURE MATRIX (27 INDUSTRY REFERENCE PROFILES)");
 
-  cols = 4;
-  tile_pw = floor((p_w - 40) / cols);
   tile_ph = 36;
   pi = 0;
-  loop(19,
+  cols = 9;
+  tile_pw = floor((p_w - 72) / cols);
+  loop(27,
     row = floor(pi / cols);
     col = pi % cols;
-    px = disp_x + 16 + col * (tile_pw + 8);
+    px = disp_x + 16 + col * (tile_pw + 6);
     py = p_y + 44 + row * (tile_ph + 5);
 
     is_sel = (slider20 == pi);
@@ -2381,31 +2491,39 @@ slider1 == 6 ? (
     gfx_b = is_sel ? 0.50 : 0.32;
     gfx_rect(px, py, tile_pw, tile_ph, 0);
 
-    gfx_setfont(1, "Orbitron", 12, 'b');
+    gfx_setfont(1, "Orbitron", 10.5, 'b');
     gfx_r = is_sel ? 0.15 : 0.80;
     gfx_g = is_sel ? 0.96 : 0.90;
     gfx_b = is_sel ? 0.60 : 0.92;
 
     p_lbl = (
-      pi == 0  ? "0: Default Neutral Wire" :
-      pi == 1  ? "1: Lance Prenc (Alpha Wolf)" :
-      pi == 2  ? "2: Scott Seigel (DIESECT)" :
-      pi == 3  ? "3: Jonathan Dolese (Cane Hill)" :
-      pi == 4  ? "4: Buster Odeholm (thrown)" :
-      pi == 5  ? "5: Kel Pinchin (Currents)" :
-      pi == 6  ? "6: Sam Guaiana (Silverstein)" :
-      pi == 7  ? "7: Forrester Savell (Karnivool)" :
-      pi == 8  ? "8: Jens Bogren (Fascination)" :
-      pi == 9  ? "9: Adam Nolly (Periphery)" :
-      pi == 10 ? "10: Will Putney (FFAA)" :
-      pi == 11 ? "11: George Lever (Sleep Token)" :
-      pi == 12 ? "12: Sam Bassal (Thornhill)" :
-      pi == 13 ? "13: Henrik Udd (Architects)" :
-      pi == 14 ? "14: Joey Sturgis (Asking Alex)" :
-      pi == 15 ? "15: Dan Braunstein (Spiritbox)" :
-      pi == 16 ? "16: Zakk Cervini (Blink-182)" :
-      pi == 17 ? "17: Acle Kahney (TesseracT)" :
-      "18: heaving. (carsick)"
+      pi == 0  ? "0: Neutral Wire" :
+      pi == 1  ? "1: Prenc" :
+      pi == 2  ? "2: Seigel" :
+      pi == 3  ? "3: Dolese" :
+      pi == 4  ? "4: Odeholm" :
+      pi == 5  ? "5: Lewis Johns" :
+      pi == 6  ? "6: Pinchin" :
+      pi == 7  ? "7: Lancaster" :
+      pi == 8  ? "8: Bickerstaffe" :
+      pi == 9  ? "9: Guaiana" :
+      pi == 10 ? "10: Tuch" :
+      pi == 11 ? "11: Savell" :
+      pi == 12 ? "12: Schmidt" :
+      pi == 13 ? "13: Hamidovic" :
+      pi == 14 ? "14: Putney" :
+      pi == 15 ? "15: Lever" :
+      pi == 16 ? "16: Bassal" :
+      pi == 17 ? "17: Udd" :
+      pi == 18 ? "18: Braunstein" :
+      pi == 19 ? "19: Cervini" :
+      pi == 20 ? "20: Bogren" :
+      pi == 21 ? "21: Nolly" :
+      pi == 22 ? "22: Kahney" :
+      pi == 23 ? "23: Cichocki" :
+      pi == 24 ? "24: Renner" :
+      pi == 25 ? "25: Thomas" :
+      "26: Williamson"
     );
 
     gfx_x = px + 10; gfx_y = py + 10;
@@ -2430,7 +2548,7 @@ slider1 == 6 ? (
 
   gfx_setfont(1, "Consolas", 14, 'b'); gfx_r = 0.85; gfx_g = 0.94; gfx_b = 0.92;
   p_idx = slider20;
-  p_idx == 15 ? (
+  p_idx == 18 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("DAN BRAUNSTEIN BLUEPRINT: 92Hz Sub-Mono Anchor, -2.5dB dynamic kick ducking (22ms att / 60ms rel),");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
@@ -2440,11 +2558,26 @@ slider1 == 6 ? (
     gfx_drawstr("BUSTER ODEHOLM BLUEPRINT: 85Hz Sub-Mono, -3.2dB deep dynamic sidechain duck, heavy tube distortion");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
     gfx_drawstr("with +2.2dB low-shelf punch at 55Hz creating the crushing, thunderous 'thrown / Vildhjarta' thall foundation.");
-  ) : p_idx == 9 ? (
+  ) : p_idx == 21 ? (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("ADAM 'NOLLY' GETGOOD BLUEPRINT: Multi-scale Dingwall signature tone. High-headroom 90Hz clean DI sub,");
     gfx_x = disp_x + 28; gfx_y = bk_y + 58;
     gfx_drawstr("steep mid grit (90Hz-1.2kHz) with +3.2dB pick bite at 2.8kHz and opto leveling glue.");
+  ) : p_idx == 24 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("MANUEL RENNER BLUEPRINT (SENNA - OUT OF THE BLUE): 105Hz Sub-Mono Anchor, -3.6dB Kick Duck + 45% Trackspacer,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("-4.5dB 250Hz mud scoop, -1.6dB sub-trim, +1.8dB clank bite, and Smash & Grab hybrid leveling for printed stems.");
+  ) : p_idx == 25 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("MATT THOMAS BLUEPRINT (ASHTONE AUDIO): 100Hz Sub-Mono Anchor, -3.0dB Kick Duck, 100Hz Low-B Lock,");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("-4.2dB 680Hz basketball scoop, -12dBFS sweet spot, organic natural DI bite, and live room authority.");
+  ) : p_idx == 26 ? (
+    gfx_x = disp_x + 28; gfx_y = bk_y + 36;
+    gfx_drawstr("MARK WILLIAMSON BLUEPRINT (SUGARHOUSE): <95Hz Mono Sub Anchor, 25% Opto Leveling (-12.5dBFS sweet spot),");
+    gfx_x = disp_x + 28; gfx_y = bk_y + 58;
+    gfx_drawstr("7.4kHz velvet LPF (-3.8dB harshness taming), -8% sustain clamp, and immersive live-studio cohesion.");
   ) : (
     gfx_x = disp_x + 28; gfx_y = bk_y + 36;
     gfx_drawstr("UNIVERSAL SUB-ANCHOR BLUEPRINT: Strict 90Hz mono collapse, -2.2dB dynamic kick pocket ducking,");

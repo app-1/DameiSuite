@@ -1,0 +1,946 @@
+desc:Damei Bass Rider Engine (Note-Synchronized Bass Fader Rider & Printed-Stem Leveler) [Damei Suite]
+// =============================================================================
+// DAMEI SUITE // BASS RIDER ENGINE v2.5
+// Native Recreation of Waves Bass Rider + Printed-Stem Sub/Note Consistency Engine
+// Tracks note-by-note RMS fundamental energy (30Hz-400Hz) & pluck onsets to ride
+// a phase-linear fader (-15dB to +15dB) without squashing transients or raising noise.
+// Fraternal Twin: Darkglass Emerald & Reinforced Hydraulic Chassis Visual Engine
+// =============================================================================
+
+slider1:-15.5<-30.0,-3.0,0.5>-Target Sweet Spot (dBFS)
+slider2:6.5<0.0,15.0,0.5>-Max Gain Boost (+dB)
+slider3:-10.0<-18.0,0.0,0.5>-Max Gain Cut (-dB)
+slider4:-46.0<-70.0,-20.0,0.5>-Note Sensitivity Threshold (dBFS)
+slider5:35.0<5.0,150.0,1.0>-Rider Tracking Speed (ms)
+slider6:65.0<10.0,300.0,5.0>-Note Sustain Hold (ms)
+slider7:160.0<30.0,800.0,5.0>-Phrase Release Recovery (ms)
+slider8:240.0<80.0,600.0,5.0>-Detector High-Cut Fundamental (Hz)
+slider9:55.0<0.0,100.0,1.0>-Transient Pluck Guard (%)
+slider10:-1.2<-6.0,6.0,0.1>-Dynamic Sub Weight Tilt (dB)
+slider11:-1.0<-12.0,0.0,0.1>-Spike Catcher Ceiling (dBFS)
+slider12:0.0<-18.0,18.0,0.1>-Input Gain (dB)
+slider13:0.0<-18.0,18.0,0.1>-Output Trim (dB)
+slider14:100.0<0.0,100.0,1.0>-Dry / Wet Mix (%)
+slider15:0<0,2,1{Rider Output (Normal),Detector Fundamental Only,Gain Ride Delta}>-Audition Mode
+slider16:24<0,26,1{0: Default Neutral,1: Lance Prenc,2: Scott Seigel,3: Jonathan Dolese,4: Buster Odeholm,5: Lewis Johns,6: Kel Pinchin,7: Dan Lancaster,8: Erik Bickerstaffe,9: Sam Guaiana,10: Zach Tuch,11: Forrester Savell,12: Leon Schmidt,13: Ermin Hamidovic,14: Will Putney,15: George Lever,16: Sam Bassal,17: Henrik Udd,18: Dan Braunstein,19: Zakk Cervini,20: Jens Bogren,21: Adam Nolly Getgood,22: Acle Kahney,23: Adam Cichocki,24: Manuel Renner,25: Matt Thomas,26: Mark Williamson}>-Producer DNA Preset
+slider17:0<0,3,1{Printed Amp/Cab Stem (Balanced),Clean Bass DI (Fast Note Ride),Heavy Grit Stem (Tight Corridor),Harmonic Hit / Swell Leveler}>-Source Stem Mode
+slider18:0<0,1,1{Normal (0 deg),Inverted (180 deg)}>-Phase Polarity
+
+in_pin:Left Input
+in_pin:Right Input
+out_pin:Left Output
+out_pin:Right Output
+
+options:gmem=DameiMixMetering,no_meter
+
+@init
+  ext_noinit = 1;
+
+  SCOPE_SIZE = 240;
+  SCOPE_IN   = 1024;
+  SCOPE_OUT  = 1536;
+  SCOPE_RIDE = 2048;
+  scope_ptr  = 0;
+  scope_sub  = 0;
+
+  last_preset = -1;
+  last_mode   = -1;
+  last_gmem_p = -1;
+  prev_mouse_cap = 0;
+  last_click_t = 0;
+  drag_knob = 0;
+  drag_start_y = 0;
+  drag_start_val = 0;
+
+  rider_db = 0.0;
+  rider_lin = 1.0;
+  env_rms_lin = 0.0001;
+  env_fast = 0.0;
+  env_slow = 0.0;
+  hold_cnt = 0;
+  pluck_cnt = 0;
+  sifam_in_db = -60.0;
+  sifam_out_db = -60.0;
+  consistency_pct = 96.2;
+
+  function clamp(x, lo, hi) (
+    x < lo ? lo : (x > hi ? hi : x);
+  );
+
+  function lin2db(lin) (
+    lin > 0.000001 ? 20.0 * log10(lin) : -120.0;
+  );
+
+  function db2lin(dbv) (
+    10.0^(dbv / 20.0);
+  );
+
+  function set_c(hex) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = 1.0;
+  );
+
+  function set_ca(hex, a) (
+    gfx_r = ((hex >> 16) & 0xff) / 255.0;
+    gfx_g = ((hex >> 8) & 0xff) / 255.0;
+    gfx_b = (hex & 0xff) / 255.0;
+    gfx_a = a;
+  );
+
+  function get_producer_name(p, out_s) (
+    p == 0  ? strcpy(out_s, "0: Default Neutral Wire (Transparent)") :
+    p == 1  ? strcpy(out_s, "1: Lance Prenc (Alpha Wolf / Polaris)") :
+    p == 2  ? strcpy(out_s, "2: Scott Seigel (DIESECT)") :
+    p == 3  ? strcpy(out_s, "3: Jonathan Dolese (Mirrorcell)") :
+    p == 4  ? strcpy(out_s, "4: Buster Odeholm (thrown / Northlane)") :
+    p == 5  ? strcpy(out_s, "5: Lewis Johns & Grant Berry (Love Is Noise)") :
+    p == 6  ? strcpy(out_s, "6: Kel Pinchin (Split Chain)") :
+    p == 7  ? strcpy(out_s, "7: Dan Lancaster (Don Broco)") :
+    p == 8  ? strcpy(out_s, "8: Erik Bickerstaffe (Static Dress)") :
+    p == 9  ? strcpy(out_s, "9: Sam Guaiana (Shyeye)") :
+    p == 10 ? strcpy(out_s, "10: Zach Tuch (Heavenward)") :
+    p == 11 ? strcpy(out_s, "11: Forrester Savell (City Of Souls)") :
+    p == 12 ? strcpy(out_s, "12: Leon Schmidt (SUNBORN)") :
+    p == 13 ? strcpy(out_s, "13: Ermin Hamidovic (Systematic Benchmark)") :
+    p == 14 ? strcpy(out_s, "14: Will Putney (Fit For An Autopsy)") :
+    p == 15 ? strcpy(out_s, "15: George Lever (Loathe / Sleep Token)") :
+    p == 16 ? strcpy(out_s, "16: Sam Bassal (Thornhill)") :
+    p == 17 ? strcpy(out_s, "17: Henrik Udd (Architects)") :
+    p == 18 ? strcpy(out_s, "18: Dan Braunstein (Spiritbox)") :
+    p == 19 ? strcpy(out_s, "19: Zakk Cervini (Bad Omens)") :
+    p == 20 ? strcpy(out_s, "20: Jens Bogren (Fascination Street)") :
+    p == 21 ? strcpy(out_s, "21: Adam Nolly Getgood (Periphery / GGD)") :
+    p == 22 ? strcpy(out_s, "22: Acle Kahney (TesseracT)") :
+    p == 23 ? strcpy(out_s, "23: Adam Cichocki (heaving.)") :
+    p == 24 ? strcpy(out_s, "24: Manuel Renner (SENNA - Out Of The Blue)") :
+    p == 25 ? strcpy(out_s, "25: Matt Thomas (Ashtone - Live Room Authority)") :
+              strcpy(out_s, "26: Mark Williamson (Sugarhouse - Live Cohesion)");
+  );
+
+  function update_coeffs() local(w0, cosw, sinw, alpha, a0, A) (
+    // 1. Detector High-Pass (30 Hz sub-rumble filter)
+    w0 = 2.0 * $pi * 30.0 / srate;
+    cosw = cos(w0); sinw = sin(w0); alpha = sinw / (2.0 * 0.7071);
+    a0 = 1.0 + alpha;
+    det_hp_b0 = ((1.0 + cosw) * 0.5) / a0;
+    det_hp_b1 = -(1.0 + cosw) / a0;
+    det_hp_b2 = det_hp_b0;
+    det_hp_a1 = (-2.0 * cosw) / a0;
+    det_hp_a2 = (1.0 - alpha) / a0;
+
+    // 2. Detector Fundamental Low-Pass (slider8: 80..600 Hz)
+    w0 = 2.0 * $pi * clamp(slider8, 80.0, 600.0) / srate;
+    cosw = cos(w0); sinw = sin(w0); alpha = sinw / (2.0 * 0.7071);
+    a0 = 1.0 + alpha;
+    det_lp_b0 = ((1.0 - cosw) * 0.5) / a0;
+    det_lp_b1 = (1.0 - cosw) / a0;
+    det_lp_b2 = det_lp_b0;
+    det_lp_a1 = (-2.0 * cosw) / a0;
+    det_lp_a2 = (1.0 - alpha) / a0;
+
+    // 3. Dynamic Sub Weight Low-Shelf at 85 Hz (slider10)
+    A = 10.0^(slider10 / 40.0);
+    w0 = 2.0 * $pi * 85.0 / srate;
+    cosw = cos(w0); sinw = sin(w0);
+    alpha = sinw / 2.0 * sqrt((A + 1.0 / A) * (1.0 / 0.7071 - 1.0) + 2.0);
+    a0 = (A + 1.0) + (A - 1.0) * cosw + 2.0 * sqrt(A) * alpha;
+    sub_b0 = (A * ((A + 1.0) - (A - 1.0) * cosw + 2.0 * sqrt(A) * alpha)) / a0;
+    sub_b1 = (2.0 * A * ((A - 1.0) - (A + 1.0) * cosw)) / a0;
+    sub_b2 = (A * ((A + 1.0) - (A - 1.0) * cosw - 2.0 * sqrt(A) * alpha)) / a0;
+    sub_a1 = (-2.0 * ((A - 1.0) + (A + 1.0) * cosw)) / a0;
+    sub_a2 = ((A + 1.0) + (A - 1.0) * cosw - 2.0 * sqrt(A) * alpha) / a0;
+
+    in_gain  = db2lin(slider12);
+    out_gain = db2lin(slider13);
+    wet_mix  = slider14 / 100.0;
+    ceil_lin = db2lin(slider11);
+    pol_sign = slider18 ? -1.0 : 1.0;
+
+    // Rider Ballistics
+    ride_att_c = exp(-1.0 / max(1.0, (slider5 * 0.001) * srate));
+    ride_rel_c = exp(-1.0 / max(1.0, (slider7 * 0.001) * srate));
+    hold_spl   = floor((slider6 * 0.001) * srate);
+    pluck_spl  = floor((0.002 + (slider9 / 100.0) * 0.012) * srate); // 2ms..14ms transient guard
+  );
+
+  function apply_source_mode(m) (
+    m == 0 ? ( // Printed Amp/Cab Stem (Balanced)
+      slider1 = -15.5; slider2 = 6.5; slider3 = -10.0; slider4 = -46.0;
+      slider5 = 35.0; slider6 = 65.0; slider7 = 160.0; slider8 = 240.0;
+      slider9 = 55.0; slider10 = -1.2; slider11 = -1.0;
+    ) : m == 1 ? ( // Clean Bass DI (Fast Note Ride)
+      slider1 = -15.0; slider2 = 11.0; slider3 = -12.0; slider4 = -50.0;
+      slider5 = 22.0; slider6 = 50.0; slider7 = 120.0; slider8 = 280.0;
+      slider9 = 65.0; slider10 = 2.0; slider11 = -1.0;
+    ) : m == 2 ? ( // Heavy Grit Stem (Tight Corridor)
+      slider1 = -13.5; slider2 = 7.5; slider3 = -8.5; slider4 = -42.0;
+      slider5 = 42.0; slider6 = 80.0; slider7 = 190.0; slider8 = 210.0;
+      slider9 = 45.0; slider10 = 1.0; slider11 = -1.2;
+    ) : ( // Harmonic Hit / Swell Leveler
+      slider1 = -16.0; slider2 = 8.0; slider3 = -8.0; slider4 = -48.0;
+      slider5 = 55.0; slider6 = 110.0; slider7 = 260.0; slider8 = 380.0;
+      slider9 = 70.0; slider10 = 0.5; slider11 = -1.5;
+    );
+    update_coeffs();
+  );
+
+  function apply_producer_preset(p) (
+    p == 24 ? ( // Manuel Renner (SENNA - Out Of The Blue)
+      slider1 = -15.5; slider2 = 6.5; slider3 = -10.0; slider4 = -46.0;
+      slider5 = 34.0; slider6 = 65.0; slider7 = 155.0; slider8 = 240.0;
+      slider9 = 58.0; slider10 = -1.2;
+    ) : p == 25 ? ( // Matt Thomas (Ashtone - Live Room Authority)
+      slider1 = -12.0; slider2 = 7.0; slider3 = -8.5; slider4 = -45.0;
+      slider5 = 30.0; slider6 = 60.0; slider7 = 150.0; slider8 = 220.0;
+      slider9 = 62.0; slider10 = 0.5;
+    ) : p == 26 ? ( // Mark Williamson (Sugarhouse - Live Cohesion)
+      slider1 = -12.5; slider2 = 6.0; slider3 = -7.5; slider4 = -44.0;
+      slider5 = 45.0; slider6 = 80.0; slider7 = 180.0; slider8 = 200.0;
+      slider9 = 50.0; slider10 = 0.2;
+    ) : p == 4 ? ( // Buster Odeholm (Monolithic Sub Corridor)
+      slider1 = -13.0; slider2 = 10.5; slider3 = -11.0; slider4 = -45.0;
+      slider5 = 28.0; slider6 = 75.0; slider7 = 140.0; slider8 = 210.0;
+      slider9 = 50.0; slider10 = 2.4;
+    ) : p == 15 ? ( // George Lever (Warm Dynamic Sub)
+      slider1 = -14.5; slider2 = 8.0; slider3 = -9.0; slider4 = -48.0;
+      slider5 = 40.0; slider6 = 80.0; slider7 = 185.0; slider8 = 250.0;
+      slider9 = 62.0; slider10 = 1.8;
+    ) : p == 21 ? ( // Adam Nolly Getgood (Dingwall Note Authority)
+      slider1 = -13.5; slider2 = 9.5; slider3 = -10.5; slider4 = -46.0;
+      slider5 = 30.0; slider6 = 60.0; slider7 = 145.0; slider8 = 260.0;
+      slider9 = 64.0; slider10 = 1.5;
+    );
+    update_coeffs();
+  );
+
+  function draw_darkglass_panel(px, py, pw, ph, title_s, tag_s) local(tw, th) (
+    set_c(0x070c0e); gfx_rect(px, py, pw, ph);
+    set_c(0x14523a); gfx_rect(px, py, pw, ph, 0);
+    set_c(0x0a1616); gfx_rect(px + 1, py + 1, pw - 2, 26);
+    set_c(0x143c32); gfx_line(px, py + 27, px + pw, py + 27);
+
+    // Darkglass Emerald 0x0fe080 Corner Brackets
+    set_c(0x0fe080);
+    gfx_line(px, py, px + 8, py); gfx_line(px, py, px, py + 8);
+    gfx_line(px + pw - 1, py, px + pw - 9, py); gfx_line(px + pw - 1, py, px + pw - 1, py + 8);
+    gfx_line(px, py + ph - 1, px + 8, py + ph - 1); gfx_line(px, py + ph - 1, px, py + ph - 9);
+    gfx_line(px + pw - 1, py + ph - 1, px + pw - 9, py + ph - 1); gfx_line(px + pw - 1, py + ph - 1, px + pw - 1, py + ph - 9);
+
+    gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0x26f599);
+    gfx_x = px + 12; gfx_y = py + 7; gfx_drawstr(title_s);
+
+    strlen(tag_s) > 0 ? (
+      gfx_setfont(2, "Consolas", 10, 'b'); set_c(0x00ebd9);
+      gfx_measurestr(tag_s, tw, th);
+      gfx_x = px + pw - tw - 12; gfx_y = py + 8; gfx_drawstr(tag_s);
+    );
+  );
+
+  function draw_darkglass_knob(id, kx, ky, kr, val, vmin, vmax, step_v, lbl_s, fmt_s, col_arc) local(norm, a0, a1, ang, i, st, r1, r2, tw, th, hov) (
+    norm = clamp((val - vmin) / max(0.00001, vmax - vmin), 0.0, 1.0);
+    hov = (mouse_x >= kx - kr - 6 && mouse_x <= kx + kr + 6 && mouse_y >= ky - kr - 6 && mouse_y <= ky + kr + 20);
+    (mouse_clicked && hov && drag_knob == 0) ? (
+      drag_knob = id; drag_start_y = mouse_y; drag_start_val = val;
+    );
+    (drag_knob == id && mouse_down) ? (
+      val = clamp(drag_start_val + ((drag_start_y - mouse_y) / 140.0) * (vmax - vmin), vmin, vmax);
+      step_v > 0 ? (val = floor(val / step_v + 0.5) * step_v;);
+      slider(id) = val;
+      sliderchange(slider(id));
+      update_coeffs();
+    );
+    (hov && m_wheel != 0) ? (
+      step_v > 0 ? (val += (m_wheel > 0 ? step_v : -step_v);) : (val += (m_wheel > 0 ? (vmax - vmin)*0.02 : -(vmax - vmin)*0.02););
+      val = clamp(val, vmin, vmax);
+      step_v > 0 ? (val = floor(val / step_v + 0.5) * step_v;);
+      slider(id) = val;
+      sliderchange(slider(id));
+      update_coeffs();
+    );
+
+    // Outer Well Bezel
+    set_c(0x04080a); gfx_circle(kx, ky, kr + 3, 1);
+    set_c(0x143c32); gfx_circle(kx, ky, kr + 3, 0);
+
+    // Full 270 degree background guide arc
+    a0 = -135.0 * $pi / 180.0; a1 = 135.0 * $pi / 180.0;
+    set_c(0x0e2820);
+    st = 24; i = 0;
+    loop(st,
+      r1 = a0 + (i / st) * (a1 - a0);
+      r2 = a0 + ((i + 1) / st) * (a1 - a0);
+      gfx_line(kx + sin(r1)*(kr + 1), ky - cos(r1)*(kr + 1), kx + sin(r2)*(kr + 1), ky - cos(r2)*(kr + 1));
+      i += 1;
+    );
+
+    // Illuminated Active Arc
+    ang = a0 + norm * (a1 - a0);
+    set_c(col_arc);
+    st = max(1, floor(norm * 24.0 + 0.5)); i = 0;
+    loop(st,
+      r1 = a0 + (i / 24.0) * (a1 - a0);
+      r2 = a0 + (min(norm, (i + 1) / 24.0)) * (a1 - a0);
+      gfx_line(kx + sin(r1)*(kr + 1), ky - cos(r1)*(kr + 1), kx + sin(r2)*(kr + 1), ky - cos(r2)*(kr + 1));
+      gfx_line(kx + sin(r1)*kr, ky - cos(r1)*kr, kx + sin(r2)*kr, ky - cos(r2)*kr);
+      i += 1;
+    );
+
+    // Center Obsidian Cap
+    set_c(0x0a1418); gfx_circle(kx, ky, kr - 4, 1);
+    set_c(hov ? 0x26f599 : 0x165240); gfx_circle(kx, ky, kr - 4, 0);
+
+    // Precision Pointer Line
+    set_c(col_arc);
+    gfx_line(kx + sin(ang)*(kr - 11), ky - cos(ang)*(kr - 11), kx + sin(ang)*(kr - 4), ky - cos(ang)*(kr - 4));
+
+    // Value inside Cap
+    gfx_setfont(1, "Orbitron", kr > 26 ? 10.5 : 9.5, 'b'); set_c(0xedf1f7);
+    gfx_measurestr(fmt_s, tw, th);
+    gfx_x = kx - tw * 0.5; gfx_y = ky - th * 0.5; gfx_drawstr(fmt_s);
+
+    // Parameter Name below Knob
+    gfx_setfont(2, "Consolas", 10, 'b'); set_c(hov ? 0x26f599 : 0x8aa8a0);
+    gfx_measurestr(lbl_s, tw, th);
+    gfx_x = kx - tw * 0.5; gfx_y = ky + kr + 7; gfx_drawstr(lbl_s);
+    val;
+  );
+
+  update_coeffs();
+
+@slider
+  slider17 != last_mode ? (
+    last_mode = slider17;
+    apply_source_mode(slider17);
+  );
+  slider16 != last_preset ? (
+    last_preset = slider16;
+    apply_producer_preset(slider16);
+  );
+  update_coeffs();
+
+@block
+  // Sync Producer Preset from Bass Bus Engine (gmem[860] == 1, gmem[861] = preset) on change only
+  (gmem[860] == 1) ? (
+    bp = floor(gmem[861] + 0.5);
+    (bp >= 0 && bp <= 26 && bp != last_gmem_p) ? (
+      last_gmem_p = bp;
+      slider16 != bp ? (
+        slider16 = bp;
+        last_preset = bp;
+        apply_producer_preset(bp);
+        sliderchange(slider16);
+      );
+    );
+  );
+
+@sample
+  in_l = spl0 * in_gain * pol_sign;
+  in_r = spl1 * in_gain * pol_sign;
+  mono_in = (in_l + in_r) * 0.5;
+
+  // 1. Fundamental Note Envelope Detector (30 Hz .. slider8 Hz)
+  d_hp = det_hp_b0 * mono_in + det_hp_b1 * det_hp_x1 + det_hp_b2 * det_hp_x2 - det_hp_a1 * det_hp_y1 - det_hp_a2 * det_hp_y2;
+  det_hp_x2 = det_hp_x1; det_hp_x1 = mono_in; det_hp_y2 = det_hp_y1; det_hp_y1 = d_hp;
+
+  d_fund = det_lp_b0 * d_hp + det_lp_b1 * det_lp_x1 + det_lp_b2 * det_lp_x2 - det_lp_a1 * det_lp_y1 - det_lp_a2 * det_lp_y2;
+  det_lp_x2 = det_lp_x1; det_lp_x1 = d_hp; det_lp_y2 = det_lp_y1; det_lp_y1 = d_fund;
+
+  abs_f = abs(d_fund);
+  // Dual fast/slow onset detector for pluck transient guard
+  env_fast = abs_f > env_fast ? (env_fast * 0.85 + abs_f * 0.15) : (env_fast * 0.998 + abs_f * 0.002);
+  env_slow = abs_f > env_slow ? (env_slow * 0.992 + abs_f * 0.008) : (env_slow * 0.9995 + abs_f * 0.0005);
+
+  // Detect fresh note pluck / attack onset
+  (env_fast > env_slow * 1.45 && lin2db(env_fast) > slider4) ? (
+    pluck_cnt = pluck_spl;
+    hold_cnt  = hold_spl;
+  );
+
+  // Smooth RMS note level
+  env_rms_lin = sqrt(env_rms_lin * env_rms_lin * 0.9985 + d_fund * d_fund * 0.0015 * 2.0);
+  note_db = lin2db(env_rms_lin);
+
+  // 2. Compute Motorized Rider Fader Target (dB)
+  note_db >= slider4 ? (
+    // Active bass note: calculate dB offset required to hit Target Sweet Spot (slider1)
+    raw_need_db = (slider1 - note_db) * 0.88; // 88% natural musical leveling ratio
+    tgt_ride_db = clamp(raw_need_db, slider3, slider2);
+
+    pluck_cnt > 0 ? (
+      pluck_cnt -= 1;
+      // Hold fader steady during initial pick/finger transient snap
+    ) : (
+      rider_db = rider_db * ride_att_c + tgt_ride_db * (1.0 - ride_att_c);
+    );
+    hold_cnt = hold_spl;
+  ) : hold_cnt > 0 ? (
+    // Sustain hold window between closely spaced notes
+    hold_cnt -= 1;
+  ) : (
+    // Below sensitivity floor (idle/silence): smoothly park fader back to 0.0 dB unity so noise/fret buzz is never boosted
+    rider_db = rider_db * ride_rel_c + 0.0 * (1.0 - ride_rel_c);
+  );
+
+  rider_lin = db2lin(rider_db);
+
+  // 3. Apply Phase-Linear Fader Gain + Printed-Stem Sub Weight Tilt
+  rode_l = in_l * rider_lin;
+  rode_r = in_r * rider_lin;
+
+  sub_out_l = sub_b0 * rode_l + sub_b1 * sub_x1_l + sub_b2 * sub_x2_l - sub_a1 * sub_y1_l - sub_a2 * sub_y2_l;
+  sub_x2_l = sub_x1_l; sub_x1_l = rode_l; sub_y2_l = sub_y1_l; sub_y1_l = sub_out_l;
+
+  sub_out_r = sub_b0 * rode_r + sub_b1 * sub_x1_r + sub_b2 * sub_x2_r - sub_a1 * sub_y1_r - sub_a2 * sub_y2_r;
+  sub_x2_r = sub_x1_r; sub_x1_r = rode_r; sub_y2_r = sub_y1_r; sub_y1_r = sub_out_r;
+
+  // 4. Soft-Knee Spike Catcher Ceiling Protection
+  abs(sub_out_l) > ceil_lin ? (
+    sub_out_l = ceil_lin * (sub_out_l > 0 ? 1 : -1) * (1.0 - exp(-abs(sub_out_l) / ceil_lin));
+  );
+  abs(sub_out_r) > ceil_lin ? (
+    sub_out_r = ceil_lin * (sub_out_r > 0 ? 1 : -1) * (1.0 - exp(-abs(sub_out_r) / ceil_lin));
+  );
+
+  slider15 == 1 ? ( // Audition Detector Fundamental Only
+    wet_l = d_fund * rider_lin; wet_r = d_fund * rider_lin;
+  ) : slider15 == 2 ? ( // Audition Gain Ride Delta
+    wet_l = sub_out_l - in_l; wet_r = sub_out_r - in_r;
+  ) : (
+    wet_l = sub_out_l; wet_r = sub_out_r;
+  );
+
+  spl0 = (in_l * (1.0 - wet_mix) + wet_l * wet_mix) * out_gain;
+  spl1 = (in_r * (1.0 - wet_mix) + wet_r * wet_mix) * out_gain;
+
+  // 5. Telemetry & Scrolling Scope Buffer
+  in_db_inst  = clamp(lin2db(max(0.0001, abs(mono_in))), -60.0, 0.0);
+  out_db_inst = clamp(lin2db(max(0.0001, abs((spl0 + spl1) * 0.5))), -60.0, 0.0);
+  sifam_in_db  += (in_db_inst - sifam_in_db) * 0.004;
+  sifam_out_db += (out_db_inst - sifam_out_db) * 0.004;
+
+  err_db = note_db >= slider4 ? abs((note_db + rider_db) - slider1) : 1.2;
+  consistency_pct = consistency_pct * 0.999 + clamp(100.0 - err_db * 2.2, 85.0, 99.4) * 0.001;
+
+  scope_sub += 1;
+  scope_sub >= 192 ? (
+    scope_sub = 0;
+    SCOPE_IN[scope_ptr]   = clamp((note_db + 60.0) / 60.0, 0.0, 1.0);
+    SCOPE_OUT[scope_ptr]  = clamp((note_db + rider_db + 60.0) / 60.0, 0.0, 1.0);
+    SCOPE_RIDE[scope_ptr] = rider_db; // -15 .. +15 dB
+    scope_ptr = (scope_ptr + 1) % SCOPE_SIZE;
+  );
+
+@gfx 1080 700
+  // =============================================================================
+  // DAMEI BASS RIDER ENGINE // FRATERNAL TWIN: DARKGLASS EMERALD & CHASSIS
+  // =============================================================================
+  mouse_down = (mouse_cap & 1);
+  mouse_clicked = mouse_down && !(prev_mouse_cap & 1);
+  prev_mouse_cap = mouse_cap;
+  !mouse_down ? (drag_knob = 0; drag_fader = 0;);
+  m_wheel = mouse_wheel; mouse_wheel = 0;
+
+  // 1. DEEP OBSIDIAN-EMERALD INDUSTRIAL BACKGROUND
+  set_c(0x050709); gfx_rect(0, 0, gfx_w, gfx_h);
+
+  // REINFORCED HYDRAULIC CHASSIS (FRATERNAL TWIN CORNER CHAMFERS & RIVETS)
+  // Outer Darkglass Emerald Structural Frame (0x0fe080)
+  set_c(0x0fe080);
+  gfx_rect(8, 8, gfx_w - 16, gfx_h - 16, 0);
+
+  // Inner Gunmetal Protective Inset (0x142228)
+  set_c(0x142228);
+  gfx_rect(10, 10, gfx_w - 20, gfx_h - 20, 0);
+
+  // 4 Industrial Corner Reinforcement Gussets (Diagonal Braces)
+  gus_sz = 14;
+  set_c(0x0fe080);
+  gfx_line(8, 8 + gus_sz, 8 + gus_sz, 8);
+  gfx_line(gfx_w - 8 - gus_sz, 8, gfx_w - 8, 8 + gus_sz);
+  gfx_line(8, gfx_h - 8 - gus_sz, 8 + gus_sz, gfx_h - 8);
+  gfx_line(gfx_w - 8 - gus_sz, gfx_h - 8, gfx_w - 8, gfx_h - 8 - gus_sz);
+
+  // 4 Hex-Rivet Seismic Containment Anchors
+  set_c(0x1c2b36);
+  gfx_circle(20, 20, 4, 1); gfx_circle(gfx_w - 20, 20, 4, 1);
+  gfx_circle(20, gfx_h - 20, 4, 1); gfx_circle(gfx_w - 20, gfx_h - 20, 4, 1);
+  set_c(0x0fe080);
+  gfx_circle(20, 20, 4, 0); gfx_circle(gfx_w - 20, 20, 4, 0);
+  gfx_circle(20, gfx_h - 20, 4, 0); gfx_circle(gfx_w - 20, gfx_h - 20, 4, 0);
+
+  // =============================================================================
+  // 2. TOP COMMAND HEADER BAR (Y=16, H=42)
+  // =============================================================================
+  hdr_y = 16; hdr_h = 42;
+  set_c(0x070c10); gfx_rect(14, hdr_y, gfx_w - 28, hdr_h);
+  set_c(0x14523a); gfx_rect(14, hdr_y, gfx_w - 28, hdr_h, 0);
+
+  // Concentric Emerald Subterranean Radar Emblem
+  set_c(0x0fe080);
+  gfx_circle(36, hdr_y + 21, 11, 0);
+  gfx_circle(36, hdr_y + 21, 6, 0);
+  gfx_circle(36, hdr_y + 21, 2, 1);
+
+  // Header Title
+  gfx_setfont(1, "Orbitron", 15, 'b'); set_c(0x26f599);
+  gfx_x = 54; gfx_y = hdr_y + 12;
+  gfx_drawstr("DAMEI // BASS RIDER ENGINE");
+
+  // Center Preset Selector Box
+  p_box_x = 320; p_box_w = 340; p_box_y = hdr_y + 7; p_box_h = 28;
+  set_c(0x04080c); gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h);
+  set_c(0x0f5038); gfx_rect(p_box_x, p_box_y, p_box_w, p_box_h, 0);
+
+  p_btn_w = 24;
+  left_hov = (mouse_x >= p_box_x && mouse_x <= p_box_x + p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h);
+  right_hov = (mouse_x >= p_box_x + p_box_w - p_btn_w && mouse_x <= p_box_x + p_box_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h);
+  set_c(left_hov ? 0x143c32 : 0x081814); gfx_rect(p_box_x, p_box_y, p_btn_w, p_box_h);
+  set_c(right_hov ? 0x143c32 : 0x081814); gfx_rect(p_box_x + p_box_w - p_btn_w, p_box_y, p_btn_w, p_box_h);
+
+  gfx_setfont(1, "Consolas", 14, 'b'); set_c(0x00ebd9);
+  gfx_x = p_box_x + 8; gfx_y = p_box_y + 6; gfx_drawstr("<");
+  gfx_x = p_box_x + p_box_w - 16; gfx_y = p_box_y + 6; gfx_drawstr(">");
+
+  (mouse_clicked && left_hov) ? (
+    slider16 = (slider16 - 1 + 27) % 27; last_preset = slider16; apply_producer_preset(slider16); sliderchange(slider16);
+  );
+  (mouse_clicked && right_hov) ? (
+    slider16 = (slider16 + 1) % 27; last_preset = slider16; apply_producer_preset(slider16); sliderchange(slider16);
+  );
+
+  // Popup Menu on Center Click
+  (mouse_clicked && (mouse_x > p_box_x + p_btn_w && mouse_x < p_box_x + p_box_w - p_btn_w && mouse_y >= p_box_y && mouse_y <= p_box_y + p_box_h)) ? (
+    b_choice = gfx_showmenu("0: Default Neutral Wire (Transparent)|1: Lance Prenc (Alpha Wolf / Polaris)|2: Scott Seigel (DIESECT)|3: Jonathan Dolese (Mirrorcell)|4: Buster Odeholm (thrown / Northlane)|5: Lewis Johns & Grant Berry|6: Kel Pinchin (Split Chain)|7: Dan Lancaster (Don Broco)|8: Erik Bickerstaffe (Static Dress)|9: Sam Guaiana (Shyeye)|10: Zach Tuch (Heavenward)|11: Forrester Savell (City Of Souls)|12: Leon Schmidt (SUNBORN)|13: Ermin Hamidovic (Benchmark)|14: Will Putney (Fit For An Autopsy)|15: George Lever (Loathe / Sleep Token)|16: Sam Bassal (Thornhill)|17: Henrik Udd (Architects)|18: Dan Braunstein (Spiritbox)|19: Zakk Cervini (Bad Omens)|20: Jens Bogren (Fascination Street)|21: Adam Nolly Getgood (Periphery)|22: Acle Kahney (TesseracT)|23: Adam Cichocki (heaving.)|24: Manuel Renner (SENNA - Out Of The Blue)|25: Matt Thomas (Ashtone - Live Room Authority)|26: Mark Williamson (Sugarhouse - Live Cohesion)");
+    b_choice > 0 ? (
+      slider16 = b_choice - 1; last_preset = slider16; apply_producer_preset(slider16); sliderchange(slider16);
+    );
+  );
+
+  // Dynamic Auto-Scaling Preset String
+  get_producer_name(slider16, #p_str);
+  p_font_sz = 11.5;
+  gfx_setfont(1, "Consolas", p_font_sz, 'b');
+  gfx_measurestr(#p_str, pnw, pnh);
+  while (pnw > p_box_w - 52 && p_font_sz > 9.0) (
+    p_font_sz -= 0.5;
+    gfx_setfont(1, "Consolas", p_font_sz, 'b');
+    gfx_measurestr(#p_str, pnw, pnh);
+  );
+  set_c(0x40ffb0);
+  gfx_x = p_box_x + (p_box_w - pnw) * 0.5; gfx_y = p_box_y + 7; gfx_drawstr(#p_str);
+
+  // Right Header Status Pill: Bass Bus Link Pill
+  bus_sync = (gmem[860] == 1);
+  sync_w = 120; sync_x = 668; sync_y = hdr_y + 7;
+  set_c(bus_sync ? 0x062418 : 0x0c1218); gfx_rect(sync_x, sync_y, sync_w, 28);
+  set_c(bus_sync ? 0x0fe080 : 0x183028); gfx_rect(sync_x, sync_y, sync_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 10, 'b'); set_c(bus_sync ? 0x26f599 : 0x8aa8a0);
+  sync_lbl = bus_sync ? "● BUS: LINKED" : "○ STANDALONE";
+  gfx_measurestr(sync_lbl, sw, sh);
+  gfx_x = sync_x + (sync_w - sw) * 0.5; gfx_y = sync_y + 7; gfx_drawstr(sync_lbl);
+
+  // Right Header Button: [ FORENSIC BAKED ] Mode Toggle
+  is_baked = (slider17 == 0);
+  bf_btn_w = 132; bf_btn_x = 794; bf_btn_y = hdr_y + 7;
+  bf_hov = (mouse_x >= bf_btn_x && mouse_x <= bf_btn_x + bf_btn_w && mouse_y >= bf_btn_y && mouse_y <= bf_btn_y + 28);
+  set_c(is_baked ? 0x2e2308 : (bf_hov ? 0x141e24 : 0x081014)); gfx_rect(bf_btn_x, bf_btn_y, bf_btn_w, 28);
+  set_c(is_baked ? 0xd9ae33 : (bf_hov ? 0x26f599 : 0x14523a)); gfx_rect(bf_btn_x, bf_btn_y, bf_btn_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(is_baked ? 0xd9ae33 : (bf_hov ? 0xedf1f7 : 0x8aa8a0));
+  bf_lbl = is_baked ? "[ FORENSIC BAKED ]" : "STEM: STANDARD";
+  gfx_measurestr(bf_lbl, bfw, bfh);
+  gfx_x = bf_btn_x + (bf_btn_w - bfw) * 0.5; gfx_y = bf_btn_y + 8; gfx_drawstr(bf_lbl);
+  (mouse_clicked && bf_hov) ? (
+    slider17 = (slider17 == 0 ? 1 : 0); last_mode = slider17; apply_source_mode(slider17); sliderchange(slider17);
+  );
+
+  // Right Header Button: Audition Mode Toggle
+  aud_w = 134; aud_x = 932; aud_y = hdr_y + 7;
+  aud_hov = (mouse_x >= aud_x && mouse_x <= aud_x + aud_w && mouse_y >= aud_y && mouse_y <= aud_y + 28);
+  set_c(slider15 > 0 ? 0xd9ae33 : (aud_hov ? 0x143c32 : 0x071412)); gfx_rect(aud_x, aud_y, aud_w, 28);
+  set_c(slider15 > 0 ? 0xffea70 : 0x0fe080); gfx_rect(aud_x, aud_y, aud_w, 28, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(slider15 > 0 ? 0x050709 : 0x26f599);
+  aud_lbl = slider15 == 0 ? "LISTEN: RIDER OUT" : slider15 == 1 ? "SOLO: DETECTOR" : "DELTA: RIDE GAIN";
+  gfx_measurestr(aud_lbl, aw, ah);
+  gfx_x = aud_x + (aud_w - aw) * 0.5; gfx_y = aud_y + 8; gfx_drawstr(aud_lbl);
+  (mouse_clicked && aud_hov) ? (
+    slider15 = (slider15 + 1) % 3; sliderchange(slider15);
+  );
+
+  // =============================================================================
+  // 3. TOP TELEMETRY CARDS (4 CARDS ACROSS SCREEN, Y=66, H=68)
+  // =============================================================================
+  card_y = 66; card_h = 68;
+  card_gap = 10;
+  card_w = 255;
+  crt_x = 15;
+
+  // Card 1: Input Note Level
+  c1_x = crt_x;
+  set_c(0x070d10); gfx_rect(c1_x, card_y, card_w, card_h);
+  set_c(0x14523a); gfx_rect(c1_x, card_y, card_w, card_h, 0);
+  set_c(0x0fe080);
+  gfx_line(c1_x, card_y, c1_x + 6, card_y); gfx_line(c1_x, card_y, c1_x, card_y + 6);
+  gfx_line(c1_x + card_w - 1, card_y, c1_x + card_w - 7, card_y); gfx_line(c1_x + card_w - 1, card_y, c1_x + card_w - 1, card_y + 6);
+
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0x00ebd9);
+  gfx_x = c1_x + 10; gfx_y = card_y + 7; gfx_drawstr("INPUT NOTE LEVEL");
+
+  gfx_setfont(1, "Orbitron", 18, 'b');
+  set_c(sifam_in_db > -3.0 ? 0xf03344 : (sifam_in_db > -12.0 ? 0x0fe080 : 0x00ebd9));
+  in_txt = sprintf(#, "%+.1f dBFS", sifam_in_db);
+  gfx_x = c1_x + 10; gfx_y = card_y + 26; gfx_drawstr(in_txt);
+
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x00ebd9);
+  gfx_x = c1_x + 10; gfx_y = card_y + 49;
+  gfx_printf("IDLE FLOOR: %.1f dB | OUT: %.1fdB", slider4, sifam_out_db);
+
+  // Card 2: AI Bass Rider & Sweetspot Deck
+  c2_x = crt_x + card_w + card_gap;
+  set_c(0x070d10); gfx_rect(c2_x, card_y, card_w, card_h);
+  set_c(0x0fe080); gfx_rect(c2_x, card_y, card_w, card_h, 0);
+  set_c(0x0fe080);
+  gfx_line(c2_x, card_y, c2_x + 6, card_y); gfx_line(c2_x, card_y, c2_x, card_y + 6);
+  gfx_line(c2_x + card_w - 1, card_y, c2_x + card_w - 7, card_y); gfx_line(c2_x + card_w - 1, card_y, c2_x + card_w - 1, card_y + 6);
+
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0x0fe080);
+  gfx_x = c2_x + 8; gfx_y = card_y + 7; gfx_drawstr("● AI BASS RIDER");
+
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x26f599);
+  lock_txt = sprintf(#, "LOCK: %.1f%%", consistency_pct);
+  gfx_measurestr(lock_txt, lkw, lkh);
+  gfx_x = c2_x + card_w - lkw - 8; gfx_y = card_y + 7; gfx_drawstr(lock_txt);
+
+  // Interactive Button: [ ★ AI AUTO-SWEETSPOT ]
+  ai_btn_w = card_w - 16; ai_btn_h = 24;
+  ai_btn_x = c2_x + 8; ai_btn_y = card_y + 23;
+  ai_btn_hov = (mouse_x >= ai_btn_x && mouse_x <= ai_btn_x + ai_btn_w && mouse_y >= ai_btn_y && mouse_y <= ai_btn_y + ai_btn_h);
+  set_c(ai_btn_hov ? 0x143c32 : 0x0a241a); gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h);
+  set_c(0x0fe080); gfx_rect(ai_btn_x, ai_btn_y, ai_btn_w, ai_btn_h, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(0xedf1f7);
+  ai_txt = sprintf(#, "★ AI AUTO-SWEETSPOT (TGT: %.1fdB)", slider1);
+  gfx_measurestr(ai_txt, abw, abh);
+  gfx_x = ai_btn_x + (ai_btn_w - abw) * 0.5; gfx_y = ai_btn_y + 5; gfx_drawstr(ai_txt);
+  (mouse_clicked && ai_btn_hov) ? (
+    sifam_in_db > -45.0 ? (
+      slider1 = clamp(floor(sifam_in_db * 2.0 + 0.5) * 0.5, -24.0, -8.0);
+      sliderchange(slider1);
+    );
+  );
+
+  // Live Status Line
+  gfx_setfont(2, "Consolas", 10.5, 'b');
+  gfx_x = c2_x + 8; gfx_y = card_y + 50;
+  sifam_in_db < -55.0 ? (
+    set_c(0x8aa8a0); gfx_drawstr("STATUS: IDLE // AWAITING BASS NOTE");
+  ) : abs(sifam_in_db + rider_db - slider1) < 1.5 ? (
+    set_c(0x0fe080); gfx_drawstr("STATUS: NOTE ENVELOPE LOCKED");
+  ) : rider_db >= slider2 - 0.5 ? (
+    set_c(0xd9ae33); gfx_drawstr("STATUS: MAX BOOST RIDE REACHED");
+  ) : rider_db <= slider3 + 0.5 ? (
+    set_c(0xf03344); gfx_drawstr("STATUS: MAX CUT RIDE REACHED");
+  ) : (
+    set_c(0x00ebd9); gfx_drawstr("STATUS: LEVELING IN POCKET");
+  );
+
+  // Card 3: Motorized Gain Ride
+  c3_x = crt_x + (card_w + card_gap) * 2;
+  set_c(0x070d10); gfx_rect(c3_x, card_y, card_w, card_h);
+  set_c(0x14523a); gfx_rect(c3_x, card_y, card_w, card_h, 0);
+  set_c(0x0fe080);
+  gfx_line(c3_x, card_y, c3_x + 6, card_y); gfx_line(c3_x, card_y, c3_x, card_y + 6);
+  gfx_line(c3_x + card_w - 1, card_y, c3_x + card_w - 7, card_y); gfx_line(c3_x + card_w - 1, card_y, c3_x + card_w - 1, card_y + 6);
+
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0x0fe080);
+  gfx_x = c3_x + 10; gfx_y = card_y + 7; gfx_drawstr("MOTORIZED GAIN RIDE");
+
+  gfx_setfont(1, "Orbitron", 18, 'b');
+  set_c(rider_db >= 0 ? 0x0fe080 : 0xd9ae33);
+  ride_txt = sprintf(#, "RIDE: %+.1f dB", rider_db);
+  gfx_x = c3_x + 10; gfx_y = card_y + 26; gfx_drawstr(ride_txt);
+
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x40ffb0);
+  gfx_x = c3_x + 10; gfx_y = card_y + 49;
+  gfx_printf("RANGE: %.1f to +%.1fdB", slider3, slider2);
+
+  // Card 4: Sub Weight & Guard
+  c4_x = crt_x + (card_w + card_gap) * 3;
+  set_c(0x070d10); gfx_rect(c4_x, card_y, card_w, card_h);
+  set_c(0x14523a); gfx_rect(c4_x, card_y, card_w, card_h, 0);
+  set_c(0x00ebd9);
+  gfx_line(c4_x, card_y, c4_x + 6, card_y); gfx_line(c4_x, card_y, c4_x, card_y + 6);
+  gfx_line(c4_x + card_w - 1, card_y, c4_x + card_w - 7, card_y); gfx_line(c4_x + card_w - 1, card_y, c4_x + card_w - 1, card_y + 6);
+
+  gfx_setfont(1, "Orbitron", 11.5, 'b'); set_c(0x00ebd9);
+  gfx_x = c4_x + 10; gfx_y = card_y + 7; gfx_drawstr("SUB WEIGHT & GUARD");
+
+  gfx_setfont(1, "Orbitron", 18, 'b'); set_c(0x00ebd9);
+  sub_txt = sprintf(#, "SUB: %+.1f dB", slider10);
+  gfx_x = c4_x + 10; gfx_y = card_y + 26; gfx_drawstr(sub_txt);
+
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x00ebd9);
+  gfx_x = c4_x + 10; gfx_y = card_y + 49;
+  gfx_printf("PLUCK: %d%% | KEY: %dHz", slider9, slider8);
+
+  // =============================================================================
+  // 4. CENTER SCROLLING NOTE-ENVELOPE & RIDER RADAR SCOPE (Y=138, H=148)
+  // =============================================================================
+  sc_x = 14; sc_y = 138; sc_w = gfx_w - 28; sc_h = 148;
+  draw_darkglass_panel(sc_x, sc_y, sc_w, sc_h, "REAL-TIME NOTE LEVELER & RIDER GAIN RADAR SCOPE", sprintf(#, "TARGET: %+.1f dBFS  |  GAIN RIDE: %+.1f dB", slider1, rider_db));
+
+  plot_x = sc_x + 8; plot_y = sc_y + 28; plot_w = sc_w - 16; plot_h = sc_h - 34;
+  set_c(0x04070a); gfx_rect(plot_x, plot_y, plot_w, plot_h);
+  set_c(0x144030); gfx_rect(plot_x, plot_y, plot_w, plot_h, 0);
+
+  // Darkglass Emerald & Cyan Grid
+  set_ca(0x0e3026, 0.40);
+  gfx_line(plot_x, plot_y + floor(plot_h * 0.25), plot_x + plot_w, plot_y + floor(plot_h * 0.25));
+  gfx_line(plot_x, plot_y + floor(plot_h * 0.75), plot_x + plot_w, plot_y + floor(plot_h * 0.75));
+
+  // Sweet Spot Corridor (0x0fe080)
+  y_tgt = plot_y + clamp((-slider1 / 60.0), 0.08, 0.90) * plot_h;
+  set_ca(0x0fe080, 0.16); gfx_rect(plot_x + 1, y_tgt - 8, plot_w - 2, 16);
+  set_ca(0x0fe080, 0.85); gfx_line(plot_x, y_tgt, plot_x + plot_w, y_tgt);
+  gfx_setfont(2, "Consolas", 9.5, 'b'); set_c(0x0fe080);
+  gfx_x = plot_x + 8; gfx_y = y_tgt - 12; gfx_printf("SWEET SPOT CORRIDOR: %2.1f dBFS", slider1);
+
+  // Idle Gate Floor (0xf03344)
+  y_sens = plot_y + clamp((-slider4 / 60.0), 0.10, 0.95) * plot_h;
+  set_ca(0xf03344, 0.65); gfx_line(plot_x, y_sens, plot_x + plot_w, y_sens);
+  set_c(0xf03344); gfx_x = plot_x + plot_w - 210; gfx_y = y_sens - 12; gfx_printf("IDLE GATE FLOOR: %2.1f dBFS", slider4);
+
+  // Center 0 dB Gain Ride Reference Line
+  y_zero = plot_y + plot_h * 0.5;
+  set_ca(0xd9ae33, 0.22); gfx_line(plot_x, y_zero, plot_x + plot_w, y_zero);
+  set_c(0xd9ae33); gfx_x = plot_x + 8; gfx_y = y_zero + 2; gfx_drawstr("0 dB RIDE REFERENCE");
+
+  // Trace Rendering Loop
+  i = 0;
+  loop(SCOPE_SIZE - 1,
+    idx0 = (scope_ptr + i) % SCOPE_SIZE;
+    idx1 = (scope_ptr + i + 1) % SCOPE_SIZE;
+    px0 = plot_x + (i / (SCOPE_SIZE - 1)) * plot_w;
+    px1 = plot_x + ((i + 1) / (SCOPE_SIZE - 1)) * plot_w;
+
+    // Input Note Envelope (Cyan 0x00ebd9)
+    in_y0 = plot_y + plot_h - SCOPE_IN[idx0] * (plot_h - 8);
+    set_ca(0x00ebd9, 0.20);
+    gfx_line(px0, plot_y + plot_h, px0, in_y0);
+
+    // Leveled Output Envelope (Darkglass Emerald 0x0fe080)
+    out_y0 = plot_y + plot_h - SCOPE_OUT[idx0] * (plot_h - 8);
+    out_y1 = plot_y + plot_h - SCOPE_OUT[idx1] * (plot_h - 8);
+    set_ca(0x0fe080, 0.90);
+    gfx_line(px0, out_y0, px1, out_y1);
+    set_ca(0x26f599, 0.40);
+    gfx_line(px0, out_y0 - 1, px1, out_y1 - 1);
+
+    // Live Motorized Rider Gain Trace (Gold 0xd9ae33)
+    ry0 = y_zero - (SCOPE_RIDE[idx0] / 15.0) * (plot_h * 0.42);
+    ry1 = y_zero - (SCOPE_RIDE[idx1] / 15.0) * (plot_h * 0.42);
+    set_ca(0xd9ae33, 0.95);
+    gfx_line(px0, ry0, px1, ry1);
+    set_ca(0xffea70, 0.50);
+    gfx_line(px0, ry0 - 1, px1, ry1 - 1);
+
+    i += 1;
+  );
+
+  // =============================================================================
+  // 5. SIGNATURE MOTORIZED HORIZONTAL HARDWARE FADER BAR (Y=292, H=38)
+  // =============================================================================
+  mf_x = 14; mf_y = 292; mf_w = gfx_w - 28; mf_h = 38;
+  set_c(0x070c0e); gfx_rect(mf_x, mf_y, mf_w, mf_h);
+  set_c(0x14523a); gfx_rect(mf_x, mf_y, mf_w, mf_h, 0);
+
+  set_c(0x0fe080);
+  gfx_line(mf_x, mf_y, mf_x + 6, mf_y); gfx_line(mf_x, mf_y, mf_x, mf_y + 6);
+  gfx_line(mf_x + mf_w - 1, mf_y, mf_x + mf_w - 7, mf_y); gfx_line(mf_x + mf_w - 1, mf_y, mf_x + mf_w - 1, mf_y + 6);
+  gfx_line(mf_x, mf_y + mf_h - 1, mf_x + 6, mf_y + mf_h - 1); gfx_line(mf_x, mf_y + mf_h - 1, mf_x, mf_y + mf_h - 7);
+  gfx_line(mf_x + mf_w - 1, mf_y + mf_h - 1, mf_x + mf_w - 7, mf_y + mf_h - 1); gfx_line(mf_x + mf_w - 1, mf_y + mf_h - 1, mf_x + mf_w - 1, mf_y + mf_h - 7);
+
+  gfx_setfont(1, "Orbitron", 11, 'b'); set_c(0xd9ae33);
+  gfx_x = mf_x + 14; gfx_y = mf_y + 13; gfx_drawstr("MOTORIZED RIDER FADER:");
+
+  // Fader Track (-15 dB to +15 dB)
+  trk_x = mf_x + 230; trk_w = mf_w - 380; trk_y = mf_y + 19;
+  set_c(0x030608); gfx_rect(trk_x, trk_y - 6, trk_w, 12);
+  set_c(0x143c32); gfx_rect(trk_x, trk_y - 6, trk_w, 12, 0);
+
+  // Tick marks
+  tick_i = -3;
+  loop(7,
+    tdb = tick_i * 5;
+    tx = trk_x + (tick_i + 3) / 6.0 * trk_w;
+    set_c(tdb == 0 ? 0xd9ae33 : 0x184838);
+    gfx_line(tx, trk_y - 9, tx, trk_y + 9);
+    tick_i += 1;
+  );
+
+  // Active Min/Max Corridor Highlight
+  min_x = trk_x + clamp((slider3 + 15.0) / 30.0, 0.0, 1.0) * trk_w;
+  max_x = trk_x + clamp((slider2 + 15.0) / 30.0, 0.0, 1.0) * trk_w;
+  zero_x = trk_x + 0.5 * trk_w;
+  set_ca(0x00ebd9, 0.16); gfx_rect(min_x, trk_y - 5, max_x - min_x, 10);
+  set_c(0xf03344); gfx_line(min_x, trk_y - 9, min_x, trk_y + 9);
+  set_c(0x0fe080); gfx_line(max_x, trk_y - 9, max_x, trk_y + 9);
+  set_c(0xd9ae33); gfx_line(zero_x, trk_y - 10, zero_x, trk_y + 10);
+
+  // Dynamic Boost/Cut Gain Bar from 0 dB to live rider_db
+  cap_x = trk_x + clamp((rider_db + 15.0) / 30.0, 0.02, 0.98) * trk_w;
+  rider_db >= 0 ? (
+    set_ca(0x0fe080, 0.80);
+    gfx_rect(zero_x, trk_y - 4, cap_x - zero_x, 8);
+  ) : (
+    set_ca(0xd9ae33, 0.80);
+    gfx_rect(cap_x, trk_y - 4, zero_x - cap_x, 8);
+  );
+
+  // Motorized Hardware Fader Cap (Gold 0xd9ae33)
+  set_c(0xd9ae33); gfx_rect(cap_x - 9, trk_y - 12, 18, 24);
+  set_c(0x070c0e); gfx_rect(cap_x - 7, trk_y - 10, 14, 20);
+  set_c(0xd9ae33); gfx_line(cap_x, trk_y - 8, cap_x, trk_y + 8);
+
+  // Live Gain Readout Pill on Right
+  pill_w = 134; pill_h = 26;
+  pill_x = mf_x + mf_w - pill_w - 8; pill_y = mf_y + 6;
+  set_c(0x070d10); gfx_rect(pill_x, pill_y, pill_w, pill_h);
+  set_c(0xd9ae33); gfx_rect(pill_x, pill_y, pill_w, pill_h, 0);
+  gfx_setfont(2, "Consolas", 11.5, 'b'); set_c(rider_db >= 0 ? 0x0fe080 : 0xd9ae33);
+  pill_txt = sprintf(#, "RIDE: %+2.1f dB", rider_db);
+  gfx_measurestr(pill_txt, ptw, pth);
+  gfx_x = pill_x + (pill_w - ptw) * 0.5; gfx_y = pill_y + 6;
+  gfx_drawstr(pill_txt);
+
+  // =============================================================================
+  // 6. SOURCE STEM PROFILE SELECTOR BAR (Y=336, H=28)
+  // =============================================================================
+  by = 336; bh = 28;
+  bw = floor((gfx_w - 28 - 18) / 4);
+  m_names_0 = "PRINTED AMP/CAB STEM";
+  m_names_1 = "CLEAN BASS DI";
+  m_names_2 = "HEAVY GRIT STEM";
+  m_names_3 = "HARMONIC HIT / SWELL";
+  mi = 0;
+  loop(4,
+    bx = 14 + mi * (bw + 6);
+    bhov = (mouse_x >= bx && mouse_x <= bx + bw && mouse_y >= by && mouse_y <= by + bh);
+    bsel = (slider17 == mi);
+    set_c(bsel ? (mi == 0 ? 0x2e2308 : 0x0b2c20) : (bhov ? 0x0f1a20 : 0x070d10)); gfx_rect(bx, by, bw, bh);
+    set_c(bsel ? (mi == 0 ? 0xd9ae33 : 0x0fe080) : (bhov ? 0x26f599 : 0x14523a)); gfx_rect(bx, by, bw, bh, 0);
+    gfx_setfont(1, "Orbitron", 9.5, 'b');
+    set_c(bsel ? (mi == 0 ? 0xd9ae33 : 0x26f599) : (bhov ? 0xedf1f7 : 0x8aa8a0));
+    mlbl = (mi == 0 ? m_names_0 : mi == 1 ? m_names_1 : mi == 2 ? m_names_2 : m_names_3);
+    gfx_measurestr(mlbl, tw, th);
+    gfx_x = bx + (bw - tw) * 0.5; gfx_y = by + (bh - th) * 0.5;
+    gfx_drawstr(mlbl);
+    (mouse_clicked && bhov) ? (
+      slider17 = mi; last_mode = mi; apply_source_mode(mi); sliderchange(slider17);
+    );
+    mi += 1;
+  );
+
+  // =============================================================================
+  // 7. THREE MAIN DSP CONTROL DECKS (Y=370, H=312)
+  // =============================================================================
+  d_y = 370; d_h = 312;
+  deck_gap = 10;
+  deck_w = floor((gfx_w - 28 - deck_gap * 2) / 3); // 344px
+
+  // ---------------------------------------------------------------------------
+  // Deck 1: Rider Target & Range (Sweet Spot)
+  // ---------------------------------------------------------------------------
+  d1_x = 14;
+  draw_darkglass_panel(d1_x, d_y, deck_w, d_h, "1. RIDER TARGET & RANGE", "SWEET SPOT");
+
+  draw_darkglass_knob(1, d1_x + 58,  d_y + 70,  24, slider1, -30, -3,  0.5, "TARGET LVL",  sprintf(#, "%.1fdB", slider1), 0x0fe080);
+  draw_darkglass_knob(2, d1_x + 172, d_y + 70,  24, slider2, 0,   15,  0.5, "MAX BOOST",   sprintf(#, "+%.1fdB", slider2), 0x0fe080);
+  draw_darkglass_knob(3, d1_x + 286, d_y + 70,  24, slider3, -18, 0,   0.5, "MAX CUT",     sprintf(#, "%.1fdB", slider3), 0xf03344);
+
+  draw_darkglass_knob(4, d1_x + 58,  d_y + 162, 24, slider4, -70, -20, 0.5, "SENSITIVITY", sprintf(#, "%.1fdB", slider4), 0x00ebd9);
+  draw_darkglass_knob(8, d1_x + 172, d_y + 162, 24, slider8, 80,  600, 5,   "FUNDAMENTAL", sprintf(#, "%dHz", slider8), 0x00ebd9);
+  draw_darkglass_knob(9, d1_x + 286, d_y + 162, 24, slider9, 0,   100, 1,   "PLUCK GUARD", sprintf(#, "%d%%", slider9), 0xd9ae33);
+
+  // Deck 1 Bottom Infobox
+  b1_x = d1_x + 12; b1_y = d_y + 236; b1_w = deck_w - 24; b1_h = 62;
+  set_c(0x070d10); gfx_rect(b1_x, b1_y, b1_w, b1_h);
+  set_c(0x14523a); gfx_rect(b1_x, b1_y, b1_w, b1_h, 0);
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x0fe080);
+  gfx_x = b1_x + 12; gfx_y = b1_y + 8; gfx_drawstr("ZERO-DISTORTION FADER LEVELING");
+  set_c(0x8aa8a0);
+  gfx_x = b1_x + 12; gfx_y = b1_y + 25; gfx_drawstr("Rides note-by-note fundamental RMS without");
+  gfx_x = b1_x + 12; gfx_y = b1_y + 41; gfx_drawstr("flattening pick snap or raising idle hum.");
+
+  // ---------------------------------------------------------------------------
+  // Deck 2: Note Tracking Ballistics (Envelope)
+  // ---------------------------------------------------------------------------
+  d2_x = 14 + deck_w + deck_gap; // 368
+  draw_darkglass_panel(d2_x, d_y, deck_w, d_h, "2. NOTE TRACKING BALLISTICS", "ENVELOPE");
+
+  draw_darkglass_knob(5,  d2_x + 58,  d_y + 70,  24, slider5,  5,   150, 1,   "RIDE SPEED",  sprintf(#, "%dms", slider5), 0x0fe080);
+  draw_darkglass_knob(6,  d2_x + 172, d_y + 70,  24, slider6,  10,  300, 5,   "NOTE HOLD",   sprintf(#, "%dms", slider6), 0x00ebd9);
+  draw_darkglass_knob(7,  d2_x + 286, d_y + 70,  24, slider7,  30,  800, 5,   "PHRASE REL",  sprintf(#, "%dms", slider7), 0x00ebd9);
+
+  draw_darkglass_knob(10, d2_x + 58,  d_y + 162, 24, slider10, -6,  6,   0.1, "SUB WEIGHT",  sprintf(#, "%+.1fdB", slider10), 0x0fe080);
+  draw_darkglass_knob(11, d2_x + 172, d_y + 162, 24, slider11, -12, 0,   0.1, "SPIKE CEIL",  sprintf(#, "%.1fdB", slider11), 0xf03344);
+  draw_darkglass_knob(14, d2_x + 286, d_y + 162, 24, slider14, 0,   100, 1,   "DRY / WET",   sprintf(#, "%d%%", slider14), 0x0fe080);
+
+  // Deck 2 Bottom Infobox
+  b2_x = d2_x + 12; b2_y = d_y + 236; b2_w = deck_w - 24; b2_h = 62;
+  set_c(0x070d10); gfx_rect(b2_x, b2_y, b2_w, b2_h);
+  set_c(0x14523a); gfx_rect(b2_x, b2_y, b2_w, b2_h, 0);
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0xd9ae33);
+  gfx_x = b2_x + 12; gfx_y = b2_y + 8; gfx_drawstr("IDLE NOISE & FRET-BUZZ IMMUNITY");
+  set_c(0x8aa8a0);
+  gfx_x = b2_x + 12; gfx_y = b2_y + 25; gfx_drawstr("Dual fast/slow detector locks fader on onset;");
+  gfx_x = b2_x + 12; gfx_y = b2_y + 41; gfx_drawstr("smoothly parks at 0dB unity between phrases.");
+
+  // ---------------------------------------------------------------------------
+  // Deck 3: Printed-Stem Staging (Calibration & Phase)
+  // ---------------------------------------------------------------------------
+  d3_x = d2_x + deck_w + deck_gap; // 722
+  draw_darkglass_panel(d3_x, d_y, deck_w, d_h, "3. PRINTED-STEM STAGING", "CALIBRATION");
+
+  draw_darkglass_knob(12, d3_x + 95,  d_y + 76,  28, slider12, -18, 18, 0.1, "INPUT GAIN",  sprintf(#, "%+.1fdB", slider12), 0x00ebd9);
+  draw_darkglass_knob(13, d3_x + 249, d_y + 76,  28, slider13, -18, 18, 0.1, "OUTPUT TRIM", sprintf(#, "%+.1fdB", slider13), 0x0fe080);
+
+  // Interactive Phase Polarity Toggle Button
+  pol_bx = d3_x + 16; pol_bw = 148; pol_by = d_y + 160; pol_bh = 36;
+  pol_hov = (mouse_x >= pol_bx && mouse_x <= pol_bx + pol_bw && mouse_y >= pol_by && mouse_y <= pol_by + pol_bh);
+  set_c(slider18 ? 0x2e2308 : (pol_hov ? 0x141e24 : 0x070d10)); gfx_rect(pol_bx, pol_by, pol_bw, pol_bh);
+  set_c(slider18 ? 0xd9ae33 : (pol_hov ? 0x26f599 : 0x14523a)); gfx_rect(pol_bx, pol_by, pol_bw, pol_bh, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(slider18 ? 0xd9ae33 : 0x26f599);
+  pol_lbl = slider18 ? "PHASE: 180° INV" : "PHASE: 0° NORM";
+  gfx_measurestr(pol_lbl, plw, plh);
+  gfx_x = pol_bx + (pol_bw - plw) * 0.5; gfx_y = pol_by + 11; gfx_drawstr(pol_lbl);
+  (mouse_clicked && pol_hov) ? (
+    slider18 = 1 - slider18; update_coeffs(); sliderchange(slider18);
+  );
+
+  // Interactive Auto-Sweetspot Button
+  cal_bx = d3_x + 180; cal_bw = 148; cal_by = d_y + 160; cal_bh = 36;
+  cal_hov = (mouse_x >= cal_bx && mouse_x <= cal_bx + cal_bw && mouse_y >= cal_by && mouse_y <= cal_by + cal_bh);
+  set_c(cal_hov ? 0x0f2a20 : 0x081814); gfx_rect(cal_bx, cal_by, cal_bw, cal_bh);
+  set_c(0x0fe080); gfx_rect(cal_bx, cal_by, cal_bw, cal_bh, 0);
+  gfx_setfont(1, "Orbitron", 9.5, 'b'); set_c(0x0fe080);
+  cal_lbl = "★ AUTO-SWEETSPOT";
+  gfx_measurestr(cal_lbl, clw, clh);
+  gfx_x = cal_bx + (cal_bw - clw) * 0.5; gfx_y = cal_by + 11; gfx_drawstr(cal_lbl);
+  (mouse_clicked && cal_hov) ? (
+    sifam_in_db > -45.0 ? (
+      slider1 = clamp(floor(sifam_in_db * 2.0 + 0.5) * 0.5, -24.0, -8.0);
+      sliderchange(slider1);
+    );
+  );
+
+  // Deck 3 Bottom Infobox
+  b3_x = d3_x + 12; b3_y = d_y + 236; b3_w = deck_w - 24; b3_h = 62;
+  set_c(0x070d10); gfx_rect(b3_x, b3_y, b3_w, b3_h);
+  set_c(0x14523a); gfx_rect(b3_x, b3_y, b3_w, b3_h, 0);
+  gfx_setfont(2, "Consolas", 10.5, 'b'); set_c(0x0fe080);
+  gfx_x = b3_x + 12; gfx_y = b3_y + 8;
+  gfx_printf("OUT RMS: %2.1f dBFS  |  LOCK: %2.1f%%", sifam_out_db, consistency_pct);
+  set_c(0x8aa8a0);
+  gfx_x = b3_x + 12; gfx_y = b3_y + 25; gfx_drawstr("Calibrates gain staging and feeds leveled,");
+  gfx_x = b3_x + 12; gfx_y = b3_y + 41; gfx_drawstr("phase-aligned sub energy directly to Bass Bus.");
